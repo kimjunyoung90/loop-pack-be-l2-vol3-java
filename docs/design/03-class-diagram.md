@@ -8,8 +8,6 @@ classDiagram
         -Long id
         -String name
         -UserRole role
-        -LocalDateTime createdAt
-        -LocalDateTime updatedAt
     }
 
     class UserRole {
@@ -21,11 +19,7 @@ classDiagram
     class Brand {
         -Long id
         -String name
-        -LocalDateTime createdAt
-        -LocalDateTime updatedAt
         -boolean isDeleted
-        +softDelete()
-        +isDeleted() boolean
     }
 
     class Product {
@@ -36,35 +30,19 @@ classDiagram
         -int stockQuantity
         -int reservedQuantity
         -int likeCount
-        -LocalDateTime createdAt
-        -LocalDateTime updatedAt
         -boolean isDeleted
-        +reserve(quantity)
-        +confirmReservation(quantity)
-        +cancelReservation(quantity)
-        +restoreStock(quantity)
-        +getAvailableQuantity() int
-        +increaseLikeCount()
-        +decreaseLikeCount()
-        +softDelete()
     }
 
     class ProductLike {
         -Long id
         -Long userId
         -Long productId
-        -LocalDateTime createdAt
     }
 
     class Order {
         -Long id
         -Long userId
         -OrderStatus status
-        -LocalDateTime orderedAt
-        -LocalDateTime updatedAt
-        +confirm()
-        +cancel()
-        +isExpired(timeout) boolean
     }
 
     class OrderItem {
