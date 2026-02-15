@@ -1,17 +1,18 @@
 package com.loopers.user.domain;
 
-import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.Test;
-
-import java.util.Set;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 class UserTest {
 
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     @Test
-    void 비밀번호에_생년월일이_포함되면_예외가_발생한다() {
+    void 비밀번호에_생년월일이_포함되면_IllegalArgumentException_예외가_발생한다() {
         //given
         String password = "1990-01-01!";
         String date = "1990-01-01";
@@ -28,6 +29,26 @@ class UserTest {
 
         //then
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 사용자_생성시_비밀번호는_암호화되어_저장된다() {
+        //given
+        String rawPassword = "password123";
+        User user = User.builder()
+                .loginId(null)
+                .password(rawPassword)
+                .name(null)
+                .birthDate(null)
+                .email(null)
+                .build();
+
+        //when
+        user.setPassword(rawPassword, passwordEncoder);
+
+        //then
+        assertThat(user.getPassword()).isNotEqualTo(rawPassword);
+        assertThat(passwordEncoder.matches(rawPassword, user.getPassword())).isTrue();
     }
 
     @Test

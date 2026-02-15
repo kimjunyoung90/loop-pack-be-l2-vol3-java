@@ -2,6 +2,7 @@ package com.loopers.user.domain;
 
 import com.loopers.domain.BaseEntity;
 import jakarta.persistence.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -48,6 +49,10 @@ public class User extends BaseEntity {
     public void changePassword(String newPassword) {
         Assert.hasText(newPassword, "새 비밀번호는 필수입니다");
         this.password = newPassword;
+    }
+
+    public void setPassword(String password, PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(password);
     }
 
     public void setPassword(String password, String birthDate) {
