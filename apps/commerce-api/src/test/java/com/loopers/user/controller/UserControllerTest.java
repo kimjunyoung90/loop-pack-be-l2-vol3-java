@@ -75,10 +75,11 @@ public class UserControllerTest {
     }
 
     @Test
-    void 생년월일_형식_오류_시_400_Bad_Request_반환() throws Exception {
+    void 생년월일_형식_오류시_응답코드_400을_반환한다() throws Exception {
         //given
+        String birthDate = "1990-0427";
         CreateUserRequest request = new CreateUserRequest(
-                "testId", "password123!", "김준영", "1990-0427", "test@test.com"
+                "testId", "password123!", "김준영", birthDate, "test@test.com"
         );
 
         //when
