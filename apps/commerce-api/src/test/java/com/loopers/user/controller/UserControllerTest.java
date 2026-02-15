@@ -57,7 +57,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void 이메일_형식이_상이하면_응답코드_400을_반환한다() throws Exception {
+    void 이메일_형식이_오류시_응답코드_400을_반환한다() throws Exception {
         //given
         String email = "testtest.com";
         CreateUserRequest request = new CreateUserRequest(
