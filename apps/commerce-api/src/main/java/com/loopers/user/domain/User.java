@@ -52,6 +52,7 @@ public class User extends BaseEntity {
     }
 
     public void setPassword(String password, PasswordEncoder passwordEncoder) {
+        if (password.length() < 8 || password.length() > 16) throw new IllegalArgumentException();
         this.password = passwordEncoder.encode(password);
     }
 

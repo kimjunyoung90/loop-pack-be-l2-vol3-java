@@ -12,6 +12,72 @@ class UserTest {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Test
+    void 비밀번호가_7자이면_IllegalArgumentException_예외가_발생한다() {
+        String password = "1234567";
+        User user = User.builder()
+                .loginId(null)
+                .password(password)
+                .name(null)
+                .birthDate(null)
+                .email(null)
+                .build();
+
+        //when
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+
+        //then
+        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 비밀번호가_17자이면_IllegalArgumentException_예외가_발생한다() {
+        String password = "12345678901234567";
+        User user = User.builder()
+                .loginId(null)
+                .password(password)
+                .name(null)
+                .birthDate(null)
+                .email(null)
+                .build();
+
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+
+        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 비밀번호가_8자이면_정상_입력된다() {
+        String password = "12345678";
+        User user = User.builder()
+                .loginId(null)
+                .password(password)
+                .name(null)
+                .birthDate(null)
+                .email(null)
+                .build();
+
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+
+        assertThat(thrown).isNull();
+    }
+
+    @Test
+    void 비밀번호가_16자이면_정상_입력된다() {
+        String password = "1234567890123456";
+        User user = User.builder()
+                .loginId(null)
+                .password(password)
+                .name(null)
+                .birthDate(null)
+                .email(null)
+                .build();
+
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+
+        assertThat(thrown).isNull();
+    }
+
+    @Test
     void 비밀번호에_생년월일이_포함되면_IllegalArgumentException_예외가_발생한다() {
         //given
         String password = "1990-01-01!";
