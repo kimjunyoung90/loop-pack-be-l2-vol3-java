@@ -34,7 +34,27 @@ public class UserServiceIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void 회원_가입시_User_저장이_수행된다() {
+    void 이미_가입된_ID로_회원가입시_DuplicateLoginIdException이_발생한다() {
+        //given
+        String loginId = "testuser";
+        CreateUserRequest request = new CreateUserRequest(
+                loginId, "password123!", "홍길동", "1990-04-27", "test@test.com"
+        );
+        userService.createUser(request);
+
+        //when
+        //동일한 아이디로 가입
+        CreateUserRequest duplicateRequest = new CreateUserRequest(
+                loginId, "password456!", "김철수", "1995-01-01", "other@test.com"
+        );
+        Throwable thrown = catchThrowable(() -> userService.createUser(duplicateRequest));
+
+        //then
+        assertThat(thrown).isInstanceOf(DuplicateLoginIdException.class);
+    }
+
+    @Test
+    void 존재하지_않는_ID로_회원가입시_회원가입에_성공한다() {
         //given
         CreateUserRequest request = new CreateUserRequest(
                 "testuser", "password123!", "홍길동", "1990-04-27", "test@test.com"
@@ -48,26 +68,6 @@ public class UserServiceIntegrationTest {
         assertThat(foundUser.getLoginId()).isEqualTo(request.loginId());
         assertThat(foundUser.getName()).isEqualTo(request.name());
         assertThat(foundUser.getEmail()).isEqualTo(request.email());
-    }
-
-    @Test
-    void 이미_가입된_ID로_회원가입_시도_시_DuplicateLoginIdException이_발생한다() {
-        //given
-        CreateUserRequest request = new CreateUserRequest(
-                "testuser", "password123!", "홍길동", "1990-04-27", "test@test.com"
-        );
-        //testuser 라는 ID로 가입
-        userService.createUser(request);
-
-        //when
-        //동일한 아이디로 가입하는 경우
-        CreateUserRequest duplicateRequest = new CreateUserRequest(
-                "testuser", "password456!", "김철수", "1995-01-01", "other@test.com"
-        );
-        Throwable thrown = catchThrowable(() -> userService.createUser(duplicateRequest));
-
-        //then
-        assertThat(thrown).isInstanceOf(DuplicateLoginIdException.class);
     }
 
     @Test
