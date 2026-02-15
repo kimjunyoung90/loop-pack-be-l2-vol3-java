@@ -57,10 +57,11 @@ public class UserControllerTest {
     }
 
     @Test
-    void 이메일_형식_오류_시_400_Bad_Request_반환() throws Exception {
+    void 이메일_형식이_상이하면_응답코드_400을_반환한다() throws Exception {
         //given
+        String email = "testtest.com";
         CreateUserRequest request = new CreateUserRequest(
-                "testId", "password123!", "김준영", "1990-04-27", "testtest.com"
+                "testId", "password123!", "김준영", "1990-04-27", email
         );
 
         //when
@@ -70,7 +71,7 @@ public class UserControllerTest {
         );
 
         //then
-        result.andDo(print()).andExpect(status().isBadRequest());
+        result.andExpect(status().isBadRequest());
     }
 
     @Test
