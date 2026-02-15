@@ -1,10 +1,34 @@
 package com.loopers.user.domain;
 
+import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 class UserTest {
+
+    @Test
+    void 비밀번호에_생년월일이_포함되면_예외가_발생한다() {
+        //given
+        String password = "1990-01-01!";
+        String date = "1990-01-01";
+        User user = User.builder()
+                .loginId("id")
+                .password(password)
+                .name("홍길동")
+                .birthDate(date)
+                .email("test@test.com")
+                .build();
+
+        //when
+        Throwable thrown =  catchThrowable(() -> user.setPassword(password, date));
+
+        //then
+        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
 
     @Test
     void 이름의_마지막_글자가_마스킹된다() {

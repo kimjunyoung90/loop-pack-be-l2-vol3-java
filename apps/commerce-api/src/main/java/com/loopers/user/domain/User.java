@@ -31,21 +31,11 @@ public class User extends BaseEntity {
 
     @Builder
     public User(String loginId, String password, String name, String birthDate, String email) {
-        validateRequired(loginId, password, name, birthDate, email);
-
         this.loginId = loginId;
         this.password = password;
         this.name = name;
         this.birthDate = birthDate;
         this.email = email;
-    }
-
-    private void validateRequired(String loginId, String password, String name, String birthDate, String email) {
-        Assert.hasText(loginId, "loginId는 필수입니다");
-        Assert.hasText(password, "password는 필수입니다");
-        Assert.hasText(name, "name은 필수입니다");
-        Assert.hasText(birthDate, "birthDate는 필수입니다");
-        Assert.hasText(email, "email은 필수입니다");
     }
 
     public String getMaskedName() {
@@ -58,5 +48,12 @@ public class User extends BaseEntity {
     public void changePassword(String newPassword) {
         Assert.hasText(newPassword, "새 비밀번호는 필수입니다");
         this.password = newPassword;
+    }
+
+    public void setPassword(String password, String birthDate) {
+        if(password.contains(birthDate)) {
+            throw new IllegalArgumentException("비밀번호는 생년월일을 포함할 수 없습니다.");
+        }
+        this.password = password;
     }
 }
