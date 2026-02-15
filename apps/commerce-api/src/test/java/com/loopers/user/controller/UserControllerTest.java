@@ -1,5 +1,6 @@
 package com.loopers.user.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.user.domain.User;
 import com.loopers.user.dto.CreateUserRequest;
@@ -26,16 +27,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import(GlobalExceptionHandler.class)
+//@Import(GlobalExceptionHandler.class)
 public class UserControllerTest {
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @MockitoBean
-    UserService userService;
+    private UserService userService;
+
+    @ParameterizedTest(name = "{1} 누락")
+    @MethodSource("필수값_누락_케이스")
+    void 회원가입시_필수값이_누락되면_응답코드_400을_반환한다(CreateUserRequest request, String nullField) throws Exception {
+
+        //when
+        ResultActions result = mockMvc.perform(post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        //then
+        result.andExpect(status().isBadRequest());
+    }
 
     @Test
     void 회원가입_성공_시_201_반환() throws Exception {
