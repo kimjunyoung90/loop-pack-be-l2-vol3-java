@@ -50,20 +50,12 @@ public class UserService {
     @Transactional
     public void changePassword(String loginId, String currentPassword, String newPassword) {
         User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(InvalidCredentialsException::new);
-
-        // 기존 비밀번호 확인
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new InvalidCredentialsException();
-        }
+                .orElseThrow(UserNotFoundException::new);
 
         // 새 비밀번호가 기존 비밀번호와 동일한지 확인
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new SamePasswordException();
         }
-
-        // 새 비밀번호 규칙 검증
-        PasswordValidator.validate(newPassword, user.getBirthDate());
 
         // 비밀번호 암호화 후 저장
         user.setPassword(newPassword, user.getBirthDate(), passwordEncoder);

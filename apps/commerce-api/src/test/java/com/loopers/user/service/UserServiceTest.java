@@ -66,76 +66,26 @@ public class UserServiceTest {
     }
 
     @Test
-    void 기존_비밀번호가_일치하지_않으면_InvalidCredentialsException이_발생한다() {
-        // given
-        String loginId = "testId";
-        String wrongPassword = "wrongPassword!";
-        String newPassword = "newPassword456!";
-        String encodedSavedPassword = "encodedPassword";
-
-        User user = User.builder()
-                .loginId(loginId)
-                .password(encodedSavedPassword)
-                .name("홍길동")
-                .birthDate("1990-01-01")
-                .email("test@test.com")
-                .build();
-
-        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(wrongPassword, encodedSavedPassword)).willReturn(false);
-
-        // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, wrongPassword, newPassword))
-                .isInstanceOf(InvalidCredentialsException.class);
-    }
-
-    @Test
-    void 새_비밀번호가_기존_비밀번호와_동일하면_SamePasswordException이_발생한다() {
+    void 비밀번호_수정시_새_비밀번호와_기존_비밀번호가_동일하면_SamePasswordException_예외가_발생한다() {
         // given
         String loginId = "testId";
         String currentPassword = "samePassword123!";
         String newPassword = "samePassword123!";
-        String encodedSavedPassword = "encodedPassword";
 
         User user = User.builder()
                 .loginId(loginId)
-                .password(encodedSavedPassword)
+                .password(currentPassword)
                 .name("홍길동")
                 .birthDate("1990-01-01")
                 .email("test@test.com")
                 .build();
 
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(currentPassword, encodedSavedPassword)).willReturn(true);
-        given(passwordEncoder.matches(newPassword, encodedSavedPassword)).willReturn(true);
+        given(passwordEncoder.matches(newPassword, currentPassword)).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, newPassword))
                 .isInstanceOf(SamePasswordException.class);
     }
 
-    @Test
-    void 새_비밀번호가_규칙에_맞지_않으면_IllegalArgumentException이_발생한다() {
-        // given
-        String loginId = "testId";
-        String currentPassword = "oldPassword123!";
-        String invalidNewPassword = "short";  // 8자 미만
-        String encodedSavedPassword = "encodedPassword";
-
-        User user = User.builder()
-                .loginId(loginId)
-                .password(encodedSavedPassword)
-                .name("홍길동")
-                .birthDate("1990-01-01")
-                .email("test@test.com")
-                .build();
-
-        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(currentPassword, encodedSavedPassword)).willReturn(true);
-        given(passwordEncoder.matches(invalidNewPassword, encodedSavedPassword)).willReturn(false);
-
-        // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, invalidNewPassword))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
 }
