@@ -11,7 +11,7 @@ public record GetMyInfoResponse(
     public static GetMyInfoResponse from(User user) {
         return new GetMyInfoResponse(
                 user.getLoginId(),
-                user.getMaskedName(),
+                user.getName(),
                 user.getBirthDate(),
                 user.getEmail()
         );

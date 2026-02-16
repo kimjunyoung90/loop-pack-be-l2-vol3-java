@@ -42,10 +42,7 @@ public class User extends BaseEntity {
         this.email = email;
     }
 
-    public String getMaskedName() {
-        if (name.length() == 1) {
-            return "*";
-        }
+    public String getName() {
         return name.substring(0, name.length() - 1) + "*";
     }
 
