@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -181,5 +182,25 @@ public class UserServiceTest {
         // when & then
         assertThatThrownBy(() -> userService.getMyInfo(loginId))
                 .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    void 사용자_정보_조회시_비밀번호는_반환데이터에서_제외한다() {
+        String loginId = "loginId";
+        User user = User.builder()
+                .loginId(loginId)
+                .password("123456")
+                .name("홍길동")
+                .birthDate("1990-01-01")
+                .email("test@test.com")
+                .build();
+        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
+
+        GetMyInfoResponse myInfo = userService.getMyInfo(loginId);
+
+        assertThat(myInfo.getClass().getDeclaredFields())
+                .extracting(Field::getName)
+                .containsExactlyInAnyOrder("loginId", "name", "birthDate", "email");
+
     }
 }
