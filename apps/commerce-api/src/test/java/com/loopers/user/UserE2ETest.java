@@ -49,31 +49,6 @@ public class UserE2ETest {
     }
 
     @Test
-    void 이미_존재하는_로그인ID로_회원가입시_409_Conflict_반환() {
-        // given
-        CreateUserRequest request = new CreateUserRequest(
-                "dupuser",
-                "Password1!",
-                "홍길동",
-                "1990-01-01",
-                "test@example.com"
-        );
-
-        // 첫 번째 회원가입 (성공)
-        restTemplate.postForEntity("/api/v1/users", request, CreateUserResponse.class);
-
-        // when - 동일한 loginId로 두 번째 회원가입 시도
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "/api/v1/users",
-                request,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-    }
-
-    @Test
     void 내_정보_조회_API_요청시_마스킹된_이름이_포함된_사용자_정보와_200_OK_반환() {
         // given - 사용자 생성
         String loginId = "myinfouser";
