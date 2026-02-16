@@ -1,10 +1,10 @@
 package com.loopers.user.service;
 
 import com.loopers.user.domain.User;
-import com.loopers.user.dto.CreateUserRequest;
 import com.loopers.user.dto.GetMyInfoResponse;
 import com.loopers.user.exception.InvalidCredentialsException;
 import com.loopers.user.exception.SamePasswordException;
+import com.loopers.user.exception.UserNotFoundException;
 import com.loopers.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -170,5 +170,16 @@ public class UserServiceTest {
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, invalidNewPassword))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 사용자_정보_조회시_ID와_일치한_사용자_정보가_없는_경우_UserNotFoundException_예외가_발생한다() {
+        // given
+        String loginId = "rlawnsdud05";
+        given(userRepository.findByLoginId(loginId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.getMyInfo(loginId))
+                .isInstanceOf(UserNotFoundException.class);
     }
 }

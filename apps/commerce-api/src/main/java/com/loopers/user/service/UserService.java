@@ -6,6 +6,7 @@ import com.loopers.user.dto.GetMyInfoResponse;
 import com.loopers.user.exception.DuplicateLoginIdException;
 import com.loopers.user.exception.InvalidCredentialsException;
 import com.loopers.user.exception.SamePasswordException;
+import com.loopers.user.exception.UserNotFoundException;
 import com.loopers.user.repository.UserRepository;
 import com.loopers.user.validator.PasswordValidator;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public GetMyInfoResponse getMyInfo(String loginId) {
         User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(InvalidCredentialsException::new);
+                .orElseThrow(UserNotFoundException::new);
 
         return GetMyInfoResponse.from(user);
     }

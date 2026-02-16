@@ -3,21 +3,18 @@ package com.loopers.user.service;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.user.domain.User;
 import com.loopers.user.dto.CreateUserRequest;
-import com.loopers.user.dto.GetMyInfoResponse;
 import com.loopers.user.exception.DuplicateLoginIdException;
 import com.loopers.user.exception.InvalidCredentialsException;
 import com.loopers.user.exception.SamePasswordException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import com.loopers.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Import(MySqlTestContainersConfig.class)
@@ -68,16 +65,6 @@ public class UserServiceIntegrationTest {
         assertThat(foundUser.getLoginId()).isEqualTo(request.loginId());
         assertThat(foundUser.getName()).isEqualTo(request.name());
         assertThat(foundUser.getEmail()).isEqualTo(request.email());
-    }
-
-    @Test
-    void 존재하지_않는_로그인ID로_조회시_InvalidCredentialsException이_발생한다() {
-        // given
-        String nonExistentLoginId = "nonexistent";
-
-        // when & then
-        assertThatThrownBy(() -> userService.getMyInfo(nonExistentLoginId))
-                .isInstanceOf(InvalidCredentialsException.class);
     }
 
     @Test
