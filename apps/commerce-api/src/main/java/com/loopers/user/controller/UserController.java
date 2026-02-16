@@ -42,7 +42,7 @@ public class UserController {
             @RequestHeader(LOGIN_PW_HEADER) String currentPassword,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-        userService.changePassword(loginId, currentPassword, request.newPassword());
+        userService.changePassword(loginId, request.newPassword());
         return ResponseEntity.ok().build();
     }
 }

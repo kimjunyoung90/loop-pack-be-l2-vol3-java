@@ -88,7 +88,7 @@ public class UserServiceTest {
         given(passwordEncoder.matches(newPassword, currentPasswordEncoded)).willReturn(true);
 
         // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, newPassword))
+        assertThatThrownBy(() -> userService.changePassword(loginId, newPassword))
                 .isInstanceOf(SamePasswordException.class);
     }
 

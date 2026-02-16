@@ -79,7 +79,7 @@ public class UserServiceIntegrationTest {
         userService.createUser(request);
 
         // when
-        userService.changePassword(loginId, currentPassword, newPassword);
+        userService.changePassword(loginId, newPassword);
 
         // then
         User updatedUser = userRepository.findByLoginId(loginId).orElseThrow();
@@ -91,6 +91,7 @@ public class UserServiceIntegrationTest {
         // given
         String loginId = "testuser";
         String currentPassword = "password123!";
+        String newPassword = "password123!";
 
         CreateUserRequest request = new CreateUserRequest(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
@@ -98,7 +99,7 @@ public class UserServiceIntegrationTest {
         userService.createUser(request);
 
         // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, currentPassword))
+        assertThatThrownBy(() -> userService.changePassword(loginId, newPassword))
                 .isInstanceOf(SamePasswordException.class);
     }
 }

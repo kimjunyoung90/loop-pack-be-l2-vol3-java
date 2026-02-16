@@ -133,6 +133,6 @@ public class UserControllerTest {
                 .header("X-Loopers-LoginPw", loginPasswd)
         );
 
-        verify(userService).changePassword(loginId, loginPasswd, newPassword);
+        verify(userService).changePassword(loginId, newPassword);
     }
 }

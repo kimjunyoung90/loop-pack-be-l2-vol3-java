@@ -47,7 +47,7 @@ public class UserService {
     }
 
     @Transactional
-    public void changePassword(String loginId, String currentPassword, String newPassword) {
+    public void changePassword(String loginId, String newPassword) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(UserNotFoundException::new);
 
