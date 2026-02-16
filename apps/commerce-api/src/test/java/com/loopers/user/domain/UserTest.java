@@ -151,9 +151,27 @@ class UserTest {
     }
 
     @Test
-    void 사용자_생성시_유효하지_않은_이메일주소는_IllegalArgumentException_예외가_발생한다() {
+    void 이메일에_AT이_누락되면_IllegalArgumentException_예외가_발생한다() {
         //given
-        String email = "test@test";
+        String email = "testtest.com";
+        User user = User.builder()
+                .loginId(null)
+                .password(null)
+                .name(null)
+                .birthDate(null)
+                .email(email)
+                .build();
+
+        //when
+        Throwable thrown = catchThrowable(() -> user.setEmail(email));
+
+        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 이메일에_도메인이_누락되면_IllegalArgumentException_예외가_발생한다() {
+        //given
+        String email = "test@";
         User user = User.builder()
                 .loginId(null)
                 .password(null)
