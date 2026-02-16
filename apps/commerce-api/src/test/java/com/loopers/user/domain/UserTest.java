@@ -187,8 +187,24 @@ class UserTest {
     }
 
     @Test
-    void 사용자_생년월일_형식이_기준_포맷에_맞지_않으면_IllegalArgumentException_예외가_발생한다() {
+    void 생년월일이_기준_포맷에_맞지_않으면_IllegalArgumentException_예외가_발생한다() {
         String birthDate = "19900427";
+        User user = User.builder()
+                .loginId(null)
+                .password(null)
+                .name(null)
+                .birthDate(birthDate)
+                .email(null)
+                .build();
+
+        Throwable thrown = catchThrowable(() -> user.setBirthDate(birthDate));
+
+        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 생년월일이_유효한_날짜가_아니면_IllegalArgumentException_예외가_발생한다() {
+        String birthDate = "19900231";
         User user = User.builder()
                 .loginId(null)
                 .password(null)
