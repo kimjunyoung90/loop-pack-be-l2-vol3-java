@@ -34,12 +34,12 @@ public class User extends BaseEntity {
     private String email;
 
     @Builder
-    public User(String loginId, String password, String name, String birthDate, String email) {
+    public User(String loginId, String password, String name, String birthDate, String email, PasswordEncoder passwordEncoder) {
         this.loginId = loginId;
-        this.password = password;
         this.name = name;
-        this.birthDate = birthDate;
-        this.email = email;
+        setBirthDate(birthDate);
+        setEmail(email);
+        setPassword(password, birthDate, passwordEncoder);
     }
 
     public String getName() {
@@ -64,6 +64,7 @@ public class User extends BaseEntity {
         if(!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
             throw new IllegalArgumentException();
         }
+        this.email = email;
     }
 
     public void setBirthDate(String birthDate) {
@@ -72,5 +73,6 @@ public class User extends BaseEntity {
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException();
         }
+        this.birthDate = birthDate;
     }
 }

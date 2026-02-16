@@ -31,7 +31,8 @@ public class UserService {
                 request.password(),
                 request.name(),
                 request.birthDate(),
-                request.email()
+                request.email(),
+                passwordEncoder
         );
 
         return userRepository.save(user);
