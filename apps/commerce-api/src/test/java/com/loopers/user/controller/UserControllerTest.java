@@ -1,6 +1,7 @@
 package com.loopers.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.user.dto.ChangePasswordRequest;
 import com.loopers.user.dto.CreateUserRequest;
 import com.loopers.user.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -17,8 +18,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
@@ -105,5 +105,17 @@ public class UserControllerTest {
 
         //then
         verify(userService).getMyInfo(loginId);
+    }
+
+    @Test
+    void 비밀번호_변경시_신규_비밀번호가_누락되면_400을_반환한다() throws Exception {
+        ChangePasswordRequest request = new ChangePasswordRequest("");
+
+        ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        result.andExpect(status().isBadRequest());
     }
 }
