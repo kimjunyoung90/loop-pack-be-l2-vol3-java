@@ -71,7 +71,6 @@ public class UserService {
         PasswordValidator.validate(newPassword, user.getBirthDate());
 
         // 비밀번호 암호화 후 저장
-        String encodedNewPassword = passwordEncoder.encode(newPassword);
-        user.changePassword(encodedNewPassword);
+        user.setPassword(newPassword, user.getBirthDate(), passwordEncoder);
     }
 }

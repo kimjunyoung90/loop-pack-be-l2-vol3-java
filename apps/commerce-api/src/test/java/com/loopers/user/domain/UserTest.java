@@ -151,6 +151,24 @@ class UserTest {
     }
 
     @Test
+    void 사용자_생성시_유효하지_않은_이메일주소는_IllegalArgumentException_예외가_발생한다() {
+        //given
+        String email = "test@test";
+        User user = User.builder()
+                .loginId(null)
+                .password(null)
+                .name(null)
+                .birthDate(null)
+                .email(email)
+                .build();
+
+        //when
+        Throwable thrown = catchThrowable(() -> user.setEmail(email));
+
+        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void 이름의_마지막_글자가_마스킹된다() {
         // given
         User user = User.builder()
