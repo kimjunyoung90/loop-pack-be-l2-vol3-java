@@ -30,12 +30,6 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", e.getMessage()));
     }
 
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", e.getMessage()));
-    }
-
     @ExceptionHandler(SamePasswordException.class)
     public ResponseEntity<Map<String, String>> handleSamePassword(SamePasswordException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
