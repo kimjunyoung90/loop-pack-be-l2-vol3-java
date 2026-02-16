@@ -28,7 +28,7 @@ public class UserE2ETest {
     private TestRestTemplate restTemplate;
 
     @Test
-    void 회원가입_API_요청시_사용자가_생성되고_201_Created_반환() {
+    void 유효한_데이터로_회원가입_요청하면_회원가입에_성공한다() {
         // given
         CreateUserRequest request = new CreateUserRequest(
                 "testuser",
