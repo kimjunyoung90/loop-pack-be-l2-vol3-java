@@ -25,7 +25,7 @@ class UserTest {
                 .build();
 
         //when
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, null, passwordEncoder));
 
         //then
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
@@ -42,7 +42,7 @@ class UserTest {
                 .email(null)
                 .build();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, null, passwordEncoder));
 
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
     }
@@ -58,7 +58,7 @@ class UserTest {
                 .email(null)
                 .build();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, null, passwordEncoder));
 
         assertThat(thrown).isNull();
     }
@@ -74,7 +74,7 @@ class UserTest {
                 .email(null)
                 .build();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, null, passwordEncoder));
 
         assertThat(thrown).isNull();
     }
@@ -90,7 +90,7 @@ class UserTest {
                 .email(null)
                 .build();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, null, passwordEncoder));
 
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
     }
@@ -106,7 +106,7 @@ class UserTest {
                 .email(null)
                 .build();
 
-        assertThatThrownBy(() -> user.setPassword(password, passwordEncoder))
+        assertThatThrownBy(() -> user.setPassword(password, null, passwordEncoder))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -124,7 +124,7 @@ class UserTest {
                 .build();
 
         //when
-        Throwable thrown =  catchThrowable(() -> user.setPassword(password, date));
+        Throwable thrown =  catchThrowable(() -> user.setPassword(password, date, passwordEncoder));
 
         //then
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
@@ -143,7 +143,7 @@ class UserTest {
                 .build();
 
         //when
-        user.setPassword(rawPassword, passwordEncoder);
+        user.setPassword(rawPassword, null, passwordEncoder);
 
         //then
         assertThat(user.getPassword()).isNotEqualTo(rawPassword);
@@ -204,22 +204,4 @@ class UserTest {
         assertThat(maskedName).isEqualTo("이*");
     }
 
-    @Test
-    void changePassword로_비밀번호가_변경된다() {
-        // given
-        User user = User.builder()
-                .loginId("testId")
-                .password("oldPassword123!")
-                .name("홍길동")
-                .birthDate("1990-01-01")
-                .email("test@test.com")
-                .build();
-        String newPassword = "newPassword456!";
-
-        // when
-        user.changePassword(newPassword);
-
-        // then
-        assertThat(user.getPassword()).isEqualTo(newPassword);
-    }
 }

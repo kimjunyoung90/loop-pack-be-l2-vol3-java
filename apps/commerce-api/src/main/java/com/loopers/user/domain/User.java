@@ -46,26 +46,18 @@ public class User extends BaseEntity {
         return name.substring(0, name.length() - 1) + "*";
     }
 
-    public void changePassword(String newPassword) {
-        Assert.hasText(newPassword, "새 비밀번호는 필수입니다");
-        this.password = newPassword;
-    }
-
-    public void setPassword(String password, PasswordEncoder passwordEncoder) {
+    public void setPassword(String password, String birthDate, PasswordEncoder passwordEncoder) {
         if (password.length() < 8 || password.length() > 16) {
             throw new IllegalArgumentException();
         }
         if(!password.matches("^[a-zA-Z\\d\\p{Punct}]+$")) {
             throw new IllegalArgumentException();
         }
+        if(password.contains(birthDate)) {
+            throw new IllegalArgumentException("비밀번호는 생년월일을 포함할 수 없습니다.");
+        }
 
         this.password = passwordEncoder.encode(password);
     }
 
-    public void setPassword(String password, String birthDate) {
-        if(password.contains(birthDate)) {
-            throw new IllegalArgumentException("비밀번호는 생년월일을 포함할 수 없습니다.");
-        }
-        this.password = password;
-    }
 }
