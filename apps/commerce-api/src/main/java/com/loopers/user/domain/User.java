@@ -9,6 +9,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -62,6 +65,14 @@ public class User extends BaseEntity {
 
     public void setEmail(String email) {
         if(!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public void setBirthDate(String birthDate) {
+        try {
+            LocalDate.parse(birthDate);
+        } catch (DateTimeParseException e) {
             throw new IllegalArgumentException();
         }
     }
