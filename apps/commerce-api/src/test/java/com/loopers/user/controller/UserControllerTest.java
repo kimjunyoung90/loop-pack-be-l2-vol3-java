@@ -118,4 +118,21 @@ public class UserControllerTest {
 
         result.andExpect(status().isBadRequest());
     }
+
+    @Test
+    void 비밀번호_변경시_헤더의_로그인ID와_비밀번호를_서비스에_전달한다() throws Exception {
+        String newPassword = "newwpwd123!";
+        ChangePasswordRequest request = new ChangePasswordRequest(newPassword);
+
+        String loginId = "rlawnsdud05";
+        String loginPasswd = "password123!";
+        mockMvc.perform(patch("/api/v1/users/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header("X-Loopers-LoginId", loginId)
+                .header("X-Loopers-LoginPw", loginPasswd)
+        );
+
+        verify(userService).changePassword(loginId, loginPasswd, newPassword);
+    }
 }
