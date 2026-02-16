@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 
 import static com.loopers.user.controller.UserController.LOGIN_ID_HEADER;
 import static com.loopers.user.controller.UserController.LOGIN_PW_HEADER;
@@ -264,5 +265,30 @@ public class UserE2ETest {
         //then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
+    @Test
+    void 유효한_새로운_비밀번호로_비밀번호_수정을_요청하면_200을_반환한다() {
+
+        String id = "testuser01";
+        String password = "Pass1234!";
+        CreateUserRequest createUserRequest = new CreateUserRequest(
+                id, password, "홍길동", "1999-01-01", "test@email.com");
+
+        restTemplate.postForEntity("/api/v1/users", createUserRequest, Void.class);
+
+        ChangePasswordRequest changeRequest = new ChangePasswordRequest("NewPass123!");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Loopers-LoginId", id);
+        headers.set("X-Loopers-LoginPw", password);
+
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/api/v1/users/password", HttpMethod.PATCH,
+                new HttpEntity<>(changeRequest, headers), Void.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
 }
 
