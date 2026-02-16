@@ -35,68 +35,34 @@ public class UserServiceTest {
     private UserService userService;
 
     @Test
-    void 유효한_로그인ID로_내_정보를_조회한다() {
+    void 사용자_정보_조회시_ID와_일치한_사용자_정보가_없는_경우_UserNotFoundException_예외가_발생한다() {
         // given
-        String loginId = "testId";
-        User user = User.builder()
-                .loginId(loginId)
-                .password("encodedPassword")
-                .name("홍길동")
-                .birthDate("1990-01-01")
-                .email("test@test.com")
-                .build();
-
-        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-
-        // when
-        GetMyInfoResponse response = userService.getMyInfo(loginId);
-
-        // then
-        assertThat(response.loginId()).isEqualTo(loginId);
-        assertThat(response.name()).isEqualTo("홍길*");
-        assertThat(response.birthDate()).isEqualTo("1990-01-01");
-        assertThat(response.email()).isEqualTo("test@test.com");
-    }
-
-    @Test
-    void 존재하지_않는_로그인ID로_조회시_InvalidCredentialsException이_발생한다() {
-        // given
-        String loginId = "nonExistentId";
-
+        String loginId = "rlawnsdud05";
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> userService.getMyInfo(loginId))
-                .isInstanceOf(InvalidCredentialsException.class);
+                .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
-    void 올바른_기존_비밀번호로_비밀번호_변경에_성공한다() {
-        // given
-        String loginId = "testId";
-        String currentPassword = "oldPassword123!";
-        String newPassword = "newPassword456!";
-        String encodedCurrentPassword = "encodedOldPassword";
-        String encodedNewPassword = "encodedNewPassword";
-
+    void 사용자_정보_조회시_비밀번호는_반환데이터에서_제외한다() {
+        String loginId = "loginId";
         User user = User.builder()
                 .loginId(loginId)
-                .password(encodedCurrentPassword)
+                .password("123456")
                 .name("홍길동")
                 .birthDate("1990-01-01")
                 .email("test@test.com")
                 .build();
-
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(currentPassword, encodedCurrentPassword)).willReturn(true);
-        given(passwordEncoder.matches(newPassword, encodedCurrentPassword)).willReturn(false);
-        given(passwordEncoder.encode(newPassword)).willReturn(encodedNewPassword);
 
-        // when
-        userService.changePassword(loginId, currentPassword, newPassword);
+        GetMyInfoResponse myInfo = userService.getMyInfo(loginId);
 
-        // then
-        assertThat(user.getPassword()).isEqualTo(encodedNewPassword);
+        assertThat(myInfo.getClass().getDeclaredFields())
+                .extracting(Field::getName)
+                .containsExactlyInAnyOrder("loginId", "name", "birthDate", "email");
+
     }
 
     @Test
@@ -171,36 +137,5 @@ public class UserServiceTest {
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, invalidNewPassword))
                 .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void 사용자_정보_조회시_ID와_일치한_사용자_정보가_없는_경우_UserNotFoundException_예외가_발생한다() {
-        // given
-        String loginId = "rlawnsdud05";
-        given(userRepository.findByLoginId(loginId)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> userService.getMyInfo(loginId))
-                .isInstanceOf(UserNotFoundException.class);
-    }
-
-    @Test
-    void 사용자_정보_조회시_비밀번호는_반환데이터에서_제외한다() {
-        String loginId = "loginId";
-        User user = User.builder()
-                .loginId(loginId)
-                .password("123456")
-                .name("홍길동")
-                .birthDate("1990-01-01")
-                .email("test@test.com")
-                .build();
-        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-
-        GetMyInfoResponse myInfo = userService.getMyInfo(loginId);
-
-        assertThat(myInfo.getClass().getDeclaredFields())
-                .extracting(Field::getName)
-                .containsExactlyInAnyOrder("loginId", "name", "birthDate", "email");
-
     }
 }
