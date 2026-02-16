@@ -26,14 +26,14 @@ public class UserService {
             throw new DuplicateLoginIdException();
         }
 
-        User user = new User(
-                request.loginId(),
-                request.password(),
-                request.name(),
-                request.birthDate(),
-                request.email(),
-                passwordEncoder
-        );
+        User user = User.builder()
+                .loginId(request.loginId())
+                .password(request.password())
+                .name(request.name())
+                .birthDate(request.birthDate())
+                .email(request.email())
+                .passwordEncoder(passwordEncoder)
+                .build();
 
         return userRepository.save(user);
     }

@@ -34,7 +34,7 @@ public class User extends BaseEntity {
     private String email;
 
     @Builder
-    public User(String loginId, String password, String name, String birthDate, String email, PasswordEncoder passwordEncoder) {
+    private User(String loginId, String password, String name, String birthDate, String email, PasswordEncoder passwordEncoder) {
         this.loginId = loginId;
         this.name = name;
         setBirthDate(birthDate);
