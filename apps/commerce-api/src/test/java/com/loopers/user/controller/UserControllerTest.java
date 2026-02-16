@@ -16,6 +16,8 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.stream.Stream;
 
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -88,5 +90,20 @@ public class UserControllerTest {
 
         //then
         result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 내정보조회시_헤더의_로그인ID를_서비스에_전달한다() throws Exception {
+        //given
+        String loginId = "rlawnsdud05";
+
+        //when
+        mockMvc.perform(get("/api/v1/users/me")
+                .header("X-Loopers-LoginId", loginId)
+                .header("X-Loopers-LoginPw", "password123!")
+        );
+
+        //then
+        verify(userService).getMyInfo(loginId);
     }
 }
