@@ -48,12 +48,14 @@ public class UserServiceTest {
     @Test
     void 사용자_정보_조회시_비밀번호는_반환데이터에서_제외한다() {
         String loginId = "loginId";
+        given(passwordEncoder.encode("validPass1!")).willReturn("encodedPassword");
         User user = User.builder()
                 .loginId(loginId)
-                .password("123456")
+                .password("validPass1!")
                 .name("홍길동")
                 .birthDate("1990-01-01")
                 .email("test@test.com")
+                .passwordEncoder(passwordEncoder)
                 .build();
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
 
@@ -70,18 +72,21 @@ public class UserServiceTest {
         // given
         String loginId = "testId";
         String currentPassword = "samePassword123!";
+        String currentPasswordEncoded = "encodedPassword";
         String newPassword = "samePassword123!";
 
+        given(passwordEncoder.encode(currentPassword)).willReturn(currentPasswordEncoded);
         User user = User.builder()
                 .loginId(loginId)
                 .password(currentPassword)
                 .name("홍길동")
                 .birthDate("1990-01-01")
                 .email("test@test.com")
+                .passwordEncoder(passwordEncoder)
                 .build();
 
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(newPassword, currentPassword)).willReturn(true);
+        given(passwordEncoder.matches(newPassword, currentPasswordEncoded)).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, newPassword))
