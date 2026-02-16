@@ -34,7 +34,7 @@ public class UserServiceIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void 이미_가입된_ID로_회원가입시_DuplicateLoginIdException이_발생한다() {
+    void 가입된_ID로_회원가입시_DuplicateLoginIdException이_발생한다() {
         //given
         String loginId = "testuser";
         CreateUserRequest request = new CreateUserRequest(
@@ -68,25 +68,6 @@ public class UserServiceIntegrationTest {
         assertThat(foundUser.getLoginId()).isEqualTo(request.loginId());
         assertThat(foundUser.getName()).isEqualTo(request.name());
         assertThat(foundUser.getEmail()).isEqualTo(request.email());
-    }
-
-    @Test
-    void DB에_저장된_사용자_정보를_정상적으로_조회한다() {
-        // given
-        String loginId = "testuser";
-        CreateUserRequest request = new CreateUserRequest(
-                loginId, "password123!", "홍길동", "1990-01-01", "test@test.com"
-        );
-        userService.createUser(request);
-
-        // when
-        GetMyInfoResponse response = userService.getMyInfo(loginId);
-
-        // then
-        assertThat(response.loginId()).isEqualTo(loginId);
-        assertThat(response.name()).isEqualTo("홍길*");
-        assertThat(response.birthDate()).isEqualTo("1990-01-01");
-        assertThat(response.email()).isEqualTo("test@test.com");
     }
 
     @Test

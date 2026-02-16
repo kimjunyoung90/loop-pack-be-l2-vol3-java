@@ -27,15 +27,9 @@ public class UserService {
             throw new DuplicateLoginIdException();
         }
 
-        //비밀번호 검증
-        PasswordValidator.validate(request.password(), request.birthDate());
-
-        //비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.password());
-
         User user = new User(
                 request.loginId(),
-                encodedPassword,
+                request.password(),
                 request.name(),
                 request.birthDate(),
                 request.email()
