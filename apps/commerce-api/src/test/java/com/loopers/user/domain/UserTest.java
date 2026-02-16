@@ -1,11 +1,13 @@
 package com.loopers.user.domain;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 
 class UserTest {
 
@@ -75,6 +77,37 @@ class UserTest {
         Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
 
         assertThat(thrown).isNull();
+    }
+
+    @Test
+    void 비밀번호에_한글이_포함되면_IllegalArgumentException이_발생한다() {
+        String password = "ㄱ12345561";
+        User user = User.builder()
+                .loginId(null)
+                .password(password)
+                .name(null)
+                .birthDate(null)
+                .email(null)
+                .build();
+
+        Throwable thrown = catchThrowable(() -> user.setPassword(password, passwordEncoder));
+
+        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 비밀번호에_공백이_포함되면_IllegalArgumentException이_발생한다() {
+        String password = "1234 5561";
+        User user = User.builder()
+                .loginId(null)
+                .password(password)
+                .name(null)
+                .birthDate(null)
+                .email(null)
+                .build();
+
+        assertThatThrownBy(() -> user.setPassword(password, passwordEncoder))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
