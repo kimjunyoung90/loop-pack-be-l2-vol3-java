@@ -110,6 +110,29 @@ public class UserControllerTest {
         result.andExpect(status().isBadRequest());
     }
 
+    @ParameterizedTest(name = "비밀번호가 \"{0}\"이면 400")
+    @MethodSource("회원가입_비밀번호_형식_오류_케이스")
+    void 회원가입시_비밀번호_형식이_올바르지_않으면_응답코드_400을_반환한다(String password) throws Exception {
+        CreateUserRequest request = new CreateUserRequest(
+                "testId", password, "김준영", "1990-04-27", "test@test.com"
+        );
+
+        ResultActions result = mockMvc.perform(post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        result.andExpect(status().isBadRequest());
+    }
+
+    static Stream<Arguments> 회원가입_비밀번호_형식_오류_케이스() {
+        return Stream.of(
+                Arguments.of("Short1!"),        // 7자 (8자 미만)
+                Arguments.of("thisIsWayTooLong1!"), // 17자 (16자 초과)
+                Arguments.of("pass한글word1!")    // 허용되지 않은 문자 포함
+        );
+    }
+
     @Test
     void 내정보조회시_헤더의_로그인ID를_서비스에_전달한다() throws Exception {
         //given
@@ -135,6 +158,29 @@ public class UserControllerTest {
         );
 
         result.andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest(name = "새 비밀번호가 \"{0}\"이면 400")
+    @MethodSource("비밀번호_변경_형식_오류_케이스")
+    void 비밀번호_변경시_새_비밀번호_형식이_올바르지_않으면_400을_반환한다(String newPassword) throws Exception {
+        ChangePasswordRequest request = new ChangePasswordRequest(newPassword);
+
+        ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header("X-Loopers-LoginId", "testuser01")
+                .header("X-Loopers-LoginPw", "password123!")
+        );
+
+        result.andExpect(status().isBadRequest());
+    }
+
+    static Stream<Arguments> 비밀번호_변경_형식_오류_케이스() {
+        return Stream.of(
+                Arguments.of("Short1!"),        // 7자 (8자 미만)
+                Arguments.of("thisIsWayTooLong1!"), // 17자 (16자 초과)
+                Arguments.of("pass한글word1!")    // 허용되지 않은 문자 포함
+        );
     }
 
     @Test
