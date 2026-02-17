@@ -41,14 +41,20 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public GetMyInfoResponse getMyInfo(String loginId, String password) {
-        User user = authenticate(loginId, password);
+        authenticate(loginId, password);
+
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(UserNotFoundException::new);
 
         return GetMyInfoResponse.from(user);
     }
 
     @Transactional
     public void changePassword(String loginId, String password, String newPassword) {
-        User user = authenticate(loginId, password);
+        authenticate(loginId, password);
+
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(UserNotFoundException::new);
 
         // 새 비밀번호가 기존 비밀번호와 동일한지 확인
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
@@ -59,14 +65,12 @@ public class UserService {
         user.setPassword(newPassword, user.getBirthDate(), passwordEncoder);
     }
 
-    private User authenticate(String loginId, String password) {
+    private void authenticate(String loginId, String password) {
         User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(AuthenticationFailedException::new);
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new AuthenticationFailedException();
         }
-
-        return user;
     }
 }

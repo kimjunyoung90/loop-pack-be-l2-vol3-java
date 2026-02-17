@@ -40,10 +40,10 @@ public class UserController {
     @PatchMapping("/password")
     public ResponseEntity<Void> changePassword(
             @RequestHeader(LOGIN_ID_HEADER) String loginId,
-            @RequestHeader(LOGIN_PW_HEADER) String currentPassword,
+            @RequestHeader(LOGIN_PW_HEADER) String password,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-        userService.changePassword(loginId, currentPassword, request.newPassword());
+        userService.changePassword(loginId, password, request.newPassword());
         return ResponseEntity.ok().build();
     }
 }
