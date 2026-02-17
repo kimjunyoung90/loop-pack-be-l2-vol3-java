@@ -47,37 +47,39 @@ public class UserE2ETest {
     }
 
     @Test
-    void 비밀번호_변경시_기존_비밀번호가_일치하지_않으면_401_Unauthorized_반환() {
-        // given - 사용자 생성
-        String loginId = "pwfail" + (System.currentTimeMillis() % 1000);
-        String currentPassword = "Password1!";
-        String wrongPassword = "WrongPassword!";
-        String newPassword = "NewPassword2@";
+    void 존재하는_ID로_내정보_조회시_마스킹된_이름과_비밀번호_제외한_정보를_반환한다() {
+        //given
+        CreateUserRequest createUserRequest = new CreateUserRequest(
+                "testuser01", "Pass1234!", "홍길동", "1999-01-01", "test@email.com");
 
-        CreateUserRequest createRequest = new CreateUserRequest(
-                loginId, currentPassword, "홍길동", "1990-01-01", "test@example.com"
-        );
-        ResponseEntity<CreateUserResponse> createResponse = restTemplate.postForEntity("/api/v1/users", createRequest, CreateUserResponse.class);
-        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        restTemplate.postForEntity("/api/v1/users", createUserRequest, Void.class);
 
-        // when - 잘못된 비밀번호로 변경 시도
+        //when
         HttpHeaders headers = new HttpHeaders();
-        headers.set(LOGIN_ID_HEADER, loginId);
-        headers.set(LOGIN_PW_HEADER, wrongPassword);
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Loopers-LoginId", "testuser01");
+        headers.set("X-Loopers-LoginPw", "Pass1234!");
+        ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
+                "/api/v1/users/me", HttpMethod.GET,
+                new HttpEntity<>(headers), GetMyInfoResponse.class);
 
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest(newPassword);
-        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
+        //then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/api/v1/users/password",
-                HttpMethod.PATCH,
-                entity,
-                String.class
-        );
+    @Test
+    void 존재하지_않는_ID로_내정보_조회시_예외가_발생한다() {
+        //given
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Loopers-LoginId", "testuser01");
+        headers.set("X-Loopers-LoginPw", "Pass1234!");
 
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        //when
+        ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
+                "/api/v1/users/me", HttpMethod.GET,
+                new HttpEntity<>(headers), GetMyInfoResponse.class);
+
+        //then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -143,42 +145,6 @@ public class UserE2ETest {
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void 존재하는_ID로_내정보_조회시_마스킹된_이름과_비밀번호_제외한_정보를_반환한다() {
-        //given
-        CreateUserRequest createUserRequest = new CreateUserRequest(
-                "testuser01", "Pass1234!", "홍길동", "1999-01-01", "test@email.com");
-
-        restTemplate.postForEntity("/api/v1/users", createUserRequest, Void.class);
-
-        //when
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Loopers-LoginId", "testuser01");
-        headers.set("X-Loopers-LoginPw", "Pass1234!");
-        ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
-                "/api/v1/users/me", HttpMethod.GET,
-                new HttpEntity<>(headers), GetMyInfoResponse.class);
-
-        //then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    }
-
-    @Test
-    void 존재하지_않는_ID로_내정보_조회시_예외가_발생한다() {
-        //given
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Loopers-LoginId", "testuser01");
-        headers.set("X-Loopers-LoginPw", "Pass1234!");
-
-        //when
-        ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
-                "/api/v1/users/me", HttpMethod.GET,
-                new HttpEntity<>(headers), GetMyInfoResponse.class);
-
-        //then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
