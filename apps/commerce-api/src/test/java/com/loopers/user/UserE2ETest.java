@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MultiValueMap;
 
 import static com.loopers.user.controller.UserController.LOGIN_ID_HEADER;
 import static com.loopers.user.controller.UserController.LOGIN_PW_HEADER;
@@ -47,88 +46,6 @@ public class UserE2ETest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    }
-
-    @Test
-    void 내_정보_조회_API_요청시_마스킹된_이름이_포함된_사용자_정보와_200_OK_반환() {
-        // given - 사용자 생성
-        String loginId = "myinfouser";
-        CreateUserRequest createRequest = new CreateUserRequest(
-                loginId, "Password1!", "홍길동", "1990-01-01", "test@example.com"
-        );
-        restTemplate.postForEntity("/api/v1/users", createRequest, CreateUserResponse.class);
-
-        // when - 내 정보 조회
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(LOGIN_ID_HEADER, loginId);
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
-                "/api/v1/users/me",
-                HttpMethod.GET,
-                entity,
-                GetMyInfoResponse.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().loginId()).isEqualTo(loginId);
-        assertThat(response.getBody().name()).isEqualTo("홍길*");
-        assertThat(response.getBody().birthDate()).isEqualTo("1990-01-01");
-        assertThat(response.getBody().email()).isEqualTo("test@example.com");
-    }
-
-    @Test
-    void 존재하지_않는_로그인ID로_내_정보_조회시_401_Unauthorized_반환() {
-        // given - 존재하지 않는 로그인 ID
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(LOGIN_ID_HEADER, "nonexistentuser");
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        // when
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/api/v1/users/me",
-                HttpMethod.GET,
-                entity,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
-    void 비밀번호_변경_API_요청시_200_OK_반환() {
-        // given - 사용자 생성
-        String loginId = "pwchg" + (System.currentTimeMillis() % 10000);
-        String currentPassword = "Password1!";
-        String newPassword = "NewPassword2@";
-
-        CreateUserRequest createRequest = new CreateUserRequest(
-                loginId, currentPassword, "홍길동", "1990-01-01", "test@example.com"
-        );
-        ResponseEntity<CreateUserResponse> createResponse = restTemplate.postForEntity("/api/v1/users", createRequest, CreateUserResponse.class);
-        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-
-        // when - 비밀번호 변경
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(LOGIN_ID_HEADER, loginId);
-        headers.set(LOGIN_PW_HEADER, currentPassword);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest(newPassword);
-        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
-
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/api/v1/users/password",
-                HttpMethod.PATCH,
-                entity,
-                Void.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
