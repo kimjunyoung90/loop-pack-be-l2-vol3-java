@@ -67,7 +67,7 @@ public class UserE2ETest {
     }
 
     @Test
-    void 존재하지_않는_ID로_내정보_조회시_예외가_발생한다() {
+    void 존재하지_않는_ID로_내정보_조회시_401을_반환한다() {
         //given
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Loopers-LoginId", "nonexistent99");
@@ -79,7 +79,7 @@ public class UserE2ETest {
                 new HttpEntity<>(headers), GetMyInfoResponse.class);
 
         //then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

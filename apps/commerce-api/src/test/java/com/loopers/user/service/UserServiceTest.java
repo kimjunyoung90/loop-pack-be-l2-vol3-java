@@ -32,14 +32,14 @@ public class UserServiceTest {
     private UserService userService;
 
     @Test
-    void 사용자_정보_조회시_ID와_일치한_사용자_정보가_없는_경우_UserNotFoundException_예외가_발생한다() {
+    void 사용자_정보_조회시_ID와_일치한_사용자_정보가_없는_경우_AuthenticationFailedException_예외가_발생한다() {
         // given
         String loginId = "rlawnsdud05";
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> userService.getMyInfo(loginId, "password123!"))
-                .isInstanceOf(UserNotFoundException.class);
+                .isInstanceOf(AuthenticationFailedException.class);
     }
 
     @Test
