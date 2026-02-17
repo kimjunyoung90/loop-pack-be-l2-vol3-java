@@ -75,6 +75,24 @@ public class UserControllerTest {
     }
 
     @Test
+    void 이메일_도메인_누락시_응답코드_400을_반환한다() throws Exception {
+        //given
+        String email = "test@";
+        CreateUserRequest request = new CreateUserRequest(
+                "testId", "password123!", "김준영", "1990-04-27", email
+        );
+
+        //when
+        ResultActions result = mockMvc.perform(post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        //then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
     void 생년월일_형식_오류시_응답코드_400을_반환한다() throws Exception {
         //given
         String birthDate = "1990-0427";
