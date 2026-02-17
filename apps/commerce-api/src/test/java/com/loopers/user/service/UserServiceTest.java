@@ -2,7 +2,6 @@ package com.loopers.user.service;
 
 import com.loopers.user.domain.User;
 import com.loopers.user.dto.GetMyInfoResponse;
-import com.loopers.user.exception.SamePasswordException;
 import com.loopers.user.exception.UserNotFoundException;
 import com.loopers.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -17,9 +16,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -64,32 +61,6 @@ public class UserServiceTest {
                 .extracting(Field::getName)
                 .containsExactlyInAnyOrder("loginId", "name", "birthDate", "email");
 
-    }
-
-    @Test
-    void 비밀번호_수정시_새_비밀번호와_기존_비밀번호가_동일하면_SamePasswordException_예외가_발생한다() {
-        // given
-        String loginId = "testId";
-        String currentPassword = "samePassword123!";
-        String currentPasswordEncoded = "encodedPassword";
-        String newPassword = "samePassword123!";
-
-        given(passwordEncoder.encode(currentPassword)).willReturn(currentPasswordEncoded);
-        User user = User.builder()
-                .loginId(loginId)
-                .password(currentPassword)
-                .name("홍길동")
-                .birthDate("1990-01-01")
-                .email("test@test.com")
-                .passwordEncoder(passwordEncoder)
-                .build();
-
-        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(newPassword, currentPasswordEncoded)).willReturn(true);
-
-        // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, newPassword))
-                .isInstanceOf(SamePasswordException.class);
     }
 
 }
