@@ -14,14 +14,12 @@ import org.springframework.http.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 import static com.loopers.user.controller.UserController.LOGIN_ID_HEADER;
 import static com.loopers.user.controller.UserController.LOGIN_PW_HEADER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(MySqlTestContainersConfig.class)
-@Transactional
 public class UserE2ETest {
 
     @Autowired
