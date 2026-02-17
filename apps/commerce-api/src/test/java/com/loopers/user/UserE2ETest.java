@@ -64,6 +64,12 @@ public class UserE2ETest {
 
         //then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        GetMyInfoResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.loginId()).isEqualTo("myinfouser");
+        assertThat(body.name()).isEqualTo("홍길*");
+        assertThat(body.birthDate()).isEqualTo("1999-01-01");
+        assertThat(body.email()).isEqualTo("test@email.com");
     }
 
     @Test
