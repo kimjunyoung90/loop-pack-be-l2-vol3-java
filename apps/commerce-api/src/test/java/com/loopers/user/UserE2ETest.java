@@ -142,6 +142,18 @@ public class UserE2ETest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        // 새 비밀번호로 내 정보 조회 성공 확인
+        HttpHeaders newHeaders = new HttpHeaders();
+        newHeaders.set("X-Loopers-LoginId", id);
+        newHeaders.set("X-Loopers-LoginPw", "NewPass123!");
+
+        ResponseEntity<GetMyInfoResponse> myInfoResponse = restTemplate.exchange(
+                "/api/v1/users/me", HttpMethod.GET,
+                new HttpEntity<>(newHeaders), GetMyInfoResponse.class
+        );
+
+        assertThat(myInfoResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
