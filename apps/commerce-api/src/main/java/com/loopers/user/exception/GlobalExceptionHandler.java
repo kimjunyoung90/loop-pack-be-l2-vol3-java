@@ -47,4 +47,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", e.getMessage()));
     }
+
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticationFailed(AuthenticationFailedException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", e.getMessage()));
+    }
 }

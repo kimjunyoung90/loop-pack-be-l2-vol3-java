@@ -2,6 +2,7 @@ package com.loopers.user.service;
 
 import com.loopers.user.domain.User;
 import com.loopers.user.dto.GetMyInfoResponse;
+import com.loopers.user.exception.AuthenticationFailedException;
 import com.loopers.user.exception.UserNotFoundException;
 import com.loopers.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class UserServiceTest {
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> userService.getMyInfo(loginId))
+        assertThatThrownBy(() -> userService.getMyInfo(loginId, "password123!"))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -56,12 +57,36 @@ public class UserServiceTest {
                 .passwordEncoder(passwordEncoder)
                 .build();
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
+        given(passwordEncoder.matches(rawPassword, "encodedPassword")).willReturn(true);
 
         // when
-        GetMyInfoResponse response = userService.getMyInfo(loginId);
+        GetMyInfoResponse response = userService.getMyInfo(loginId, rawPassword);
 
         // then
         assertThat(response, not(hasProperty("password")));
+    }
+
+    @Test
+    void 사용자_정보_조회시_비밀번호가_일치하지_않으면_AuthenticationFailedException이_발생한다() {
+        // given
+        String loginId = "loginId";
+        String rawPassword = "validPass1!";
+        String wrongPassword = "wrongPass1!";
+        given(passwordEncoder.encode(rawPassword)).willReturn("encodedPassword");
+        User user = User.builder()
+                .loginId(loginId)
+                .password(rawPassword)
+                .name("홍길동")
+                .birthDate("1990-01-01")
+                .email("test@test.com")
+                .passwordEncoder(passwordEncoder)
+                .build();
+        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
+        given(passwordEncoder.matches(wrongPassword, "encodedPassword")).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> userService.getMyInfo(loginId, wrongPassword))
+                .isInstanceOf(AuthenticationFailedException.class);
     }
 
 }

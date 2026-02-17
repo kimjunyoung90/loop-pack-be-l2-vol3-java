@@ -3,6 +3,7 @@ package com.loopers.user.service;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.user.domain.User;
 import com.loopers.user.dto.CreateUserRequest;
+import com.loopers.user.exception.AuthenticationFailedException;
 import com.loopers.user.exception.DuplicateLoginIdException;
 import com.loopers.user.exception.SamePasswordException;
 import com.loopers.user.repository.UserRepository;
@@ -79,7 +80,7 @@ public class UserServiceIntegrationTest {
         userService.createUser(request);
 
         // when
-        userService.changePassword(loginId, newPassword);
+        userService.changePassword(loginId, currentPassword, newPassword);
 
         // then
         User updatedUser = userRepository.findByLoginId(loginId).orElseThrow();
@@ -99,7 +100,42 @@ public class UserServiceIntegrationTest {
         userService.createUser(request);
 
         // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, newPassword))
+        assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, newPassword))
                 .isInstanceOf(SamePasswordException.class);
+    }
+
+    @Test
+    void 비밀번호_불일치로_내정보_조회시_AuthenticationFailedException이_발생한다() {
+        // given
+        String loginId = "testuser";
+        String currentPassword = "password123!";
+        String wrongPassword = "wrongPass1!";
+
+        CreateUserRequest request = new CreateUserRequest(
+                loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
+        );
+        userService.createUser(request);
+
+        // when & then
+        assertThatThrownBy(() -> userService.getMyInfo(loginId, wrongPassword))
+                .isInstanceOf(AuthenticationFailedException.class);
+    }
+
+    @Test
+    void 비밀번호_불일치로_비밀번호_변경시_AuthenticationFailedException이_발생한다() {
+        // given
+        String loginId = "testuser";
+        String currentPassword = "password123!";
+        String wrongPassword = "wrongPass1!";
+        String newPassword = "newPass456!";
+
+        CreateUserRequest request = new CreateUserRequest(
+                loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
+        );
+        userService.createUser(request);
+
+        // when & then
+        assertThatThrownBy(() -> userService.changePassword(loginId, wrongPassword, newPassword))
+                .isInstanceOf(AuthenticationFailedException.class);
     }
 }

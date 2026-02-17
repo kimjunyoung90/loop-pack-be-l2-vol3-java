@@ -50,13 +50,13 @@ public class UserE2ETest {
     void 존재하는_ID로_내정보_조회시_마스킹된_이름과_비밀번호_제외한_정보를_반환한다() {
         //given
         CreateUserRequest createUserRequest = new CreateUserRequest(
-                "testuser01", "Pass1234!", "홍길동", "1999-01-01", "test@email.com");
+                "myinfouser", "Pass1234!", "홍길동", "1999-01-01", "test@email.com");
 
         restTemplate.postForEntity("/api/v1/users", createUserRequest, Void.class);
 
         //when
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Loopers-LoginId", "testuser01");
+        headers.set("X-Loopers-LoginId", "myinfouser");
         headers.set("X-Loopers-LoginPw", "Pass1234!");
         ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
                 "/api/v1/users/me", HttpMethod.GET,
@@ -70,7 +70,7 @@ public class UserE2ETest {
     void 존재하지_않는_ID로_내정보_조회시_예외가_발생한다() {
         //given
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Loopers-LoginId", "testuser01");
+        headers.set("X-Loopers-LoginId", "nonexistent99");
         headers.set("X-Loopers-LoginPw", "Pass1234!");
 
         //when
@@ -117,7 +117,7 @@ public class UserE2ETest {
     @Test
     void 유효한_새로운_비밀번호로_비밀번호_수정을_요청하면_200을_반환한다() {
 
-        String id = "testuser01";
+        String id = "chgpwuser";
         String password = "Pass1234!";
         CreateUserRequest createUserRequest = new CreateUserRequest(
                 id, password, "홍길동", "1999-01-01", "test@email.com");
@@ -136,6 +136,60 @@ public class UserE2ETest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void 잘못된_비밀번호로_내정보_조회시_401을_반환한다() {
+        // given
+        String loginId = "authtest01";
+        String password = "Pass1234!";
+        CreateUserRequest createRequest = new CreateUserRequest(
+                loginId, password, "홍길동", "1990-01-01", "test@example.com"
+        );
+        restTemplate.postForEntity("/api/v1/users", createRequest, Void.class);
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(LOGIN_ID_HEADER, loginId);
+        headers.set(LOGIN_PW_HEADER, "WrongPass1!");
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/v1/users/me", HttpMethod.GET,
+                new HttpEntity<>(headers), String.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void 잘못된_비밀번호로_비밀번호_변경시_401을_반환한다() {
+        // given
+        String loginId = "authtest02";
+        String password = "Pass1234!";
+        CreateUserRequest createRequest = new CreateUserRequest(
+                loginId, password, "홍길동", "1990-01-01", "test@example.com"
+        );
+        restTemplate.postForEntity("/api/v1/users", createRequest, Void.class);
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(LOGIN_ID_HEADER, loginId);
+        headers.set(LOGIN_PW_HEADER, "WrongPass1!");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        ChangePasswordRequest changeRequest = new ChangePasswordRequest("NewPass456!");
+        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/v1/users/password",
+                HttpMethod.PATCH,
+                entity,
+                String.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
 }

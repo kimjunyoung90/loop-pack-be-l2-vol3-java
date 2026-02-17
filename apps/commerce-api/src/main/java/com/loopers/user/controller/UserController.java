@@ -30,9 +30,10 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<GetMyInfoResponse> getMyInfo(
-            @RequestHeader(LOGIN_ID_HEADER) String loginId
+            @RequestHeader(LOGIN_ID_HEADER) String loginId,
+            @RequestHeader(LOGIN_PW_HEADER) String password
     ) {
-        GetMyInfoResponse response = userService.getMyInfo(loginId);
+        GetMyInfoResponse response = userService.getMyInfo(loginId, password);
         return ResponseEntity.ok(response);
     }
 
@@ -42,7 +43,7 @@ public class UserController {
             @RequestHeader(LOGIN_PW_HEADER) String currentPassword,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-        userService.changePassword(loginId, request.newPassword());
+        userService.changePassword(loginId, currentPassword, request.newPassword());
         return ResponseEntity.ok().build();
     }
 }

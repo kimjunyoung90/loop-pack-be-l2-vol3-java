@@ -134,18 +134,19 @@ public class UserControllerTest {
     }
 
     @Test
-    void 내정보조회시_헤더의_로그인ID를_서비스에_전달한다() throws Exception {
+    void 내정보조회시_헤더의_로그인ID와_비밀번호를_서비스에_전달한다() throws Exception {
         //given
         String loginId = "rlawnsdud05";
+        String password = "password123!";
 
         //when
         mockMvc.perform(get("/api/v1/users/me")
                 .header("X-Loopers-LoginId", loginId)
-                .header("X-Loopers-LoginPw", "password123!")
+                .header("X-Loopers-LoginPw", password)
         );
 
         //then
-        verify(userService).getMyInfo(loginId);
+        verify(userService).getMyInfo(loginId, password);
     }
 
     @Test
@@ -197,6 +198,6 @@ public class UserControllerTest {
                 .header("X-Loopers-LoginPw", loginPasswd)
         );
 
-        verify(userService).changePassword(loginId, newPassword);
+        verify(userService).changePassword(loginId, loginPasswd, newPassword);
     }
 }
