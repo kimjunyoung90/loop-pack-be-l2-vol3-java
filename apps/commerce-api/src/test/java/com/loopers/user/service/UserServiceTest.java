@@ -11,11 +11,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,11 +43,13 @@ public class UserServiceTest {
 
     @Test
     void 사용자_정보_조회시_비밀번호는_반환데이터에서_제외한다() {
+        // given
         String loginId = "loginId";
-        given(passwordEncoder.encode("validPass1!")).willReturn("encodedPassword");
+        String rawPassword = "validPass1!";
+        given(passwordEncoder.encode(rawPassword)).willReturn("encodedPassword");
         User user = User.builder()
                 .loginId(loginId)
-                .password("validPass1!")
+                .password(rawPassword)
                 .name("홍길동")
                 .birthDate("1990-01-01")
                 .email("test@test.com")
@@ -55,12 +57,11 @@ public class UserServiceTest {
                 .build();
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
 
-        GetMyInfoResponse myInfo = userService.getMyInfo(loginId);
+        // when
+        GetMyInfoResponse response = userService.getMyInfo(loginId);
 
-        assertThat(myInfo.getClass().getDeclaredFields())
-                .extracting(Field::getName)
-                .containsExactlyInAnyOrder("loginId", "name", "birthDate", "email");
-
+        // then
+        assertThat(response, not(hasProperty("password")));
     }
 
 }
