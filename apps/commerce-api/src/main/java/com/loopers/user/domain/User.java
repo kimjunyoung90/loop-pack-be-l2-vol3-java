@@ -42,7 +42,7 @@ public class User extends BaseEntity {
         setPassword(password, birthDate, passwordEncoder);
     }
 
-    public String getName() {
+    public String getMaskedName() {
         return name.substring(0, name.length() - 1) + "*";
     }
 

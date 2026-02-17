@@ -191,7 +191,7 @@ class UserTest {
                 .build();
 
         // when
-        String maskedName = user.getName();
+        String maskedName = user.getMaskedName();
 
         // then
         assertThat(maskedName).isEqualTo("홍길*");
