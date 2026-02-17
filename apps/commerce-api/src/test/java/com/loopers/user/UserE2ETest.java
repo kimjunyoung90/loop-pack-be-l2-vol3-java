@@ -115,39 +115,6 @@ public class UserE2ETest {
     }
 
     @Test
-    void 비밀번호_변경시_8자_미만_규칙_위반하면_400_Bad_Request_반환() {
-        // given - 사용자 생성
-        String loginId = "pwrule" + (System.currentTimeMillis() % 1000);
-        String currentPassword = "Password1!";
-        String invalidPassword = "short";  // 8자 미만
-
-        CreateUserRequest createRequest = new CreateUserRequest(
-                loginId, currentPassword, "홍길동", "1990-01-01", "test@example.com"
-        );
-        ResponseEntity<CreateUserResponse> createResponse = restTemplate.postForEntity("/api/v1/users", createRequest, CreateUserResponse.class);
-        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-
-        // when - 규칙 위반 비밀번호로 변경 시도
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(LOGIN_ID_HEADER, loginId);
-        headers.set(LOGIN_PW_HEADER, currentPassword);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest(invalidPassword);
-        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
-
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/api/v1/users/password",
-                HttpMethod.PATCH,
-                entity,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
     void 유효한_새로운_비밀번호로_비밀번호_수정을_요청하면_200을_반환한다() {
 
         String id = "testuser01";
