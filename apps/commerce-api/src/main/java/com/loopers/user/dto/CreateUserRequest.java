@@ -3,12 +3,14 @@ package com.loopers.user.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public record CreateUserRequest(
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9]+$")
         String loginId,
         @NotBlank
+        @Size(min = 8, max = 16)
+        @Pattern(regexp = "^[a-zA-Z\\d\\p{Punct}]+$")
         String password,
         @NotBlank
         String name,

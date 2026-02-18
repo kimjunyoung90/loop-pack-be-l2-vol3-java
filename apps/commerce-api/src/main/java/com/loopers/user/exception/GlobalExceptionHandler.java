@@ -30,12 +30,6 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", e.getMessage()));
     }
 
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", e.getMessage()));
-    }
-
     @ExceptionHandler(SamePasswordException.class)
     public ResponseEntity<Map<String, String>> handleSamePassword(SamePasswordException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -45,6 +39,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticationFailed(AuthenticationFailedException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("message", e.getMessage()));
     }
 }

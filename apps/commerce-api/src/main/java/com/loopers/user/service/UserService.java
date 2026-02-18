@@ -3,11 +3,11 @@ package com.loopers.user.service;
 import com.loopers.user.domain.User;
 import com.loopers.user.dto.CreateUserRequest;
 import com.loopers.user.dto.GetMyInfoResponse;
+import com.loopers.user.exception.AuthenticationFailedException;
 import com.loopers.user.exception.DuplicateLoginIdException;
-import com.loopers.user.exception.InvalidCredentialsException;
 import com.loopers.user.exception.SamePasswordException;
+import com.loopers.user.exception.UserNotFoundException;
 import com.loopers.user.repository.UserRepository;
-import com.loopers.user.validator.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,51 +27,50 @@ public class UserService {
             throw new DuplicateLoginIdException();
         }
 
-        //비밀번호 검증
-        PasswordValidator.validate(request.password(), request.birthDate());
-
-        //비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.password());
-
-        User user = new User(
-                request.loginId(),
-                encodedPassword,
-                request.name(),
-                request.birthDate(),
-                request.email()
-        );
+        User user = User.builder()
+                .loginId(request.loginId())
+                .password(request.password())
+                .name(request.name())
+                .birthDate(request.birthDate())
+                .email(request.email())
+                .passwordEncoder(passwordEncoder)
+                .build();
 
         return userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
-    public GetMyInfoResponse getMyInfo(String loginId) {
+    public GetMyInfoResponse getMyInfo(String loginId, String password) {
+        authenticate(loginId, password);
+
         User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(InvalidCredentialsException::new);
+                .orElseThrow(UserNotFoundException::new);
 
         return GetMyInfoResponse.from(user);
     }
 
     @Transactional
-    public void changePassword(String loginId, String currentPassword, String newPassword) {
-        User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(InvalidCredentialsException::new);
+    public void changePassword(String loginId, String password, String newPassword) {
+        authenticate(loginId, password);
 
-        // 기존 비밀번호 확인
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new InvalidCredentialsException();
-        }
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(UserNotFoundException::new);
 
         // 새 비밀번호가 기존 비밀번호와 동일한지 확인
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new SamePasswordException();
         }
 
-        // 새 비밀번호 규칙 검증
-        PasswordValidator.validate(newPassword, user.getBirthDate());
-
         // 비밀번호 암호화 후 저장
-        String encodedNewPassword = passwordEncoder.encode(newPassword);
-        user.changePassword(encodedNewPassword);
+        user.setPassword(newPassword, user.getBirthDate(), passwordEncoder);
+    }
+
+    private void authenticate(String loginId, String password) {
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(AuthenticationFailedException::new);
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new AuthenticationFailedException();
+        }
     }
 }

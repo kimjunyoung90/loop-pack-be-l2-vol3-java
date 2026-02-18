@@ -2,11 +2,15 @@ package com.loopers.user.domain;
 
 import com.loopers.domain.BaseEntity;
 import jakarta.persistence.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @Entity
 @Table(name = "users")
@@ -30,33 +34,45 @@ public class User extends BaseEntity {
     private String email;
 
     @Builder
-    public User(String loginId, String password, String name, String birthDate, String email) {
-        validateRequired(loginId, password, name, birthDate, email);
-
+    private User(String loginId, String password, String name, String birthDate, String email, PasswordEncoder passwordEncoder) {
         this.loginId = loginId;
-        this.password = password;
         this.name = name;
-        this.birthDate = birthDate;
-        this.email = email;
-    }
-
-    private void validateRequired(String loginId, String password, String name, String birthDate, String email) {
-        Assert.hasText(loginId, "loginId는 필수입니다");
-        Assert.hasText(password, "password는 필수입니다");
-        Assert.hasText(name, "name은 필수입니다");
-        Assert.hasText(birthDate, "birthDate는 필수입니다");
-        Assert.hasText(email, "email은 필수입니다");
+        setBirthDate(birthDate);
+        setEmail(email);
+        setPassword(password, birthDate, passwordEncoder);
     }
 
     public String getMaskedName() {
-        if (name.length() == 1) {
-            return "*";
-        }
         return name.substring(0, name.length() - 1) + "*";
     }
 
-    public void changePassword(String newPassword) {
-        Assert.hasText(newPassword, "새 비밀번호는 필수입니다");
-        this.password = newPassword;
+    public void setPassword(String password, String birthDate, PasswordEncoder passwordEncoder) {
+        if (password.length() < 8 || password.length() > 16) {
+            throw new IllegalArgumentException();
+        }
+        if(!password.matches("^[a-zA-Z\\d\\p{Punct}]+$")) {
+            throw new IllegalArgumentException();
+        }
+        if(password.contains(birthDate)) {
+            throw new IllegalArgumentException("비밀번호는 생년월일을 포함할 수 없습니다.");
+        }
+
+        this.password = passwordEncoder.encode(password);
+    }
+
+    public void setEmail(String email) {
+        if(!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new IllegalArgumentException();
+        }
+        this.email = email;
+    }
+
+    public void setBirthDate(String birthDate) {
+        try {
+            LocalDate.parse(birthDate);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException();
+        }
+        this.birthDate = birthDate;
     }
 }

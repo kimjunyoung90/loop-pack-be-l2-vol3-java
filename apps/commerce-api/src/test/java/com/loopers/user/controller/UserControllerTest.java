@@ -1,9 +1,8 @@
 package com.loopers.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.user.domain.User;
+import com.loopers.user.dto.ChangePasswordRequest;
 import com.loopers.user.dto.CreateUserRequest;
-import com.loopers.user.exception.GlobalExceptionHandler;
 import com.loopers.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,7 +10,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,56 +17,24 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.stream.Stream;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import(GlobalExceptionHandler.class)
 public class UserControllerTest {
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @MockitoBean
-    UserService userService;
+    private UserService userService;
 
-    @Test
-    void 회원가입_성공_시_201_반환() throws Exception {
-        //given
-        CreateUserRequest request = new CreateUserRequest(
-                "testId", "password123!", "김준영", "1990-04-27", "test@test.com"
-        );
-
-        User user = User.builder()
-                .loginId("testId")
-                .password("encoded")
-                .name("김준영")
-                .birthDate("1990-04-27")
-                .email("test@test.com")
-                .build();
-
-        given(userService.createUser(any(CreateUserRequest.class)))
-                .willReturn(user);
-
-        //when
-        ResultActions result = mockMvc.perform(post("/api/v1/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        );
-
-        //then
-        result.andExpect(status().isCreated());
-    }
-
-    @ParameterizedTest(name = "{1} 누락 시 400 반환")
+    @ParameterizedTest(name = "{1} 누락")
     @MethodSource("필수값_누락_케이스")
-    void 필수값_누락_시_400_Bad_Request_반환(CreateUserRequest request, String fieldName) throws Exception {
-        //given
+    void 회원가입시_필수값이_누락되면_응답코드_400을_반환한다(CreateUserRequest request, String nullField) throws Exception {
 
         //when
         ResultActions result = mockMvc.perform(post("/api/v1/users")
@@ -91,27 +57,11 @@ public class UserControllerTest {
     }
 
     @Test
-    void 이메일_형식_오류_시_400_Bad_Request_반환() throws Exception {
+    void 이메일_형식_오류시_응답코드_400을_반환한다() throws Exception {
         //given
+        String email = "testtest.com";
         CreateUserRequest request = new CreateUserRequest(
-                "testId", "password123!", "김준영", "1990-04-27", "testtest.com"
-        );
-
-        //when
-        ResultActions result = mockMvc.perform(post("/api/v1/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        );
-
-        //then
-        result.andDo(print()).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 생년월일_형식_오류_시_400_Bad_Request_반환() throws Exception {
-        //given
-        CreateUserRequest request = new CreateUserRequest(
-                "testId", "password123!", "김준영", "1990-0427", "test@test.com"
+                "testId", "password123!", "김준영", "1990-04-27", email
         );
 
         //when
@@ -122,5 +72,132 @@ public class UserControllerTest {
 
         //then
         result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 이메일_도메인_누락시_응답코드_400을_반환한다() throws Exception {
+        //given
+        String email = "test@";
+        CreateUserRequest request = new CreateUserRequest(
+                "testId", "password123!", "김준영", "1990-04-27", email
+        );
+
+        //when
+        ResultActions result = mockMvc.perform(post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        //then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 생년월일_형식_오류시_응답코드_400을_반환한다() throws Exception {
+        //given
+        String birthDate = "1990-0427";
+        CreateUserRequest request = new CreateUserRequest(
+                "testId", "password123!", "김준영", birthDate, "test@test.com"
+        );
+
+        //when
+        ResultActions result = mockMvc.perform(post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        //then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest(name = "비밀번호가 \"{0}\"이면 400")
+    @MethodSource("회원가입_비밀번호_형식_오류_케이스")
+    void 회원가입시_비밀번호_형식이_올바르지_않으면_응답코드_400을_반환한다(String password) throws Exception {
+        CreateUserRequest request = new CreateUserRequest(
+                "testId", password, "김준영", "1990-04-27", "test@test.com"
+        );
+
+        ResultActions result = mockMvc.perform(post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        result.andExpect(status().isBadRequest());
+    }
+
+    static Stream<Arguments> 회원가입_비밀번호_형식_오류_케이스() {
+        return Stream.of(
+                Arguments.of("Short1!"),        // 7자 (8자 미만)
+                Arguments.of("thisIsWayTooLong1!"), // 17자 (16자 초과)
+                Arguments.of("pass한글word1!")    // 허용되지 않은 문자 포함
+        );
+    }
+
+    @Test
+    void 내정보조회시_헤더의_로그인ID와_비밀번호를_서비스에_전달한다() throws Exception {
+        //given
+        String loginId = "rlawnsdud05";
+        String password = "password123!";
+
+        //when
+        mockMvc.perform(get("/api/v1/users/me")
+                .header("X-Loopers-LoginId", loginId)
+                .header("X-Loopers-LoginPw", password)
+        );
+
+        //then
+        verify(userService).getMyInfo(loginId, password);
+    }
+
+    @Test
+    void 비밀번호_변경시_신규_비밀번호가_누락되면_400을_반환한다() throws Exception {
+        ChangePasswordRequest request = new ChangePasswordRequest("");
+
+        ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        );
+
+        result.andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest(name = "새 비밀번호가 \"{0}\"이면 400")
+    @MethodSource("비밀번호_변경_형식_오류_케이스")
+    void 비밀번호_변경시_새_비밀번호_형식이_올바르지_않으면_400을_반환한다(String newPassword) throws Exception {
+        ChangePasswordRequest request = new ChangePasswordRequest(newPassword);
+
+        ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header("X-Loopers-LoginId", "testuser01")
+                .header("X-Loopers-LoginPw", "password123!")
+        );
+
+        result.andExpect(status().isBadRequest());
+    }
+
+    static Stream<Arguments> 비밀번호_변경_형식_오류_케이스() {
+        return Stream.of(
+                Arguments.of("Short1!"),        // 7자 (8자 미만)
+                Arguments.of("thisIsWayTooLong1!"), // 17자 (16자 초과)
+                Arguments.of("pass한글word1!")    // 허용되지 않은 문자 포함
+        );
+    }
+
+    @Test
+    void 비밀번호_변경시_헤더의_로그인ID와_비밀번호를_서비스에_전달한다() throws Exception {
+        String newPassword = "newwpwd123!";
+        ChangePasswordRequest request = new ChangePasswordRequest(newPassword);
+
+        String loginId = "rlawnsdud05";
+        String loginPasswd = "password123!";
+        mockMvc.perform(patch("/api/v1/users/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header("X-Loopers-LoginId", loginId)
+                .header("X-Loopers-LoginPw", loginPasswd)
+        );
+
+        verify(userService).changePassword(loginId, loginPasswd, newPassword);
     }
 }

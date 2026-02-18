@@ -30,19 +30,20 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<GetMyInfoResponse> getMyInfo(
-            @RequestHeader(LOGIN_ID_HEADER) String loginId
+            @RequestHeader(LOGIN_ID_HEADER) String loginId,
+            @RequestHeader(LOGIN_PW_HEADER) String password
     ) {
-        GetMyInfoResponse response = userService.getMyInfo(loginId);
+        GetMyInfoResponse response = userService.getMyInfo(loginId, password);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/password")
     public ResponseEntity<Void> changePassword(
             @RequestHeader(LOGIN_ID_HEADER) String loginId,
-            @RequestHeader(LOGIN_PW_HEADER) String currentPassword,
+            @RequestHeader(LOGIN_PW_HEADER) String password,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-        userService.changePassword(loginId, currentPassword, request.newPassword());
+        userService.changePassword(loginId, password, request.newPassword());
         return ResponseEntity.ok().build();
     }
 }
