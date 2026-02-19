@@ -736,7 +736,7 @@ sequenceDiagram
         OC-->>User: 403 Forbidden
     end
 
-    OS-->>-OC: 주문 상세 정보 (OrderItem 스냅샷 포함)
+    OS-->>-OC: 주문 상세 정보 (주문 상품 스냅샷 포함)
     OC-->>-User: 주문 상세 응답
 ```
 
@@ -788,6 +788,6 @@ sequenceDiagram
         OC-->>Admin: 404 Not Found
     end
 
-    OS-->>-OC: 주문 상세 정보 (OrderItem 스냅샷 포함)
+    OS-->>-OC: 주문 상세 정보 (주문 상품 스냅샷 포함)
     OC-->>-Admin: 주문 상세 응답
 ```
