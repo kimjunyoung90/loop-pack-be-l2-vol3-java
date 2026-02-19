@@ -6,6 +6,8 @@
 classDiagram
     class User {
         -Long id
+        -String loginId
+        -String password
         -String name
         -UserRole role
     }
@@ -19,6 +21,7 @@ classDiagram
     class Brand {
         -Long id
         -String name
+        -String description
         -boolean isDeleted
     }
 
@@ -28,8 +31,6 @@ classDiagram
         -String name
         -int price
         -int stockQuantity
-        -int reservedQuantity
-        -int likeCount
         -boolean isDeleted
     }
 
@@ -56,7 +57,6 @@ classDiagram
 
     class OrderStatus {
         <<enumeration>>
-        CREATED
         COMPLETED
         CANCELED
     }

@@ -6,6 +6,8 @@
 erDiagram
     users {
         bigint id PK
+        varchar login_id
+        varchar password
         varchar name
         varchar role
         timestamp created_at
@@ -15,6 +17,7 @@ erDiagram
     brands {
         bigint id PK
         varchar name
+        varchar description
         timestamp created_at
         timestamp updated_at
         boolean is_deleted
@@ -26,8 +29,6 @@ erDiagram
         varchar name
         int price
         int stock_quantity
-        int reserved_quantity
-        int like_count
         timestamp created_at
         timestamp updated_at
         boolean is_deleted
