@@ -28,7 +28,7 @@ erDiagram
         bigint brand_id FK
         varchar name
         int price
-        int stock_quantity
+        int stock
         timestamp created_at
         timestamp updated_at
         boolean is_deleted

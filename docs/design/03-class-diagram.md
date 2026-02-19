@@ -30,7 +30,7 @@ classDiagram
         -Long brandId
         -String name
         -int price
-        -int stockQuantity
+        -int stock
         -boolean isDeleted
         +decreaseStock(quantity)
         +restoreStock(quantity)
