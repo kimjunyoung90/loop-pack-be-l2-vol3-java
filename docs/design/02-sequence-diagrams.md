@@ -83,7 +83,7 @@ sequenceDiagram
     BS->>+BR: 브랜드 조회
     BR-->>-BS: 브랜드 정보
 
-    alt 브랜드 미존재
+    opt 브랜드 미존재
         BS-->>BC: 예외
         BC-->>User: 404 Not Found
     end
@@ -155,7 +155,7 @@ sequenceDiagram
     BS->>+BR: 브랜드 조회
     BR-->>-BS: 브랜드 정보
 
-    alt 브랜드 미존재
+    opt 브랜드 미존재
         BS-->>BC: 예외
         BC-->>Admin: 404 Not Found
     end
@@ -183,7 +183,7 @@ sequenceDiagram
     BS->>+BR: 브랜드 조회
     BR-->>-BS: 브랜드 정보
 
-    alt 브랜드 미존재
+    opt 브랜드 미존재
         BS-->>BC: 예외
         BC-->>Admin: 404 Not Found
     end
@@ -222,7 +222,7 @@ sequenceDiagram
         BS->>+BR: 브랜드 조회
         BR-->>-BS: 브랜드 정보
 
-        alt 브랜드 미존재
+        opt 브랜드 미존재
             BS-->>BC: 예외
             BC-->>Admin: 404 Not Found
         end
@@ -293,7 +293,7 @@ sequenceDiagram
     PS->>+PR: 상품 조회
     PR-->>-PS: 상품 정보
 
-    alt 상품 미존재
+    opt 상품 미존재
         PS-->>PC: 예외
         PC-->>User: 404 Not Found
     end
@@ -325,7 +325,7 @@ sequenceDiagram
     BR-->>-BS: 브랜드 정보
     BS-->>-PS: 브랜드 정보
 
-    alt 브랜드 미존재
+    opt 브랜드 미존재
         PS-->>PC: 예외
         PC-->>Admin: 404 Not Found
     end
@@ -377,7 +377,7 @@ sequenceDiagram
     PS->>+PR: 상품 조회
     PR-->>-PS: 상품 정보
 
-    alt 상품 미존재
+    opt 상품 미존재
         PS-->>PC: 예외
         PC-->>Admin: 404 Not Found
     end
@@ -405,7 +405,7 @@ sequenceDiagram
     PS->>+PR: 상품 조회
     PR-->>-PS: 상품 정보
 
-    alt 상품 미존재
+    opt 상품 미존재
         PS-->>PC: 예외
         PC-->>Admin: 404 Not Found
     end
@@ -442,7 +442,7 @@ sequenceDiagram
         PS->>+PR: 상품 조회
         PR-->>-PS: 상품 정보
 
-        alt 상품 미존재
+        opt 상품 미존재
             PS-->>PC: 예외
             PC-->>Admin: 404 Not Found
         end
@@ -490,7 +490,7 @@ sequenceDiagram
     PR-->>-PS: 상품 정보
     PS-->>-LS: 상품 정보
 
-    alt 상품 미존재
+    opt 상품 미존재
         LS-->>LC: 예외
         LC-->>User: 404 Not Found
     end
@@ -498,7 +498,7 @@ sequenceDiagram
     LS->>+LR: 좋아요 중복 확인 (userId, productId)
     LR-->>-LS: 조회 결과
 
-    alt 이미 좋아요한 상품
+    opt 이미 좋아요한 상품
         LS-->>LC: 예외
         LC-->>User: 409 Conflict
     end
@@ -531,7 +531,7 @@ sequenceDiagram
     LS->>+LR: 좋아요 조회 (userId, productId)
     LR-->>-LS: 조회 결과
 
-    alt 좋아요하지 않은 상품
+    opt 좋아요하지 않은 상품
         LS-->>LC: 예외
         LC-->>User: 404 Not Found
     end
@@ -596,7 +596,7 @@ sequenceDiagram
         PR-->>-PS: 상품 목록
         PS-->>-OS: 상품 목록
 
-        alt 존재하지 않는 상품 포함
+        opt 존재하지 않는 상품 포함
             OS-->>OC: 예외
         end
 
@@ -609,7 +609,7 @@ sequenceDiagram
             PS-->>-OS: 차감 완료
         end
 
-        alt 하나라도 재고 부족
+        opt 하나라도 재고 부족
             Note over OS, OR: 롤백 → 전부 원복
             OS-->>OC: 예외 (전부 아니면 전무)
         end
@@ -654,14 +654,14 @@ sequenceDiagram
         OS->>+OR: 주문 조회
         OR-->>-OS: 주문 정보
 
-        alt 주문 미존재 or 본인 아님
+        opt 주문 미존재 or 본인 아님
             OS-->>OC: 예외
         end
 
         OS->>+O: 주문 취소 요청
         O->>O: 취소 가능 상태 검증 (COMPLETED만 가능)
 
-        alt 이미 취소된 주문
+        opt 이미 취소된 주문
             OS-->>OC: 예외
         end
 
@@ -726,12 +726,12 @@ sequenceDiagram
     OS->>+OR: 주문 조회 (주문 항목 포함)
     OR-->>-OS: 주문 정보
 
-    alt 주문 미존재
+    opt 주문 미존재
         OS-->>OC: 예외
         OC-->>User: 404 Not Found
     end
 
-    alt 본인 주문 아님
+    opt 본인 주문 아님
         OS-->>OC: 예외
         OC-->>User: 403 Forbidden
     end
@@ -783,7 +783,7 @@ sequenceDiagram
     OS->>+OR: 주문 조회 (주문 항목 포함)
     OR-->>-OS: 주문 정보
 
-    alt 주문 미존재
+    opt 주문 미존재
         OS-->>OC: 예외
         OC-->>Admin: 404 Not Found
     end
