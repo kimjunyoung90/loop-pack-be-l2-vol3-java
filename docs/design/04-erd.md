@@ -9,6 +9,7 @@ erDiagram
         varchar login_id
         varchar password
         varchar name
+        varchar email
         varchar role
         timestamp created_at
         timestamp updated_at
@@ -17,7 +18,6 @@ erDiagram
     brands {
         bigint id PK
         varchar name
-        varchar description
         timestamp created_at
         timestamp updated_at
         boolean is_deleted

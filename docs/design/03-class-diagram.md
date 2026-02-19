@@ -9,6 +9,7 @@ classDiagram
         -String loginId
         -String password
         -String name
+        -String email
         -UserRole role
     }
 
