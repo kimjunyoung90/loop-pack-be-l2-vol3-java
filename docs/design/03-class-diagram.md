@@ -21,8 +21,8 @@ classDiagram
     class Brand {
         -Long id
         -String name
-        -String description
         -boolean isDeleted
+        +delete()
     }
 
     class Product {
@@ -32,6 +32,9 @@ classDiagram
         -int price
         -int stockQuantity
         -boolean isDeleted
+        +decreaseStock(quantity)
+        +restoreStock(quantity)
+        +delete()
     }
 
     class ProductLike {
@@ -44,6 +47,7 @@ classDiagram
         -Long id
         -Long userId
         -OrderStatus status
+        +cancel()
     }
 
     class OrderItem {
@@ -61,12 +65,12 @@ classDiagram
         CANCELED
     }
 
-    User --> UserRole : has
-    User "1" --> "*" ProductLike : likes
-    User "1" --> "*" Order : places
-    Brand "1" --> "*" Product : has
-    Product "1" --> "*" ProductLike : receives
-    Order "1" --> "*" OrderItem : contains
-    Order --> OrderStatus : has
+    User ..> UserRole
+    User "1" -- "*" ProductLike : likes
+    User "1" -- "*" Order : places
+    Brand "1" *-- "*" Product : has
+    Product "1" -- "*" ProductLike : receives
+    Order "1" *-- "*" OrderItem : contains
+    Order ..> OrderStatus
     Product "1" ..> "*" OrderItem : snapshot
 ```
