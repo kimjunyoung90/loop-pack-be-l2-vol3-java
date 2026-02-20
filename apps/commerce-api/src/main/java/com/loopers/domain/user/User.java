@@ -1,9 +1,8 @@
-package com.loopers.user.domain;
+package com.loopers.domain.user;
 
 import com.loopers.domain.BaseEntity;
 import jakarta.persistence.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.Assert;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

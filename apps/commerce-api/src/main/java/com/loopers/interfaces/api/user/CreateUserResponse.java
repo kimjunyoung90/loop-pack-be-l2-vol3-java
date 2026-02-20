@@ -1,6 +1,6 @@
-package com.loopers.user.dto;
+package com.loopers.interfaces.api.user;
 
-import com.loopers.user.domain.User;
+import com.loopers.domain.user.User;
 
 public record CreateUserResponse(
         Long id,

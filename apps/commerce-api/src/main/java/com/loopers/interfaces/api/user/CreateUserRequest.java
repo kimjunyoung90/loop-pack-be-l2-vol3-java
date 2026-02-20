@@ -1,4 +1,4 @@
-package com.loopers.user.dto;
+package com.loopers.interfaces.api.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

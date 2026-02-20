@@ -1,9 +1,10 @@
 package com.loopers.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.user.dto.ChangePasswordRequest;
-import com.loopers.user.dto.CreateUserRequest;
-import com.loopers.user.service.UserService;
+import com.loopers.interfaces.api.user.UserController;
+import com.loopers.interfaces.api.user.ChangePasswordRequest;
+import com.loopers.interfaces.api.user.CreateUserRequest;
+import com.loopers.application.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

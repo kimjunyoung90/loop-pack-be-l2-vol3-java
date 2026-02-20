@@ -1,10 +1,10 @@
 package com.loopers.user.service;
 
-import com.loopers.user.domain.User;
-import com.loopers.user.dto.GetMyInfoResponse;
+import com.loopers.application.user.UserService;
+import com.loopers.domain.user.User;
+import com.loopers.interfaces.api.user.GetMyInfoResponse;
 import com.loopers.user.exception.AuthenticationFailedException;
-import com.loopers.user.exception.UserNotFoundException;
-import com.loopers.user.repository.UserRepository;
+import com.loopers.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

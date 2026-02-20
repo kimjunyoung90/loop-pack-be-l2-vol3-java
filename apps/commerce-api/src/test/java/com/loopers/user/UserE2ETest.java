@@ -1,10 +1,10 @@
 package com.loopers.user;
 
 import com.loopers.testcontainers.MySqlTestContainersConfig;
-import com.loopers.user.dto.ChangePasswordRequest;
-import com.loopers.user.dto.CreateUserRequest;
-import com.loopers.user.dto.CreateUserResponse;
-import com.loopers.user.dto.GetMyInfoResponse;
+import com.loopers.interfaces.api.user.ChangePasswordRequest;
+import com.loopers.interfaces.api.user.CreateUserRequest;
+import com.loopers.interfaces.api.user.CreateUserResponse;
+import com.loopers.interfaces.api.user.GetMyInfoResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -15,8 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import static com.loopers.user.controller.UserController.LOGIN_ID_HEADER;
-import static com.loopers.user.controller.UserController.LOGIN_PW_HEADER;
+import static com.loopers.interfaces.api.user.UserController.LOGIN_ID_HEADER;
+import static com.loopers.interfaces.api.user.UserController.LOGIN_PW_HEADER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(MySqlTestContainersConfig.class)

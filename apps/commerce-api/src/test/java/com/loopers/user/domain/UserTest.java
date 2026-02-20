@@ -1,5 +1,6 @@
 package com.loopers.user.domain;
 
+import com.loopers.domain.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;

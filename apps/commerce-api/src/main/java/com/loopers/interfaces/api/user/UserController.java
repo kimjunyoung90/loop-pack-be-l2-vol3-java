@@ -1,11 +1,7 @@
-package com.loopers.user.controller;
+package com.loopers.interfaces.api.user;
 
-import com.loopers.user.domain.User;
-import com.loopers.user.dto.ChangePasswordRequest;
-import com.loopers.user.dto.CreateUserRequest;
-import com.loopers.user.dto.CreateUserResponse;
-import com.loopers.user.dto.GetMyInfoResponse;
-import com.loopers.user.service.UserService;
+import com.loopers.application.user.UserService;
+import com.loopers.domain.user.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
