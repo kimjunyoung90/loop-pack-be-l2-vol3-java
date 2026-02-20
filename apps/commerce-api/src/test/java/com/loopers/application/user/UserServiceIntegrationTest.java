@@ -3,9 +3,7 @@ package com.loopers.application.user;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.user.CreateUserRequest;
-import com.loopers.user.exception.AuthenticationFailedException;
-import com.loopers.user.exception.DuplicateLoginIdException;
-import com.loopers.user.exception.SamePasswordException;
+import com.loopers.support.error.CoreException;
 import com.loopers.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +45,7 @@ public class UserServiceIntegrationTest {
         Throwable thrown = catchThrowable(() -> userService.createUser(duplicateRequest));
 
         //then
-        assertThat(thrown).isInstanceOf(DuplicateLoginIdException.class);
+        assertThat(thrown).isInstanceOf(CoreException.class);
     }
 
     @Test
@@ -101,7 +99,7 @@ public class UserServiceIntegrationTest {
 
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, newPassword))
-                .isInstanceOf(SamePasswordException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
@@ -118,7 +116,7 @@ public class UserServiceIntegrationTest {
 
         // when & then
         assertThatThrownBy(() -> userService.getMyInfo(loginId, wrongPassword))
-                .isInstanceOf(AuthenticationFailedException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
@@ -136,6 +134,6 @@ public class UserServiceIntegrationTest {
 
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, wrongPassword, newPassword))
-                .isInstanceOf(AuthenticationFailedException.class);
+                .isInstanceOf(CoreException.class);
     }
 }
