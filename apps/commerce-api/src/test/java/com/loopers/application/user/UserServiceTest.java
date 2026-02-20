@@ -1,6 +1,5 @@
-package com.loopers.user.service;
+package com.loopers.application.user;
 
-import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.user.GetMyInfoResponse;
 import com.loopers.user.exception.AuthenticationFailedException;
