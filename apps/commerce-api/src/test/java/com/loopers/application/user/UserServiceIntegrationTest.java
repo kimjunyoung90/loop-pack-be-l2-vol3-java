@@ -2,7 +2,6 @@ package com.loopers.application.user;
 
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.domain.user.User;
-import com.loopers.interfaces.api.user.CreateUserRequest;
 import com.loopers.support.error.CoreException;
 import com.loopers.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -32,17 +31,17 @@ public class UserServiceIntegrationTest {
     void 가입된_ID로_회원가입시_DuplicateLoginIdException이_발생한다() {
         //given
         String loginId = "testuser";
-        CreateUserRequest request = new CreateUserRequest(
+        CreateUserCommand command = new CreateUserCommand(
                 loginId, "password123!", "홍길동", "1990-04-27", "test@test.com"
         );
-        userService.createUser(request);
+        userService.createUser(command);
 
         //when
         //동일한 아이디로 가입
-        CreateUserRequest duplicateRequest = new CreateUserRequest(
+        CreateUserCommand duplicateCommand = new CreateUserCommand(
                 loginId, "password456!", "김철수", "1995-01-01", "other@test.com"
         );
-        Throwable thrown = catchThrowable(() -> userService.createUser(duplicateRequest));
+        Throwable thrown = catchThrowable(() -> userService.createUser(duplicateCommand));
 
         //then
         assertThat(thrown).isInstanceOf(CoreException.class);
@@ -51,18 +50,18 @@ public class UserServiceIntegrationTest {
     @Test
     void 존재하지_않는_ID로_회원가입시_회원가입에_성공한다() {
         //given
-        CreateUserRequest request = new CreateUserRequest(
+        CreateUserCommand command = new CreateUserCommand(
                 "testuser", "password123!", "홍길동", "1990-04-27", "test@test.com"
         );
 
         //when
-        User savedUser = userService.createUser(request);
+        UserInfo userInfo = userService.createUser(command);
 
         //then
-        User foundUser = userRepository.findByLoginId(savedUser.getLoginId()).orElseThrow();
-        assertThat(foundUser.getLoginId()).isEqualTo(request.loginId());
-        assertThat(foundUser.getName()).isEqualTo(request.name());
-        assertThat(foundUser.getEmail()).isEqualTo(request.email());
+        User foundUser = userRepository.findByLoginId(userInfo.loginId()).orElseThrow();
+        assertThat(foundUser.getLoginId()).isEqualTo(command.loginId());
+        assertThat(foundUser.getName()).isEqualTo(command.name());
+        assertThat(foundUser.getEmail()).isEqualTo(command.email());
     }
 
     @Test
@@ -72,10 +71,10 @@ public class UserServiceIntegrationTest {
         String currentPassword = "password123!";
         String newPassword = "newPassword456!";
 
-        CreateUserRequest request = new CreateUserRequest(
+        CreateUserCommand command = new CreateUserCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
-        userService.createUser(request);
+        userService.createUser(command);
 
         // when
         userService.changePassword(loginId, currentPassword, newPassword);
@@ -92,10 +91,10 @@ public class UserServiceIntegrationTest {
         String currentPassword = "password123!";
         String newPassword = "password123!";
 
-        CreateUserRequest request = new CreateUserRequest(
+        CreateUserCommand command = new CreateUserCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
-        userService.createUser(request);
+        userService.createUser(command);
 
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, newPassword))
@@ -109,10 +108,10 @@ public class UserServiceIntegrationTest {
         String currentPassword = "password123!";
         String wrongPassword = "wrongPass1!";
 
-        CreateUserRequest request = new CreateUserRequest(
+        CreateUserCommand command = new CreateUserCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
-        userService.createUser(request);
+        userService.createUser(command);
 
         // when & then
         assertThatThrownBy(() -> userService.getMyInfo(loginId, wrongPassword))
@@ -127,10 +126,10 @@ public class UserServiceIntegrationTest {
         String wrongPassword = "wrongPass1!";
         String newPassword = "newPass456!";
 
-        CreateUserRequest request = new CreateUserRequest(
+        CreateUserCommand command = new CreateUserCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
-        userService.createUser(request);
+        userService.createUser(command);
 
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, wrongPassword, newPassword))
