@@ -1,7 +1,6 @@
 package com.loopers.application.user;
 
 import com.loopers.domain.user.User;
-import com.loopers.interfaces.api.user.GetMyInfoResponse;
 import com.loopers.support.error.CoreException;
 import com.loopers.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -59,10 +58,10 @@ public class UserServiceTest {
         given(passwordEncoder.matches(rawPassword, "encodedPassword")).willReturn(true);
 
         // when
-        GetMyInfoResponse response = userService.getMyInfo(loginId, rawPassword);
+        UserInfo userInfo = userService.getMyInfo(loginId, rawPassword);
 
         // then
-        assertThat(response, not(hasProperty("password")));
+        assertThat(userInfo, not(hasProperty("password")));
     }
 
     @Test

@@ -1,8 +1,6 @@
 package com.loopers.application.user;
 
 import com.loopers.domain.user.User;
-import com.loopers.interfaces.api.user.CreateUserRequest;
-import com.loopers.interfaces.api.user.GetMyInfoResponse;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.domain.user.UserRepository;
@@ -19,32 +17,32 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public User createUser(CreateUserRequest request) {
+    public UserInfo createUser(CreateUserCommand command) {
 
-        if(userRepository.existsByLoginId(request.loginId())){
+        if(userRepository.existsByLoginId(command.loginId())){
             throw new CoreException(ErrorType.CONFLICT, "이미 사용 중인 로그인 ID입니다.");
         }
 
         User user = User.builder()
-                .loginId(request.loginId())
-                .password(request.password())
-                .name(request.name())
-                .birthDate(request.birthDate())
-                .email(request.email())
+                .loginId(command.loginId())
+                .password(command.password())
+                .name(command.name())
+                .birthDate(command.birthDate())
+                .email(command.email())
                 .passwordEncoder(passwordEncoder)
                 .build();
 
-        return userRepository.save(user);
+        return UserInfo.from(userRepository.save(user));
     }
 
     @Transactional(readOnly = true)
-    public GetMyInfoResponse getMyInfo(String loginId, String password) {
+    public UserInfo getMyInfo(String loginId, String password) {
         authenticate(loginId, password);
 
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
-        return GetMyInfoResponse.from(user);
+        return UserInfo.fromWithMaskedName(user);
     }
 
     @Transactional

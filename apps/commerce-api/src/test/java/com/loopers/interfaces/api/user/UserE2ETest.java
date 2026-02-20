@@ -11,8 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import static com.loopers.interfaces.api.user.UserController.LOGIN_ID_HEADER;
-import static com.loopers.interfaces.api.user.UserController.LOGIN_PW_HEADER;
+import static com.loopers.interfaces.api.user.UserV1Controller.LOGIN_ID_HEADER;
+import static com.loopers.interfaces.api.user.UserV1Controller.LOGIN_PW_HEADER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(MySqlTestContainersConfig.class)
@@ -24,7 +24,7 @@ public class UserE2ETest {
     @Test
     void 유효한_데이터로_회원가입_요청하면_회원가입에_성공한다() {
         // given
-        CreateUserRequest request = new CreateUserRequest(
+        UserV1Dto.CreateUserRequest request = new UserV1Dto.CreateUserRequest(
                 "testuser",
                 "Password1!",
                 "홍길동",
@@ -33,39 +33,40 @@ public class UserE2ETest {
         );
 
         //실제 HTTP 요청
-        ResponseEntity<CreateUserResponse> response = restTemplate.postForEntity(
+        ResponseEntity<String> response = restTemplate.postForEntity(
                 "/api/v1/users",
                 request,
-                CreateUserResponse.class
+                String.class
         );
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("SUCCESS");
     }
 
     @Test
     void 존재하는_ID로_내정보_조회시_마스킹된_이름과_비밀번호_제외한_정보를_반환한다() {
         //given
-        CreateUserRequest createUserRequest = new CreateUserRequest(
+        UserV1Dto.CreateUserRequest createUserRequest = new UserV1Dto.CreateUserRequest(
                 "myinfouser", "Pass1234!", "홍길동", "1999-01-01", "test@email.com");
 
-        restTemplate.postForEntity("/api/v1/users", createUserRequest, Void.class);
+        restTemplate.postForEntity("/api/v1/users", createUserRequest, String.class);
 
         //when
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Loopers-LoginId", "myinfouser");
         headers.set("X-Loopers-LoginPw", "Pass1234!");
-        ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
+        ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/users/me", HttpMethod.GET,
-                new HttpEntity<>(headers), GetMyInfoResponse.class);
+                new HttpEntity<>(headers), String.class);
 
         //then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GetMyInfoResponse body = response.getBody();
+        String body = response.getBody();
         assertThat(body).isNotNull();
-        assertThat(body.loginId()).isEqualTo("myinfouser");
-        assertThat(body.name()).isEqualTo("홍길*");
-        assertThat(body.birthDate()).isEqualTo("1999-01-01");
-        assertThat(body.email()).isEqualTo("test@email.com");
+        assertThat(body).contains("myinfouser");
+        assertThat(body).contains("홍길*");
+        assertThat(body).contains("1999-01-01");
+        assertThat(body).contains("test@email.com");
     }
 
     @Test
@@ -76,9 +77,9 @@ public class UserE2ETest {
         headers.set("X-Loopers-LoginPw", "Pass1234!");
 
         //when
-        ResponseEntity<GetMyInfoResponse> response = restTemplate.exchange(
+        ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/users/me", HttpMethod.GET,
-                new HttpEntity<>(headers), GetMyInfoResponse.class);
+                new HttpEntity<>(headers), String.class);
 
         //then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -90,11 +91,11 @@ public class UserE2ETest {
         String loginId = "pwsame" + (System.currentTimeMillis() % 1000);
         String currentPassword = "Password1!";
 
-        CreateUserRequest createRequest = new CreateUserRequest(
+        UserV1Dto.CreateUserRequest createRequest = new UserV1Dto.CreateUserRequest(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@example.com"
         );
-        ResponseEntity<CreateUserResponse> createResponse = restTemplate.postForEntity("/api/v1/users", createRequest, CreateUserResponse.class);
-        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        ResponseEntity<String> createResponse = restTemplate.postForEntity("/api/v1/users", createRequest, String.class);
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         // when - 동일한 비밀번호로 변경 시도
         HttpHeaders headers = new HttpHeaders();
@@ -102,8 +103,8 @@ public class UserE2ETest {
         headers.set(LOGIN_PW_HEADER, currentPassword);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest(currentPassword);
-        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
+        UserV1Dto.ChangePasswordRequest changeRequest = new UserV1Dto.ChangePasswordRequest(currentPassword);
+        HttpEntity<UserV1Dto.ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/users/password",
@@ -121,20 +122,20 @@ public class UserE2ETest {
 
         String id = "chgpwuser";
         String password = "Pass1234!";
-        CreateUserRequest createUserRequest = new CreateUserRequest(
+        UserV1Dto.CreateUserRequest createUserRequest = new UserV1Dto.CreateUserRequest(
                 id, password, "홍길동", "1999-01-01", "test@email.com");
 
-        restTemplate.postForEntity("/api/v1/users", createUserRequest, Void.class);
+        restTemplate.postForEntity("/api/v1/users", createUserRequest, String.class);
 
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest("NewPass123!");
+        UserV1Dto.ChangePasswordRequest changeRequest = new UserV1Dto.ChangePasswordRequest("NewPass123!");
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Loopers-LoginId", id);
         headers.set("X-Loopers-LoginPw", password);
 
-        ResponseEntity<Void> response = restTemplate.exchange(
+        ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/users/password", HttpMethod.PATCH,
-                new HttpEntity<>(changeRequest, headers), Void.class
+                new HttpEntity<>(changeRequest, headers), String.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -144,9 +145,9 @@ public class UserE2ETest {
         newHeaders.set("X-Loopers-LoginId", id);
         newHeaders.set("X-Loopers-LoginPw", "NewPass123!");
 
-        ResponseEntity<GetMyInfoResponse> myInfoResponse = restTemplate.exchange(
+        ResponseEntity<String> myInfoResponse = restTemplate.exchange(
                 "/api/v1/users/me", HttpMethod.GET,
-                new HttpEntity<>(newHeaders), GetMyInfoResponse.class
+                new HttpEntity<>(newHeaders), String.class
         );
 
         assertThat(myInfoResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -157,10 +158,10 @@ public class UserE2ETest {
         // given
         String loginId = "authtest01";
         String password = "Pass1234!";
-        CreateUserRequest createRequest = new CreateUserRequest(
+        UserV1Dto.CreateUserRequest createRequest = new UserV1Dto.CreateUserRequest(
                 loginId, password, "홍길동", "1990-01-01", "test@example.com"
         );
-        restTemplate.postForEntity("/api/v1/users", createRequest, Void.class);
+        restTemplate.postForEntity("/api/v1/users", createRequest, String.class);
 
         // when
         HttpHeaders headers = new HttpHeaders();
@@ -181,10 +182,10 @@ public class UserE2ETest {
         // given
         String loginId = "authtest02";
         String password = "Pass1234!";
-        CreateUserRequest createRequest = new CreateUserRequest(
+        UserV1Dto.CreateUserRequest createRequest = new UserV1Dto.CreateUserRequest(
                 loginId, password, "홍길동", "1990-01-01", "test@example.com"
         );
-        restTemplate.postForEntity("/api/v1/users", createRequest, Void.class);
+        restTemplate.postForEntity("/api/v1/users", createRequest, String.class);
 
         // when
         HttpHeaders headers = new HttpHeaders();
@@ -192,8 +193,8 @@ public class UserE2ETest {
         headers.set(LOGIN_PW_HEADER, "WrongPass1!");
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest("NewPass456!");
-        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
+        UserV1Dto.ChangePasswordRequest changeRequest = new UserV1Dto.ChangePasswordRequest("NewPass456!");
+        HttpEntity<UserV1Dto.ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/users/password",
