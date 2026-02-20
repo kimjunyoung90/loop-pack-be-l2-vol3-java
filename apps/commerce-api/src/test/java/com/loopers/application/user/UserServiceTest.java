@@ -2,7 +2,7 @@ package com.loopers.application.user;
 
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.user.GetMyInfoResponse;
-import com.loopers.user.exception.AuthenticationFailedException;
+import com.loopers.support.error.CoreException;
 import com.loopers.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +38,7 @@ public class UserServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userService.getMyInfo(loginId, "password123!"))
-                .isInstanceOf(AuthenticationFailedException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
@@ -85,7 +85,7 @@ public class UserServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userService.getMyInfo(loginId, wrongPassword))
-                .isInstanceOf(AuthenticationFailedException.class);
+                .isInstanceOf(CoreException.class);
     }
 
 }
