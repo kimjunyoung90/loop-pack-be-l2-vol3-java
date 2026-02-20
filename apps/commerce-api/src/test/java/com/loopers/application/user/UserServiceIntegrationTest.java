@@ -1,6 +1,5 @@
-package com.loopers.user.service;
+package com.loopers.application.user;
 
-import com.loopers.application.user.UserService;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.user.CreateUserRequest;
@@ -62,7 +61,7 @@ public class UserServiceIntegrationTest {
         User savedUser = userService.createUser(request);
 
         //then
-        User foundUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        User foundUser = userRepository.findByLoginId(savedUser.getLoginId()).orElseThrow();
         assertThat(foundUser.getLoginId()).isEqualTo(request.loginId());
         assertThat(foundUser.getName()).isEqualTo(request.name());
         assertThat(foundUser.getEmail()).isEqualTo(request.email());

@@ -1,10 +1,6 @@
-package com.loopers.user;
+package com.loopers.interfaces.api.user;
 
 import com.loopers.testcontainers.MySqlTestContainersConfig;
-import com.loopers.interfaces.api.user.ChangePasswordRequest;
-import com.loopers.interfaces.api.user.CreateUserRequest;
-import com.loopers.interfaces.api.user.CreateUserResponse;
-import com.loopers.interfaces.api.user.GetMyInfoResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -211,4 +207,3 @@ public class UserE2ETest {
     }
 
 }
-
