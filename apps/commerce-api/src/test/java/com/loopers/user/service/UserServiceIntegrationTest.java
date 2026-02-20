@@ -1,12 +1,13 @@
 package com.loopers.user.service;
 
+import com.loopers.application.user.UserService;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
-import com.loopers.user.domain.User;
-import com.loopers.user.dto.CreateUserRequest;
+import com.loopers.domain.user.User;
+import com.loopers.interfaces.api.user.CreateUserRequest;
 import com.loopers.user.exception.AuthenticationFailedException;
 import com.loopers.user.exception.DuplicateLoginIdException;
 import com.loopers.user.exception.SamePasswordException;
-import com.loopers.user.repository.UserRepository;
+import com.loopers.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

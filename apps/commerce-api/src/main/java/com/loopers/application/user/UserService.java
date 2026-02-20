@@ -1,13 +1,13 @@
-package com.loopers.user.service;
+package com.loopers.application.user;
 
-import com.loopers.user.domain.User;
-import com.loopers.user.dto.CreateUserRequest;
-import com.loopers.user.dto.GetMyInfoResponse;
+import com.loopers.domain.user.User;
+import com.loopers.interfaces.api.user.CreateUserRequest;
+import com.loopers.interfaces.api.user.GetMyInfoResponse;
 import com.loopers.user.exception.AuthenticationFailedException;
 import com.loopers.user.exception.DuplicateLoginIdException;
 import com.loopers.user.exception.SamePasswordException;
 import com.loopers.user.exception.UserNotFoundException;
-import com.loopers.user.repository.UserRepository;
+import com.loopers.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
