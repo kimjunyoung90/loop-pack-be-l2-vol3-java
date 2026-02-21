@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.product;
 
 import com.loopers.application.product.CreateProductCommand;
+import com.loopers.application.product.ProductFacade;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.UpdateProductCommand;
@@ -17,6 +18,7 @@ import java.util.List;
 public class ProductV1Controller implements ProductV1ApiSpec {
 
     private final ProductService productService;
+    private final ProductFacade productFacade;
 
     @GetMapping
     @Override
@@ -39,7 +41,7 @@ public class ProductV1Controller implements ProductV1ApiSpec {
     public ApiResponse<ProductV1Dto.CreateProductResponse> createProduct(
             @Valid @RequestBody ProductV1Dto.CreateProductRequest request
     ) {
-        ProductInfo productInfo = productService.createProduct(
+        ProductInfo productInfo = productFacade.createProduct(
                 new CreateProductCommand(request.brandId(), request.name(), request.price(), request.stock())
         );
         return ApiResponse.success(ProductV1Dto.CreateProductResponse.from(productInfo));
@@ -51,7 +53,7 @@ public class ProductV1Controller implements ProductV1ApiSpec {
             @PathVariable Long productId,
             @Valid @RequestBody ProductV1Dto.UpdateProductRequest request
     ) {
-        ProductInfo productInfo = productService.updateProduct(
+        ProductInfo productInfo = productFacade.updateProduct(
                 productId,
                 new UpdateProductCommand(request.brandId(), request.name(), request.price(), request.stock())
         );
