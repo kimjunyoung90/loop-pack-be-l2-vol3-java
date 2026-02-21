@@ -20,7 +20,7 @@ erDiagram
         varchar name
         timestamp created_at
         timestamp updated_at
-        boolean is_deleted
+        timestamp deleted_at
     }
 
     products {
@@ -31,7 +31,7 @@ erDiagram
         int stock
         timestamp created_at
         timestamp updated_at
-        boolean is_deleted
+        timestamp deleted_at
     }
 
     product_likes {

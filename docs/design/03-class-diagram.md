@@ -22,7 +22,6 @@ classDiagram
     class Brand {
         -Long id
         -String name
-        -boolean isDeleted
         +delete()
     }
 
@@ -32,7 +31,6 @@ classDiagram
         -String name
         -int price
         -int stock
-        -boolean isDeleted
         +decreaseStock(quantity)
         +restoreStock(quantity)
         +delete()
