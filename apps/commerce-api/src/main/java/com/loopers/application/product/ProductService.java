@@ -5,10 +5,11 @@ import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -17,10 +18,9 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
-    public List<ProductInfo> getProducts() {
-        List<Product> products = productRepository.findAllByDeletedAtIsNull();
-
-        return products.stream().map(ProductInfo::from).toList();
+    public Page<ProductInfo> getProducts(Pageable pageable) {
+        return productRepository.findAllByDeletedAtIsNull(pageable)
+                .map(ProductInfo::from);
     }
 
     @Transactional(readOnly = true)

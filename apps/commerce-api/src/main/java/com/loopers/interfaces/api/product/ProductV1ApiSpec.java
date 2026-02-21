@@ -3,8 +3,7 @@ package com.loopers.interfaces.api.product;
 import com.loopers.interfaces.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 @Tag(name = "Product V1 API", description = "상품 관련 API 입니다.")
 public interface ProductV1ApiSpec {
@@ -13,29 +12,11 @@ public interface ProductV1ApiSpec {
         summary = "상품 목록 조회",
         description = "상품 목록을 조회합니다."
     )
-    ApiResponse<List<ProductV1Dto.GetProductResponse>> getProducts();
+    ApiResponse<Page<ProductV1Dto.GetProductResponse>> getProducts(int page, int size);
 
     @Operation(
         summary = "상품 상세 조회",
         description = "상품 상세 정보를 조회합니다."
     )
     ApiResponse<ProductV1Dto.GetProductResponse> getProduct(Long productId);
-
-    @Operation(
-        summary = "상품 등록",
-        description = "새로운 상품을 등록합니다."
-    )
-    ApiResponse<ProductV1Dto.CreateProductResponse> createProduct(ProductV1Dto.CreateProductRequest request);
-
-    @Operation(
-        summary = "상품 수정",
-        description = "상품 정보를 수정합니다."
-    )
-    ApiResponse<ProductV1Dto.UpdateProductResponse> updateProduct(Long productId, ProductV1Dto.UpdateProductRequest request);
-
-    @Operation(
-        summary = "상품 삭제",
-        description = "상품을 삭제합니다."
-    )
-    ApiResponse<Object> deleteProduct(Long productId);
 }
