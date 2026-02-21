@@ -107,7 +107,7 @@ sequenceDiagram
     participant BR as BrandRepository
 
     Admin->>+BC: 브랜드 등록 요청
-    BC->>+BS: 브랜드 등록(name, description)
+    BC->>+BS: 브랜드 등록(name)
     BS->>+B: 브랜드 생성
     B-->>-BS: 생성 완료
     BS->>+BR: 브랜드 저장
@@ -179,7 +179,7 @@ sequenceDiagram
     participant BR as BrandRepository
 
     Admin->>+BC: 브랜드 수정 요청 (brandId)
-    BC->>+BS: 브랜드 수정(brandId, name, description)
+    BC->>+BS: 브랜드 수정(brandId, name)
     BS->>+BR: 브랜드 조회
     BR-->>-BS: 브랜드 정보
 
