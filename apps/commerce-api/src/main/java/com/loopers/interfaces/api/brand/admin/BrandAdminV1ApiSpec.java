@@ -1,4 +1,4 @@
-package com.loopers.interfaces.api.brand;
+package com.loopers.interfaces.api.brand.admin;
 
 import com.loopers.interfaces.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;

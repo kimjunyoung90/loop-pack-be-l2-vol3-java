@@ -1,4 +1,4 @@
-package com.loopers.interfaces.api.brand;
+package com.loopers.interfaces.api.brand.admin;
 
 import com.loopers.application.brand.BrandInfo;
 import jakarta.validation.constraints.NotBlank;
