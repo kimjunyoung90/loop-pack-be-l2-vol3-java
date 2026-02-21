@@ -1,4 +1,4 @@
-package com.loopers.interfaces.api.brand;
+package com.loopers.interfaces.api.brand.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.brand.BrandInfo;
