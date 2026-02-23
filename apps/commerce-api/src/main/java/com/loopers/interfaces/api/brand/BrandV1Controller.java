@@ -18,8 +18,8 @@ public class BrandV1Controller implements BrandV1ApiSpec {
     @GetMapping
     @Override
     public ApiResponse<Page<BrandV1Dto.GetBrandResponse>> getBrands(
-            @RequestParam int page,
-            @RequestParam int size
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         Page<BrandInfo> brandInfo = brandService.getBrands(PageRequest.of(page, size));
         return ApiResponse.success(brandInfo.map(BrandV1Dto.GetBrandResponse::from));
