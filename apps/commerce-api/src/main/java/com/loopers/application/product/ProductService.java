@@ -17,6 +17,18 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    @Transactional
+    public ProductInfo createProduct(CreateProductCommand command) {
+        Product product = Product.builder()
+                .brandId(command.brandId())
+                .name(command.name())
+                .price(command.price())
+                .stock(command.stock())
+                .build();
+
+        return ProductInfo.from(productRepository.save(product));
+    }
+
     @Transactional(readOnly = true)
     public Page<ProductInfo> getProducts(Pageable pageable) {
         return productRepository.findAllByDeletedAtIsNull(pageable)
@@ -29,18 +41,6 @@ public class ProductService {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         return ProductInfo.from(product);
-    }
-
-    @Transactional
-    public ProductInfo createProduct(CreateProductCommand command) {
-        Product product = Product.builder()
-                .brandId(command.brandId())
-                .name(command.name())
-                .price(command.price())
-                .stock(command.stock())
-                .build();
-
-        return ProductInfo.from(productRepository.save(product));
     }
 
     @Transactional
