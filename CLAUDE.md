@@ -29,6 +29,16 @@
 | `update~` | 수정 | application DTO | `updateProduct(Long, Brand, Command): ProductInfo` |
 | `delete~` | 삭제 | void | `deleteProduct(Long): void` |
 
+### Repository 인터페이스 메서드 네이밍
+- 도메인 레이어의 Repository 인터페이스는 **비즈니스 의미만 표현**한다.
+- 인프라 세부사항(`deletedAt`, `IsNull` 등)은 인터페이스에 노출하지 않는다.
+- soft delete 필터링은 infrastructure 구현체 내부에서 캡슐화한다.
+
+| 레이어 | 메서드명 | 예시 |
+|--------|----------|------|
+| **domain** (interface) | 비즈니스 의미만 표현 | `findAll(Pageable)`, `findById(Long)`, `findAllByBrand(Brand)` |
+| **infrastructure** (구현체) | 내부에서 soft delete 조건 처리 | `jpaRepository.findAllByDeletedAtIsNull(pageable)` |
+
 ## 아키텍처, 패키지 구성 전략
 - 본 프로젝트는 레이어드 아키텍처를 따르며, DIP (의존성 역전 원칙) 을 준수합니다.
 - API request, response DTO와 응용 레이어의 DTO는 분리해 작성하도록 합니다.
