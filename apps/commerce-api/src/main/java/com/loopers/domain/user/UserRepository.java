@@ -9,4 +9,6 @@ public interface UserRepository {
     boolean existsByLoginId(String loginId);
 
     Optional<User> findByLoginId(String loginId);
+
+    Optional<User> findById(Long userId);
 }
