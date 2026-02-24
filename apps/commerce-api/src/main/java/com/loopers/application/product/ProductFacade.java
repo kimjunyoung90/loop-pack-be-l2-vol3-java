@@ -1,6 +1,7 @@
 package com.loopers.application.product;
 
 import com.loopers.application.brand.BrandService;
+import com.loopers.domain.brand.Brand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +15,13 @@ public class ProductFacade {
 
     @Transactional
     public ProductInfo createProduct(CreateProductCommand command) {
-        brandService.getBrand(command.brandId());
-        return productService.createProduct(command);
+        Brand brand = brandService.findBrand(command.brandId());
+        return productService.createProduct(brand, command);
     }
 
     @Transactional
     public ProductInfo updateProduct(Long productId, UpdateProductCommand command) {
-        brandService.getBrand(command.brandId());
-        return productService.updateProduct(productId, command);
+        Brand brand = brandService.findBrand(command.brandId());
+        return productService.updateProduct(productId, brand, command);
     }
 }

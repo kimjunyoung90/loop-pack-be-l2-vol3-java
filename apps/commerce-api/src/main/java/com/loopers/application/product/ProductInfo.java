@@ -16,7 +16,7 @@ public record ProductInfo(
     public static ProductInfo from(Product product) {
         return new ProductInfo(
                 product.getId(),
-                product.getBrandId(),
+                product.getBrand().getId(),
                 product.getName(),
                 product.getPrice(),
                 product.getStock(),

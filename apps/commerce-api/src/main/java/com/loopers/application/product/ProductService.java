@@ -1,5 +1,6 @@
 package com.loopers.application.product;
 
+import com.loopers.domain.brand.Brand;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
@@ -7,6 +8,8 @@ import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +21,9 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public ProductInfo createProduct(CreateProductCommand command) {
+    public ProductInfo createProduct(Brand brand, CreateProductCommand command) {
         Product product = Product.builder()
-                .brandId(command.brandId())
+                .brand(brand)
                 .name(command.name())
                 .price(command.price())
                 .stock(command.stock())
@@ -44,11 +47,11 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductInfo updateProduct(Long productId, UpdateProductCommand command) {
+    public ProductInfo updateProduct(Long productId, Brand brand, UpdateProductCommand command) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
-        product.update(command.brandId(), command.name(), command.price(), command.stock());
+        product.update(brand, command.name(), command.price(), command.stock());
 
         return ProductInfo.from(product);
     }
@@ -59,5 +62,11 @@ public class ProductService {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         product.delete();
+    }
+
+    @Transactional
+    public void deleteProductsByBrand(Brand brand) {
+        List<Product> products = productRepository.findAllByBrandAndDeletedAtIsNull(brand);
+        products.forEach(Product::delete);
     }
 }

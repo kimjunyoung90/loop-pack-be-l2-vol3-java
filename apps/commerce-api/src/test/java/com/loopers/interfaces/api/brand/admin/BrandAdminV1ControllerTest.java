@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.brand.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.application.brand.BrandFacade;
 import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class BrandAdminV1ControllerTest {
 
     @MockitoBean
     private BrandService brandService;
+
+    @MockitoBean
+    private BrandFacade brandFacade;
 
     private static final String LDAP_HEADER = "X-Loopers-Ldap";
     private static final String VALID_LDAP = "loopers.admin";
@@ -156,7 +160,7 @@ class BrandAdminV1ControllerTest {
                         .header(LDAP_HEADER, VALID_LDAP))
                 .andExpect(status().isOk());
 
-        verify(brandService).deleteBrand(1L);
+        verify(brandFacade).deleteBrand(1L);
     }
 
     @Test

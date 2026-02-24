@@ -1,5 +1,6 @@
 package com.loopers.interfaces.api.brand.admin;
 
+import com.loopers.application.brand.BrandFacade;
 import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
 import com.loopers.application.brand.CreateBrandCommand;
@@ -22,6 +23,7 @@ public class BrandAdminV1Controller implements BrandAdminV1ApiSpec {
     private static final String LDAP_HEADER = "X-Loopers-Ldap";
 
     private final BrandService brandService;
+    private final BrandFacade brandFacade;
 
     @PostMapping
     @Override
@@ -77,7 +79,7 @@ public class BrandAdminV1Controller implements BrandAdminV1ApiSpec {
             @PathVariable Long brandId
     ) {
         validateAdmin(ldap);
-        brandService.deleteBrand(brandId);
+        brandFacade.deleteBrand(brandId);
         return ApiResponse.success();
     }
 

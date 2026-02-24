@@ -10,10 +10,21 @@
 
 ## 코드 작성 컨벤션
 
+### Application 레이어 책임 분리: Service vs Facade
+| 구분 | 책임 | 의존 대상 | 예시 |
+|------|------|-----------|------|
+| **Service** | 단일 도메인의 유즈케이스 담당 | 자신의 도메인 Repository | `ProductService`, `BrandService` |
+| **Facade** | 여러 Service 간의 조합 담당 | 2개 이상의 Service | `ProductFacade`, `BrandFacade` |
+
+- Service는 다른 도메인의 Service나 Repository에 직접 의존하지 않는다.
+- 여러 도메인이 엮이는 작업은 반드시 Facade를 통해 조합한다.
+- Controller는 단일 도메인 작업이면 Service를, 여러 도메인이 엮이면 Facade를 호출한다.
+
 ### Service 메서드 네이밍
 | 접두어 | 용도 | 반환 타입 | 예시 |
 |--------|------|-----------|------|
 | `get~` | 단건/목록 조회 | application DTO | `getBrand(Long): BrandInfo` |
+| `find~` | 엔티티 조회 (Facade 내부용) | 도메인 엔티티 | `findBrand(Long): Brand` |
 | `create~` | 생성 | application DTO | `createProduct(Brand, Command): ProductInfo` |
 | `update~` | 수정 | application DTO | `updateProduct(Long, Brand, Command): ProductInfo` |
 | `delete~` | 삭제 | void | `deleteProduct(Long): void` |
