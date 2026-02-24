@@ -63,7 +63,7 @@ class ProductServiceTest {
                 .stock(50)
                 .build();
         PageRequest pageable = PageRequest.of(0, 20);
-        given(productRepository.findAllByDeletedAtIsNull(pageable)).willReturn(new PageImpl<>(List.of(product)));
+        given(productRepository.findAll(pageable)).willReturn(new PageImpl<>(List.of(product)));
 
         // when
         Page<ProductInfo> result = productService.getProducts(pageable);

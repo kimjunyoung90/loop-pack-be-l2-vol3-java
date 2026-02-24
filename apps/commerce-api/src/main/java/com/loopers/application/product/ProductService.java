@@ -34,7 +34,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductInfo> getProducts(Pageable pageable) {
-        return productRepository.findAllByDeletedAtIsNull(pageable)
+        return productRepository.findAll(pageable)
                 .map(ProductInfo::from);
     }
 
@@ -66,7 +66,7 @@ public class ProductService {
 
     @Transactional
     public void deleteProductsByBrand(Brand brand) {
-        List<Product> products = productRepository.findAllByBrandAndDeletedAtIsNull(brand);
+        List<Product> products = productRepository.findAllByBrand(brand);
         products.forEach(Product::delete);
     }
 }

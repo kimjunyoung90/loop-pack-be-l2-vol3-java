@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository {
-    Page<Product> findAllByDeletedAtIsNull(Pageable pageable);
+    Page<Product> findAll(Pageable pageable);
 
-    List<Product> findAllByBrandAndDeletedAtIsNull(Brand brand);
+    List<Product> findAllByBrand(Brand brand);
 
     Optional<Product> findById(Long productId);
 
