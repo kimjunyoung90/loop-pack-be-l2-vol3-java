@@ -8,6 +8,16 @@
 - 규칙이 여러 서비스에 나타나면 도메인 객체에 속할 가능성이 높습니다.
 - 각 기능에 대한 책임과 결합도에 대해 개발자의 의도를 확인하고 개발을 진행합니다.
 
+## 코드 작성 컨벤션
+
+### Service 메서드 네이밍
+| 접두어 | 용도 | 반환 타입 | 예시 |
+|--------|------|-----------|------|
+| `get~` | 단건/목록 조회 | application DTO | `getBrand(Long): BrandInfo` |
+| `create~` | 생성 | application DTO | `createProduct(Brand, Command): ProductInfo` |
+| `update~` | 수정 | application DTO | `updateProduct(Long, Brand, Command): ProductInfo` |
+| `delete~` | 삭제 | void | `deleteProduct(Long): void` |
+
 ## 아키텍처, 패키지 구성 전략
 - 본 프로젝트는 레이어드 아키텍처를 따르며, DIP (의존성 역전 원칙) 을 준수합니다.
 - API request, response DTO와 응용 레이어의 DTO는 분리해 작성하도록 합니다.
@@ -17,3 +27,13 @@
       /application/.. (application 레이어 - 도메인 레이어를 조합해 사용 가능한 기능을 제공)
       /domain/.. (domain 레이어 - 도메인 객체 및 엔티티, Repository 인터페이스가 위치)
       /infrastructure/.. (infrastructure 레이어 - JPA, Redis 등을 활용해 Repository 구현체를 제공)
+
+### 계층별 DTO 전략
+- 각 계층은 자신만의 데이터 객체를 정의하고, 변환 책임은 상위 계층(호출하는 쪽)이 갖는다.
+- 의존 방향: interfaces → application → domain (역방향 의존 금지)
+
+| 계층 | 입력 | 출력 | 변환 위치 |
+|------|------|------|-----------|
+| interfaces | `V1Dto.XxxRequest` | `V1Dto.XxxResponse` | Controller (`Request→Command`, `Info→Response`) |
+| application | `XxxCommand` | `XxxInfo` | Service (`Entity→Info`) |
+| domain | 원시 타입 / VO | 엔티티 | - |
