@@ -91,4 +91,36 @@ class OrderFacadeIntegrationTest {
         assertThatThrownBy(() -> orderFacade.createOrder(command))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void 주문_취소_시_상태가_CANCELLED로_변경되고_재고가_복원된다() {
+        // 사용자 등록
+        UserInfo userInfo = userService.createUser(
+                new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
+
+        // 브랜드 + 상품 등록
+        Brand brand = brandService.findBrand(
+                brandService.createBrand(new CreateBrandCommand("나이키")).id());
+        ProductInfo productInfo = productService.createProduct(brand, new CreateProductCommand(brand.getId(), "운동화", 50000, 10));
+
+        // 주문 생성
+        CreateOrderCommand command = new CreateOrderCommand(userInfo.id(), List.of(
+                new CreateOrderCommand.CreateOrderItemCommand(productInfo.id(), 2)
+        ));
+        OrderInfo orderResult = orderFacade.createOrder(command);
+
+        // 재고 차감 확인
+        Product deductedProduct = productService.findProduct(productInfo.id());
+        assertThat(deductedProduct.getStock()).isEqualTo(8);
+
+        // 주문 취소
+        OrderInfo cancelResult = orderFacade.cancelOrder("testuser", "password1!", orderResult.id());
+
+        // 취소 상태 확인
+        assertThat(cancelResult.status()).isEqualTo("CANCELLED");
+
+        // 재고 복원 확인
+        Product restoredProduct = productService.findProduct(productInfo.id());
+        assertThat(restoredProduct.getStock()).isEqualTo(10);
+    }
 }

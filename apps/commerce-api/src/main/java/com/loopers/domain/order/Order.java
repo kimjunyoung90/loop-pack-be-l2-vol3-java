@@ -19,6 +19,10 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long userId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
@@ -28,6 +32,7 @@ public class Order extends BaseEntity {
     @Builder
     private Order(Long userId) {
         this.userId = userId;
+        this.status = OrderStatus.COMPLETED;
         this.totalPrice = 0;
     }
 
@@ -35,5 +40,17 @@ public class Order extends BaseEntity {
         orderItem.assignOrder(this);
         this.orderItems.add(orderItem);
         this.totalPrice += orderItem.getTotalPrice();
+    }
+
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
+    }
+
+    public boolean isCancelled() {
+        return this.status == OrderStatus.CANCELLED;
+    }
+
+    public boolean isOwnedBy(Long userId) {
+        return this.userId.equals(userId);
     }
 }

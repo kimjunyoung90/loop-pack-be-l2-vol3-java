@@ -6,10 +6,7 @@ import com.loopers.application.order.OrderInfo;
 import com.loopers.interfaces.api.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -34,5 +31,15 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
         OrderInfo orderInfo = orderFacade.createOrder(command);
         return ApiResponse.success(OrderV1Dto.CreateOrderResponse.from(orderInfo));
+    }
+
+    @Override
+    @PatchMapping("/{orderId}/cancel")
+    public ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(
+            @RequestHeader("X-Loopers-LoginId") String loginId,
+            @RequestHeader("X-Loopers-LoginPw") String password,
+            @PathVariable Long orderId) {
+        OrderInfo orderInfo = orderFacade.cancelOrder(loginId, password, orderId);
+        return ApiResponse.success(OrderV1Dto.CancelOrderResponse.from(orderInfo));
     }
 }

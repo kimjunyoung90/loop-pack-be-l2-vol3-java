@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,7 +37,7 @@ class OrderV1ControllerTest {
     void 주문을_생성하면_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, 100000, List.of(
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
         given(orderFacade.createOrder(any())).willReturn(orderInfo);
@@ -83,6 +84,33 @@ class OrderV1ControllerTest {
         mockMvc.perform(post("/api/v1/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 주문을_취소하면_200_OK와_취소된_주문_정보를_반환한다() throws Exception {
+        // given
+        ZonedDateTime now = ZonedDateTime.now();
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, "CANCELLED", 100000, List.of(
+                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        ), now, now);
+        given(orderFacade.cancelOrder("loginId", "password1!", 1L)).willReturn(orderInfo);
+
+        // when & then
+        mockMvc.perform(patch("/api/v1/orders/1/cancel")
+                        .header("X-Loopers-LoginId", "loginId")
+                        .header("X-Loopers-LoginPw", "password1!"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.data.totalPrice").value(100000));
+    }
+
+    @Test
+    void X_Loopers_LoginId_헤더가_없으면_400_BAD_REQUEST를_반환한다() throws Exception {
+        // when & then
+        mockMvc.perform(patch("/api/v1/orders/1/cancel")
+                        .header("X-Loopers-LoginPw", "password1!"))
                 .andExpect(status().isBadRequest());
     }
 }

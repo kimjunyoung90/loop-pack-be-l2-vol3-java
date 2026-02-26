@@ -2,6 +2,7 @@ package com.loopers.application.order;
 
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderRepository;
+import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,8 +10,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -58,5 +61,28 @@ class OrderServiceTest {
         assertThat(result.orderItems()).hasSize(2);
         assertThat(result.orderItems().get(0).productName()).isEqualTo("운동화");
         assertThat(result.orderItems().get(1).productName()).isEqualTo("슬리퍼");
+    }
+
+    @Test
+    void 존재하는_주문ID로_조회하면_Order를_반환한다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when
+        Order result = orderService.findOrder(1L);
+
+        // then
+        assertThat(result).isEqualTo(order);
+    }
+
+    @Test
+    void 존재하지_않는_주문ID로_조회하면_CoreException_NOT_FOUND가_발생한다() {
+        // given
+        given(orderRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> orderService.findOrder(999L))
+                .isInstanceOf(CoreException.class);
     }
 }

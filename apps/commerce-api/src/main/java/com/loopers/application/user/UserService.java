@@ -67,12 +67,19 @@ public class UserService {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."));
     }
 
-    private void authenticate(String loginId, String password) {
+    @Transactional(readOnly = true)
+    public User authenticateUser(String loginId, String password) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new CoreException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다."));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new CoreException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다.");
         }
+
+        return user;
+    }
+
+    private void authenticate(String loginId, String password) {
+        authenticateUser(loginId, password);
     }
 }

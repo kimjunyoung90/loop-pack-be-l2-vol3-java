@@ -24,6 +24,7 @@ public class OrderV1Dto {
     public record CreateOrderResponse(
             Long id,
             Long userId,
+            String status,
             int totalPrice,
             List<OrderItemResponse> orderItems,
             ZonedDateTime createdAt,
@@ -33,6 +34,31 @@ public class OrderV1Dto {
             return new CreateOrderResponse(
                     info.id(),
                     info.userId(),
+                    info.status(),
+                    info.totalPrice(),
+                    info.orderItems().stream()
+                            .map(OrderItemResponse::from)
+                            .toList(),
+                    info.createdAt(),
+                    info.updatedAt()
+            );
+        }
+    }
+
+    public record CancelOrderResponse(
+            Long id,
+            Long userId,
+            String status,
+            int totalPrice,
+            List<OrderItemResponse> orderItems,
+            ZonedDateTime createdAt,
+            ZonedDateTime updatedAt
+    ) {
+        public static CancelOrderResponse from(OrderInfo info) {
+            return new CancelOrderResponse(
+                    info.id(),
+                    info.userId(),
+                    info.status(),
                     info.totalPrice(),
                     info.orderItems().stream()
                             .map(OrderItemResponse::from)

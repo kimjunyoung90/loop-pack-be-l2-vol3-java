@@ -9,6 +9,7 @@ import java.util.List;
 public record OrderInfo(
         Long id,
         Long userId,
+        String status,
         int totalPrice,
         List<OrderItemInfo> orderItems,
         ZonedDateTime createdAt,
@@ -18,6 +19,7 @@ public record OrderInfo(
         return new OrderInfo(
                 order.getId(),
                 order.getUserId(),
+                order.getStatus().name(),
                 order.getTotalPrice(),
                 order.getOrderItems().stream()
                         .map(OrderItemInfo::from)

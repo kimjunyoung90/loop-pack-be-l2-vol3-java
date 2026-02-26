@@ -12,4 +12,10 @@ public interface OrderV1ApiSpec {
         description = "주문을 생성합니다."
     )
     ApiResponse<OrderV1Dto.CreateOrderResponse> createOrder(OrderV1Dto.CreateOrderRequest request);
+
+    @Operation(
+        summary = "주문 취소",
+        description = "주문을 취소합니다. 본인의 주문만 취소할 수 있으며, 취소 시 재고가 복원됩니다."
+    )
+    ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(String loginId, String password, Long orderId);
 }

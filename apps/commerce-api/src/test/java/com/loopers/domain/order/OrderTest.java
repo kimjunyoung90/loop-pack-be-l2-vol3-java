@@ -7,6 +7,46 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderTest {
 
     @Test
+    void 주문_생성_시_기본_상태는_COMPLETED이다() {
+        // given & when
+        Order order = Order.builder().userId(1L).build();
+
+        // then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+    }
+
+    @Test
+    void 주문을_취소하면_상태가_CANCELLED로_변경된다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+
+        // when
+        order.cancel();
+
+        // then
+        assertThat(order.isCancelled()).isTrue();
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    void 본인_userId와_일치하면_isOwnedBy가_true를_반환한다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+
+        // when & then
+        assertThat(order.isOwnedBy(1L)).isTrue();
+    }
+
+    @Test
+    void 다른_userId이면_isOwnedBy가_false를_반환한다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+
+        // when & then
+        assertThat(order.isOwnedBy(999L)).isFalse();
+    }
+
+    @Test
     void 주문에_주문항목을_추가하면_orderItems에_추가되고_totalPrice가_누적된다() {
         // given
         Order order = Order.builder().userId(1L).build();
