@@ -77,7 +77,7 @@ public class UserServiceIntegrationTest {
         userService.createUser(command);
 
         // when
-        userService.changePassword(loginId, currentPassword, newPassword);
+        userService.changePassword(loginId, newPassword);
 
         // then
         User updatedUser = userRepository.findByLoginId(loginId).orElseThrow();
@@ -97,42 +97,7 @@ public class UserServiceIntegrationTest {
         userService.createUser(command);
 
         // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, currentPassword, newPassword))
-                .isInstanceOf(CoreException.class);
-    }
-
-    @Test
-    void 비밀번호_불일치로_내정보_조회시_AuthenticationFailedException이_발생한다() {
-        // given
-        String loginId = "testuser";
-        String currentPassword = "password123!";
-        String wrongPassword = "wrongPass1!";
-
-        CreateUserCommand command = new CreateUserCommand(
-                loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
-        );
-        userService.createUser(command);
-
-        // when & then
-        assertThatThrownBy(() -> userService.getMyInfo(loginId, wrongPassword))
-                .isInstanceOf(CoreException.class);
-    }
-
-    @Test
-    void 비밀번호_불일치로_비밀번호_변경시_AuthenticationFailedException이_발생한다() {
-        // given
-        String loginId = "testuser";
-        String currentPassword = "password123!";
-        String wrongPassword = "wrongPass1!";
-        String newPassword = "newPass456!";
-
-        CreateUserCommand command = new CreateUserCommand(
-                loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
-        );
-        userService.createUser(command);
-
-        // when & then
-        assertThatThrownBy(() -> userService.changePassword(loginId, wrongPassword, newPassword))
+        assertThatThrownBy(() -> userService.changePassword(loginId, newPassword))
                 .isInstanceOf(CoreException.class);
     }
 }

@@ -36,9 +36,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserInfo getMyInfo(String loginId, String password) {
-        authenticate(loginId, password);
-
+    public UserInfo getMyInfo(String loginId) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
@@ -46,9 +44,7 @@ public class UserService {
     }
 
     @Transactional
-    public void changePassword(String loginId, String password, String newPassword) {
-        authenticate(loginId, password);
-
+    public void changePassword(String loginId, String newPassword) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
@@ -77,9 +73,5 @@ public class UserService {
         }
 
         return user;
-    }
-
-    private void authenticate(String loginId, String password) {
-        authenticateUser(loginId, password);
     }
 }

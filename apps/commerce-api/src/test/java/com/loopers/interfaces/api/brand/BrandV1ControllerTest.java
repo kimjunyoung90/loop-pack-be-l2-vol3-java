@@ -2,9 +2,13 @@ package com.loopers.interfaces.api.brand;
 
 import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.user.UserService;
+import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
+import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BrandV1Controller.class)
+@Import({LoginUserArgumentResolver.class, AdminAuthInterceptor.class})
 class BrandV1ControllerTest {
 
     @Autowired
@@ -23,6 +28,12 @@ class BrandV1ControllerTest {
 
     @MockitoBean
     private BrandService brandService;
+
+    @MockitoBean
+    private UserService userService;
+
+    private static final String LOGIN_ID_HEADER = "X-Loopers-LoginId";
+    private static final String LOGIN_PW_HEADER = "X-Loopers-LoginPw";
 
     @Test
     void 브랜드_상세_조회에_성공한다() throws Exception {
@@ -33,7 +44,9 @@ class BrandV1ControllerTest {
         );
 
         // when & then
-        mockMvc.perform(get("/api/v1/brands/1"))
+        mockMvc.perform(get("/api/v1/brands/1")
+                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.name").value("나이키"));

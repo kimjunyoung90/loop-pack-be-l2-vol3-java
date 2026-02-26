@@ -6,7 +6,6 @@ import com.loopers.domain.brand.Brand;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.product.Product;
-import com.loopers.domain.user.User;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class OrderFacadeTest {
@@ -128,10 +126,6 @@ class OrderFacadeTest {
     @Test
     void 주문을_취소하면_상태가_CANCELLED인_OrderInfo와_복원된_재고를_반환한다() {
         // given
-        User mockUser = mock(User.class);
-        given(mockUser.getId()).willReturn(1L);
-        given(userService.authenticateUser("loginId", "password")).willReturn(mockUser);
-
         Order order = Order.builder().userId(1L).build();
         OrderItem item = OrderItem.builder()
                 .productId(1L)
@@ -152,7 +146,7 @@ class OrderFacadeTest {
         given(productService.findProduct(1L)).willReturn(product);
 
         // when
-        OrderInfo result = orderFacade.cancelOrder("loginId", "password", 1L);
+        OrderInfo result = orderFacade.cancelOrder(1L, 1L);
 
         // then
         assertThat(result.status()).isEqualTo("CANCELLED");
@@ -162,31 +156,23 @@ class OrderFacadeTest {
     @Test
     void 본인_주문이_아니면_CoreException_FORBIDDEN이_발생한다() {
         // given
-        User mockUser = mock(User.class);
-        given(mockUser.getId()).willReturn(999L);
-        given(userService.authenticateUser("loginId", "password")).willReturn(mockUser);
-
         Order order = Order.builder().userId(1L).build();
         given(orderService.findOrder(1L)).willReturn(order);
 
         // when & then
-        assertThatThrownBy(() -> orderFacade.cancelOrder("loginId", "password", 1L))
+        assertThatThrownBy(() -> orderFacade.cancelOrder(999L, 1L))
                 .isInstanceOf(CoreException.class);
     }
 
     @Test
     void 이미_취소된_주문이면_CoreException_BAD_REQUEST가_발생한다() {
         // given
-        User mockUser = mock(User.class);
-        given(mockUser.getId()).willReturn(1L);
-        given(userService.authenticateUser("loginId", "password")).willReturn(mockUser);
-
         Order order = Order.builder().userId(1L).build();
         order.cancel();
         given(orderService.findOrder(1L)).willReturn(order);
 
         // when & then
-        assertThatThrownBy(() -> orderFacade.cancelOrder("loginId", "password", 1L))
+        assertThatThrownBy(() -> orderFacade.cancelOrder(1L, 1L))
                 .isInstanceOf(CoreException.class);
     }
 }

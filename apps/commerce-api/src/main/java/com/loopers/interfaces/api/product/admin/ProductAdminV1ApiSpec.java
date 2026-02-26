@@ -12,29 +12,29 @@ public interface ProductAdminV1ApiSpec {
         summary = "상품 등록",
         description = "새로운 상품을 등록합니다."
     )
-    ApiResponse<ProductAdminV1Dto.CreateProductResponse> createProduct(String ldap, ProductAdminV1Dto.CreateProductRequest request);
+    ApiResponse<ProductAdminV1Dto.CreateProductResponse> createProduct(ProductAdminV1Dto.CreateProductRequest request);
 
     @Operation(
         summary = "상품 목록 조회",
         description = "상품 목록을 페이징하여 조회합니다."
     )
-    ApiResponse<Page<ProductAdminV1Dto.GetProductResponse>> getProducts(String ldap, int page, int size);
+    ApiResponse<Page<ProductAdminV1Dto.GetProductResponse>> getProducts(int page, int size);
 
     @Operation(
         summary = "상품 상세 조회",
         description = "상품 상세 정보를 조회합니다."
     )
-    ApiResponse<ProductAdminV1Dto.GetProductResponse> getProduct(String ldap, Long productId);
+    ApiResponse<ProductAdminV1Dto.GetProductResponse> getProduct(Long productId);
 
     @Operation(
         summary = "상품 수정",
         description = "상품 정보를 수정합니다."
     )
-    ApiResponse<ProductAdminV1Dto.UpdateProductResponse> updateProduct(String ldap, Long productId, ProductAdminV1Dto.UpdateProductRequest request);
+    ApiResponse<ProductAdminV1Dto.UpdateProductResponse> updateProduct(Long productId, ProductAdminV1Dto.UpdateProductRequest request);
 
     @Operation(
         summary = "상품 삭제",
         description = "상품을 삭제합니다."
     )
-    ApiResponse<Object> deleteProduct(String ldap, Long productId);
+    ApiResponse<Object> deleteProduct(Long productId);
 }

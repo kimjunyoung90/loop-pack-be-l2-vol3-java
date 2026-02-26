@@ -30,13 +30,13 @@ public class UserServiceTest {
     private UserService userService;
 
     @Test
-    void 사용자_정보_조회시_ID와_일치한_사용자_정보가_없는_경우_AuthenticationFailedException_예외가_발생한다() {
+    void 사용자_정보_조회시_ID와_일치한_사용자_정보가_없는_경우_CoreException이_발생한다() {
         // given
         String loginId = "rlawnsdud05";
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> userService.getMyInfo(loginId, "password123!"))
+        assertThatThrownBy(() -> userService.getMyInfo(loginId))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -55,36 +55,12 @@ public class UserServiceTest {
                 .passwordEncoder(passwordEncoder)
                 .build();
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(rawPassword, "encodedPassword")).willReturn(true);
 
         // when
-        UserInfo userInfo = userService.getMyInfo(loginId, rawPassword);
+        UserInfo userInfo = userService.getMyInfo(loginId);
 
         // then
         assertThat(userInfo, not(hasProperty("password")));
-    }
-
-    @Test
-    void 사용자_정보_조회시_비밀번호가_일치하지_않으면_AuthenticationFailedException이_발생한다() {
-        // given
-        String loginId = "loginId";
-        String rawPassword = "validPass1!";
-        String wrongPassword = "wrongPass1!";
-        given(passwordEncoder.encode(rawPassword)).willReturn("encodedPassword");
-        User user = User.builder()
-                .loginId(loginId)
-                .password(rawPassword)
-                .name("홍길동")
-                .birthDate("1990-01-01")
-                .email("test@test.com")
-                .passwordEncoder(passwordEncoder)
-                .build();
-        given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(wrongPassword, "encodedPassword")).willReturn(false);
-
-        // when & then
-        assertThatThrownBy(() -> userService.getMyInfo(loginId, wrongPassword))
-                .isInstanceOf(CoreException.class);
     }
 
     @Test

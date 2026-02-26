@@ -11,8 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import static com.loopers.interfaces.api.user.UserV1Controller.LOGIN_ID_HEADER;
-import static com.loopers.interfaces.api.user.UserV1Controller.LOGIN_PW_HEADER;
+import static com.loopers.support.auth.AuthConstants.LOGIN_ID_HEADER;
+import static com.loopers.support.auth.AuthConstants.LOGIN_PW_HEADER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(MySqlTestContainersConfig.class)

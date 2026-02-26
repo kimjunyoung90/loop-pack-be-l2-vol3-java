@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.product.ProductFacade;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
+import com.loopers.application.user.UserService;
+import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
+import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -25,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductAdminV1Controller.class)
+@Import({AdminAuthInterceptor.class, LoginUserArgumentResolver.class})
 class ProductAdminV1ControllerTest {
 
     @Autowired
@@ -38,6 +43,9 @@ class ProductAdminV1ControllerTest {
 
     @MockitoBean
     private ProductFacade productFacade;
+
+    @MockitoBean
+    private UserService userService;
 
     private static final String LDAP_HEADER = "X-Loopers-Ldap";
     private static final String VALID_LDAP = "loopers.admin";

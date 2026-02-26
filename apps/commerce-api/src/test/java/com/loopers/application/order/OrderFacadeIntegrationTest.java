@@ -114,7 +114,7 @@ class OrderFacadeIntegrationTest {
         assertThat(deductedProduct.getStock()).isEqualTo(8);
 
         // 주문 취소
-        OrderInfo cancelResult = orderFacade.cancelOrder("testuser", "password1!", orderResult.id());
+        OrderInfo cancelResult = orderFacade.cancelOrder(userInfo.id(), orderResult.id());
 
         // 취소 상태 확인
         assertThat(cancelResult.status()).isEqualTo("CANCELLED");

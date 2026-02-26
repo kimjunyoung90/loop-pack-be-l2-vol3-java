@@ -5,7 +5,6 @@ import com.loopers.application.user.UserService;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.product.Product;
-import com.loopers.domain.user.User;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -45,12 +44,10 @@ public class OrderFacade {
     }
 
     @Transactional
-    public OrderInfo cancelOrder(String loginId, String password, Long orderId) {
-        User user = userService.authenticateUser(loginId, password);
-
+    public OrderInfo cancelOrder(Long userId, Long orderId) {
         Order order = orderService.findOrder(orderId);
 
-        if (!order.isOwnedBy(user.getId())) {
+        if (!order.isOwnedBy(userId)) {
             throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다.");
         }
 

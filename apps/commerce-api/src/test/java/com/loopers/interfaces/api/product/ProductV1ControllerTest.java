@@ -2,9 +2,13 @@ package com.loopers.interfaces.api.product;
 
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
+import com.loopers.application.user.UserService;
+import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
+import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -19,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductV1Controller.class)
+@Import({LoginUserArgumentResolver.class, AdminAuthInterceptor.class})
 class ProductV1ControllerTest {
 
     @Autowired
@@ -26,6 +31,12 @@ class ProductV1ControllerTest {
 
     @MockitoBean
     private ProductService productService;
+
+    @MockitoBean
+    private UserService userService;
+
+    private static final String LOGIN_ID_HEADER = "X-Loopers-LoginId";
+    private static final String LOGIN_PW_HEADER = "X-Loopers-LoginPw";
 
     @Test
     void 상품_목록을_조회하면_200_OK와_페이징된_상품_목록을_반환한다() throws Exception {
@@ -37,6 +48,8 @@ class ProductV1ControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/products")
+                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_PW_HEADER, "password1!")
                         .param("page", "0")
                         .param("size", "20"))
                 .andExpect(status().isOk())
@@ -53,7 +66,9 @@ class ProductV1ControllerTest {
                 .willReturn(new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now));
 
         // when & then
-        mockMvc.perform(get("/api/v1/products/1"))
+        mockMvc.perform(get("/api/v1/products/1")
+                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.name").value("운동화"))

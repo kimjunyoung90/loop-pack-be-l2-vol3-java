@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.order;
 
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.support.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -17,5 +18,5 @@ public interface OrderV1ApiSpec {
         summary = "주문 취소",
         description = "주문을 취소합니다. 본인의 주문만 취소할 수 있으며, 취소 시 재고가 복원됩니다."
     )
-    ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(String loginId, String password, Long orderId);
+    ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(AuthUser authUser, Long orderId);
 }

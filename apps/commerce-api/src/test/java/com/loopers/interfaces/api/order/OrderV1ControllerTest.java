@@ -2,10 +2,15 @@ package com.loopers.interfaces.api.order;
 
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
+import com.loopers.application.user.UserService;
+import com.loopers.domain.user.User;
+import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
+import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,12 +21,14 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderV1Controller.class)
+@Import({LoginUserArgumentResolver.class, AdminAuthInterceptor.class})
 class OrderV1ControllerTest {
 
     @Autowired
@@ -32,6 +39,12 @@ class OrderV1ControllerTest {
 
     @MockitoBean
     private OrderFacade orderFacade;
+
+    @MockitoBean
+    private UserService userService;
+
+    private static final String LOGIN_ID_HEADER = "X-Loopers-LoginId";
+    private static final String LOGIN_PW_HEADER = "X-Loopers-LoginPw";
 
     @Test
     void 주문을_생성하면_200_OK와_주문_정보를_반환한다() throws Exception {
@@ -49,6 +62,8 @@ class OrderV1ControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/v1/orders")
+                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_PW_HEADER, "password1!")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -67,6 +82,8 @@ class OrderV1ControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/v1/orders")
+                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_PW_HEADER, "password1!")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -82,6 +99,8 @@ class OrderV1ControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/v1/orders")
+                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_PW_HEADER, "password1!")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -94,7 +113,12 @@ class OrderV1ControllerTest {
         OrderInfo orderInfo = new OrderInfo(1L, 1L, "CANCELLED", 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
-        given(orderFacade.cancelOrder("loginId", "password1!", 1L)).willReturn(orderInfo);
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn("loginId");
+        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(orderFacade.cancelOrder(1L, 1L)).willReturn(orderInfo);
 
         // when & then
         mockMvc.perform(patch("/api/v1/orders/1/cancel")
@@ -107,10 +131,9 @@ class OrderV1ControllerTest {
     }
 
     @Test
-    void X_Loopers_LoginId_헤더가_없으면_400_BAD_REQUEST를_반환한다() throws Exception {
+    void 인증_헤더가_없으면_주문_취소시_401_UNAUTHORIZED를_반환한다() throws Exception {
         // when & then
-        mockMvc.perform(patch("/api/v1/orders/1/cancel")
-                        .header("X-Loopers-LoginPw", "password1!"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(patch("/api/v1/orders/1/cancel"))
+                .andExpect(status().isUnauthorized());
     }
 }

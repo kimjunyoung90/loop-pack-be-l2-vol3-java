@@ -2,12 +2,16 @@ package com.loopers.interfaces.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.user.UserService;
+import com.loopers.domain.user.User;
+import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
+import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,11 +19,14 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.stream.Stream;
 
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserV1Controller.class)
+@Import({LoginUserArgumentResolver.class, AdminAuthInterceptor.class})
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -132,10 +139,15 @@ public class UserControllerTest {
     }
 
     @Test
-    void 내정보조회시_헤더의_로그인ID와_비밀번호를_서비스에_전달한다() throws Exception {
+    void 내정보조회시_헤더의_로그인ID를_서비스에_전달한다() throws Exception {
         //given
         String loginId = "rlawnsdud05";
         String password = "password123!";
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn(loginId);
+        given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
 
         //when
         mockMvc.perform(get("/api/v1/users/me")
@@ -144,16 +156,32 @@ public class UserControllerTest {
         );
 
         //then
-        verify(userService).getMyInfo(loginId, password);
+        verify(userService).getMyInfo(loginId);
+    }
+
+    @Test
+    void 인증_헤더가_누락되면_내정보_조회시_401을_반환한다() throws Exception {
+        mockMvc.perform(get("/api/v1/users/me"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void 비밀번호_변경시_신규_비밀번호가_누락되면_400을_반환한다() throws Exception {
+        String loginId = "testuser01";
+        String password = "password123!";
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn(loginId);
+        given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
+
         UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest("");
 
         ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .header("X-Loopers-LoginId", loginId)
+                .header("X-Loopers-LoginPw", password)
         );
 
         result.andExpect(status().isBadRequest());
@@ -162,13 +190,21 @@ public class UserControllerTest {
     @ParameterizedTest(name = "새 비밀번호가 \"{0}\"이면 400")
     @MethodSource("비밀번호_변경_형식_오류_케이스")
     void 비밀번호_변경시_새_비밀번호_형식이_올바르지_않으면_400을_반환한다(String newPassword) throws Exception {
+        String loginId = "testuser01";
+        String password = "password123!";
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn(loginId);
+        given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
+
         UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest(newPassword);
 
         ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .header("X-Loopers-LoginId", "testuser01")
-                .header("X-Loopers-LoginPw", "password123!")
+                .header("X-Loopers-LoginId", loginId)
+                .header("X-Loopers-LoginPw", password)
         );
 
         result.andExpect(status().isBadRequest());
@@ -183,12 +219,18 @@ public class UserControllerTest {
     }
 
     @Test
-    void 비밀번호_변경시_헤더의_로그인ID와_비밀번호를_서비스에_전달한다() throws Exception {
+    void 비밀번호_변경시_헤더의_로그인ID를_서비스에_전달한다() throws Exception {
         String newPassword = "newwpwd123!";
         UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest(newPassword);
 
         String loginId = "rlawnsdud05";
         String loginPasswd = "password123!";
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn(loginId);
+        given(userService.authenticateUser(loginId, loginPasswd)).willReturn(mockUser);
+
         mockMvc.perform(patch("/api/v1/users/password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
@@ -196,6 +238,6 @@ public class UserControllerTest {
                 .header("X-Loopers-LoginPw", loginPasswd)
         );
 
-        verify(userService).changePassword(loginId, loginPasswd, newPassword);
+        verify(userService).changePassword(loginId, newPassword);
     }
 }
