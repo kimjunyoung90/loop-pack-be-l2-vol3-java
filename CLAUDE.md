@@ -39,6 +39,9 @@
 | **domain** (interface) | 비즈니스 의미만 표현 | `findAll(Pageable)`, `findById(Long)`, `findAllByBrand(Brand)` |
 | **infrastructure** (구현체) | 내부에서 soft delete 조건 처리 | `jpaRepository.findAllByDeletedAtIsNull(pageable)` |
 
+### 날짜 포맷
+- API 요청/응답의 날짜 형식은 `yyyy-MM-dd` (ISO 8601)를 사용한다.
+
 ## 아키텍처, 패키지 구성 전략
 - 본 프로젝트는 레이어드 아키텍처를 따르며, DIP (의존성 역전 원칙) 을 준수합니다.
 - API request, response DTO와 응용 레이어의 DTO는 분리해 작성하도록 합니다.
