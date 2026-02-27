@@ -1,6 +1,7 @@
 package com.loopers.application.order;
 
 import com.loopers.domain.order.Order;
+import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.order.OrderRepository;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Test;
@@ -8,7 +9,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,5 +90,50 @@ class OrderServiceTest {
         // when & then
         assertThatThrownBy(() -> orderService.findOrder(999L))
                 .isInstanceOf(CoreException.class);
+    }
+
+    @Test
+    void 주문_목록을_조회하면_OrderInfo_페이지를_반환한다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+        order.addOrderItem(OrderItem.builder()
+                .productId(1L)
+                .productName("운동화")
+                .productPrice(50000)
+                .quantity(2)
+                .build());
+
+        Pageable pageable = PageRequest.of(0, 20);
+        LocalDate startDate = LocalDate.of(2026, 1, 1);
+        LocalDate endDate = LocalDate.of(2026, 1, 31);
+        Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 1);
+        given(orderRepository.findAllByUserId(1L, startDate, endDate, pageable)).willReturn(orderPage);
+
+        // when
+        Page<OrderInfo> result = orderService.getOrders(1L, startDate, endDate, pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().userId()).isEqualTo(1L);
+        assertThat(result.getContent().getFirst().totalPrice()).isEqualTo(100000);
+        assertThat(result.getContent().getFirst().orderItems()).hasSize(1);
+        assertThat(result.getContent().getFirst().orderItems().getFirst().productName()).isEqualTo("운동화");
+    }
+
+    @Test
+    void 주문이_없으면_빈_페이지를_반환한다() {
+        // given
+        Pageable pageable = PageRequest.of(0, 20);
+        LocalDate startDate = LocalDate.of(2026, 1, 1);
+        LocalDate endDate = LocalDate.of(2026, 1, 31);
+        Page<Order> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        given(orderRepository.findAllByUserId(1L, startDate, endDate, pageable)).willReturn(emptyPage);
+
+        // when
+        Page<OrderInfo> result = orderService.getOrders(1L, startDate, endDate, pageable);
+
+        // then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
     }
 }
