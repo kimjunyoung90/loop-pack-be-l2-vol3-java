@@ -2,6 +2,7 @@ package com.loopers.interfaces.api.order;
 
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
+import com.loopers.application.order.OrderService;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
@@ -39,6 +40,9 @@ class OrderV1ControllerTest {
 
     @MockitoBean
     private OrderFacade orderFacade;
+
+    @MockitoBean
+    private OrderService orderService;
 
     @MockitoBean
     private UserService userService;
