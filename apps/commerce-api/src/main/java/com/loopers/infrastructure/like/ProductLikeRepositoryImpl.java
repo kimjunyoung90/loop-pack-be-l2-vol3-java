@@ -3,6 +3,8 @@ package com.loopers.infrastructure.like;
 import com.loopers.domain.like.ProductLike;
 import com.loopers.domain.like.ProductLikeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -16,6 +18,11 @@ public class ProductLikeRepositoryImpl implements ProductLikeRepository {
     @Override
     public Optional<ProductLike> findByUserIdAndProductId(Long userId, Long productId) {
         return productLikeJpaRepository.findByUserIdAndProductId(userId, productId);
+    }
+
+    @Override
+    public Page<ProductLike> findAllByUserId(Long userId, Pageable pageable) {
+        return productLikeJpaRepository.findAllByUserId(userId, pageable);
     }
 
     @Override

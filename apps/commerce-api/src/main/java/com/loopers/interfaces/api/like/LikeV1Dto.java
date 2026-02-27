@@ -21,4 +21,20 @@ public class LikeV1Dto {
             );
         }
     }
+
+    public record GetLikeResponse(
+            Long id,
+            Long userId,
+            Long productId,
+            ZonedDateTime createdAt
+    ) {
+        public static GetLikeResponse from(LikeInfo info) {
+            return new GetLikeResponse(
+                    info.id(),
+                    info.userId(),
+                    info.productId(),
+                    info.createdAt()
+            );
+        }
+    }
 }

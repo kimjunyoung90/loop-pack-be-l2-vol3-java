@@ -6,6 +6,8 @@ import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,12 @@ public class LikeService {
 
         ProductLike productLike = new ProductLike(userId, product);
         return LikeInfo.from(productLikeRepository.save(productLike));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<LikeInfo> getLikes(Long userId, Pageable pageable) {
+        return productLikeRepository.findAllByUserId(userId, pageable)
+                .map(LikeInfo::from);
     }
 
     @Transactional

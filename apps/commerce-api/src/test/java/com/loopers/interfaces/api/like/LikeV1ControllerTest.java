@@ -17,13 +17,21 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,7 +68,7 @@ class LikeV1ControllerTest {
         given(likeFacade.createLike(eq(1L), eq(1L))).willReturn(likeInfo);
 
         // when & then
-        mockMvc.perform(post("/api/v1/products/1/likes")
+        mockMvc.perform(post("/api/v1/likes/products/1")
                         .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isOk())
@@ -80,7 +88,7 @@ class LikeV1ControllerTest {
                 .willThrow(new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         // when & then
-        mockMvc.perform(post("/api/v1/products/999/likes")
+        mockMvc.perform(post("/api/v1/likes/products/999")
                         .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isNotFound());
@@ -97,7 +105,7 @@ class LikeV1ControllerTest {
                 .willThrow(new CoreException(ErrorType.CONFLICT, "이미 좋아요한 상품입니다."));
 
         // when & then
-        mockMvc.perform(post("/api/v1/products/1/likes")
+        mockMvc.perform(post("/api/v1/likes/products/1")
                         .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isConflict());
@@ -106,7 +114,7 @@ class LikeV1ControllerTest {
     @Test
     void 인증_헤더가_없으면_좋아요_등록시_401_UNAUTHORIZED를_반환한다() throws Exception {
         // when & then
-        mockMvc.perform(post("/api/v1/products/1/likes"))
+        mockMvc.perform(post("/api/v1/likes/products/1"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -120,7 +128,7 @@ class LikeV1ControllerTest {
         willDoNothing().given(likeService).deleteLike(eq(1L), eq(1L));
 
         // when & then
-        mockMvc.perform(delete("/api/v1/products/1/likes")
+        mockMvc.perform(delete("/api/v1/likes/products/1")
                         .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isOk());
@@ -137,7 +145,7 @@ class LikeV1ControllerTest {
                 .given(likeService).deleteLike(eq(1L), eq(999L));
 
         // when & then
-        mockMvc.perform(delete("/api/v1/products/999/likes")
+        mockMvc.perform(delete("/api/v1/likes/products/999")
                         .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isNotFound());
@@ -146,7 +154,30 @@ class LikeV1ControllerTest {
     @Test
     void 인증_헤더가_없으면_좋아요_취소시_401_UNAUTHORIZED를_반환한다() throws Exception {
         // when & then
-        mockMvc.perform(delete("/api/v1/products/1/likes"))
+        mockMvc.perform(delete("/api/v1/likes/products/1"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void 좋아요한_상품_목록을_조회하면_200_OK와_페이징된_좋아요_목록을_반환한다() throws Exception {
+        // given
+        ZonedDateTime now = ZonedDateTime.now();
+        LikeInfo likeInfo = new LikeInfo(1L, 1L, 1L, now);
+        Page<LikeInfo> likePage = new PageImpl<>(List.of(likeInfo), PageRequest.of(0, 20), 1);
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn("loginId");
+        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(likeService.getLikes(eq(1L), any(Pageable.class))).willReturn(likePage);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/likes/products")
+                        .header(LOGIN_ID_HEADER, "loginId")
+                        .header(LOGIN_PW_HEADER, "password1!"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].id").value(1))
+                .andExpect(jsonPath("$.data.content[0].userId").value(1))
+                .andExpect(jsonPath("$.data.content[0].productId").value(1));
     }
 }

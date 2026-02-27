@@ -1,6 +1,9 @@
 package com.loopers.infrastructure.like;
 
 import com.loopers.domain.like.ProductLike;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -8,4 +11,7 @@ import java.util.Optional;
 public interface ProductLikeJpaRepository extends JpaRepository<ProductLike, Long> {
 
     Optional<ProductLike> findByUserIdAndProductId(Long userId, Long productId);
+
+    @EntityGraph(attributePaths = "product")
+    Page<ProductLike> findAllByUserId(Long userId, Pageable pageable);
 }

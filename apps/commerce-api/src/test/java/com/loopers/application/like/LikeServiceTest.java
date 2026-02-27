@@ -11,7 +11,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -109,5 +115,47 @@ class LikeServiceTest {
         // when & then
         assertThatThrownBy(() -> likeService.deleteLike(userId, productId))
                 .isInstanceOf(CoreException.class);
+    }
+
+    @Test
+    void 좋아요한_상품이_존재하면_해당_유저의_좋아요_목록을_Page로_반환한다() {
+        // given
+        Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 20);
+        Brand brand = Brand.builder().name("나이키").build();
+        Product product = Product.builder()
+                .brand(brand)
+                .name("운동화")
+                .price(100000)
+                .stock(50)
+                .build();
+        ProductLike productLike = new ProductLike(userId, product);
+        Page<ProductLike> productLikes = new PageImpl<>(List.of(productLike), pageable, 1);
+
+        given(productLikeRepository.findAllByUserId(userId, pageable)).willReturn(productLikes);
+
+        // when
+        Page<LikeInfo> result = likeService.getLikes(userId, pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).userId()).isEqualTo(userId);
+    }
+
+    @Test
+    void 좋아요한_상품이_없으면_빈_Page를_반환한다() {
+        // given
+        Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<ProductLike> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        given(productLikeRepository.findAllByUserId(userId, pageable)).willReturn(emptyPage);
+
+        // when
+        Page<LikeInfo> result = likeService.getLikes(userId, pageable);
+
+        // then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
     }
 }
