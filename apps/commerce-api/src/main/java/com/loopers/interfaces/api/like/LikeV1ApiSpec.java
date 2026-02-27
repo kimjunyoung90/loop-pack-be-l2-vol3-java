@@ -13,6 +13,15 @@ public interface LikeV1ApiSpec {
     )
     ApiResponse<LikeV1Dto.CreateLikeResponse> createLike(
             com.loopers.support.auth.AuthUser authUser,
-            LikeV1Dto.CreateLikeRequest request
+            Long productId
+    );
+
+    @Operation(
+            summary = "좋아요 취소",
+            description = "상품의 좋아요를 취소합니다."
+    )
+    ApiResponse<Void> deleteLike(
+            com.loopers.support.auth.AuthUser authUser,
+            Long productId
     );
 }

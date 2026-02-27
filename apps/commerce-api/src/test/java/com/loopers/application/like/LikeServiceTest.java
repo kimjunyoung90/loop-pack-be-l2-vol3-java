@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 class LikeServiceTest {
@@ -69,6 +70,44 @@ class LikeServiceTest {
 
         // when & then
         assertThatThrownBy(() -> likeService.createLike(userId, product))
+                .isInstanceOf(CoreException.class);
+    }
+
+    @Test
+    void 좋아요를_취소하면_delete가_호출된다() {
+        // given
+        Long userId = 1L;
+        Long productId = 1L;
+        Brand brand = Brand.builder().name("나이키").build();
+        Product product = Product.builder()
+                .brand(brand)
+                .name("운동화")
+                .price(100000)
+                .stock(50)
+                .build();
+        ProductLike productLike = new ProductLike(userId, product);
+
+        given(productLikeRepository.findByUserIdAndProductId(userId, productId))
+                .willReturn(Optional.of(productLike));
+
+        // when
+        likeService.deleteLike(userId, productId);
+
+        // then
+        then(productLikeRepository).should().delete(productLike);
+    }
+
+    @Test
+    void 좋아요하지_않은_상품의_좋아요를_취소하면_CoreException_NOT_FOUND가_발생한다() {
+        // given
+        Long userId = 1L;
+        Long productId = 999L;
+
+        given(productLikeRepository.findByUserIdAndProductId(userId, productId))
+                .willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> likeService.deleteLike(userId, productId))
                 .isInstanceOf(CoreException.class);
     }
 }

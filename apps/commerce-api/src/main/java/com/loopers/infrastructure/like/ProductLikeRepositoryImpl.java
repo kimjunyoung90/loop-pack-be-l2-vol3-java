@@ -22,4 +22,9 @@ public class ProductLikeRepositoryImpl implements ProductLikeRepository {
     public ProductLike save(ProductLike productLike) {
         return productLikeJpaRepository.save(productLike);
     }
+
+    @Override
+    public void delete(ProductLike productLike) {
+        productLikeJpaRepository.delete(productLike);
+    }
 }

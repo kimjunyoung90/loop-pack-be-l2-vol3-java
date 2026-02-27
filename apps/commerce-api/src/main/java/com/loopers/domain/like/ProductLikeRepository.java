@@ -7,4 +7,6 @@ public interface ProductLikeRepository {
     Optional<ProductLike> findByUserIdAndProductId(Long userId, Long productId);
 
     ProductLike save(ProductLike productLike);
+
+    void delete(ProductLike productLike);
 }

@@ -25,4 +25,11 @@ public class LikeService {
         ProductLike productLike = new ProductLike(userId, product);
         return LikeInfo.from(productLikeRepository.save(productLike));
     }
+
+    @Transactional
+    public void deleteLike(Long userId, Long productId) {
+        ProductLike productLike = productLikeRepository.findByUserIdAndProductId(userId, productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "좋아요를 찾을 수 없습니다."));
+        productLikeRepository.delete(productLike);
+    }
 }
