@@ -186,7 +186,7 @@ class ProductAdminV1ControllerTest {
                         .header(LDAP_HEADER, VALID_LDAP))
                 .andExpect(status().isOk());
 
-        verify(productService).deleteProduct(1L);
+        verify(productFacade).deleteProduct(1L);
     }
 
     @Test

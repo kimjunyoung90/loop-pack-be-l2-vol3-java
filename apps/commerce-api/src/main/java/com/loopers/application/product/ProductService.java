@@ -64,6 +64,11 @@ public class ProductService {
         product.delete();
     }
 
+    @Transactional(readOnly = true)
+    public List<Product> findProductsByBrand(Brand brand) {
+        return productRepository.findAllByBrand(brand);
+    }
+
     @Transactional
     public void deleteProductsByBrand(Brand brand) {
         List<Product> products = productRepository.findAllByBrand(brand);

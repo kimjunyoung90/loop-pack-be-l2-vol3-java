@@ -14,4 +14,6 @@ public interface ProductLikeRepository {
     ProductLike save(ProductLike productLike);
 
     void delete(ProductLike productLike);
+
+    void deleteByProductId(Long productId);
 }

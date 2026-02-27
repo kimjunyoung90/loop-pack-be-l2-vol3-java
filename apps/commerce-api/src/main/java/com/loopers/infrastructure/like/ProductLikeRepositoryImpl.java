@@ -34,4 +34,9 @@ public class ProductLikeRepositoryImpl implements ProductLikeRepository {
     public void delete(ProductLike productLike) {
         productLikeJpaRepository.delete(productLike);
     }
+
+    @Override
+    public void deleteByProductId(Long productId) {
+        productLikeJpaRepository.deleteByProductId(productId);
+    }
 }

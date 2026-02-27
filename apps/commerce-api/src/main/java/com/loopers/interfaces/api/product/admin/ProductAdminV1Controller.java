@@ -71,7 +71,7 @@ public class ProductAdminV1Controller implements ProductAdminV1ApiSpec {
     public ApiResponse<Object> deleteProduct(
             @PathVariable Long productId
     ) {
-        productService.deleteProduct(productId);
+        productFacade.deleteProduct(productId);
         return ApiResponse.success();
     }
 }

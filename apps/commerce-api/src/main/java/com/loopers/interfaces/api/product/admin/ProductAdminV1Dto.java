@@ -14,7 +14,7 @@ public class ProductAdminV1Dto {
             Long brandId,
             @NotBlank
             String name,
-            @Min(0)
+            @Min(1)
             int price,
             @Min(0)
             int stock
@@ -70,7 +70,7 @@ public class ProductAdminV1Dto {
             Long brandId,
             @NotBlank
             String name,
-            @Min(0)
+            @Min(1)
             int price,
             @Min(0)
             int stock

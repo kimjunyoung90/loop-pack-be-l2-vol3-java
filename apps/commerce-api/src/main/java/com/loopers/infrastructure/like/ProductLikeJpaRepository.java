@@ -14,4 +14,6 @@ public interface ProductLikeJpaRepository extends JpaRepository<ProductLike, Lon
 
     @EntityGraph(attributePaths = "product")
     Page<ProductLike> findAllByUserId(Long userId, Pageable pageable);
+
+    void deleteByProductId(Long productId);
 }

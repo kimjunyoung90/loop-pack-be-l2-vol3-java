@@ -40,4 +40,9 @@ public class LikeService {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "좋아요를 찾을 수 없습니다."));
         productLikeRepository.delete(productLike);
     }
+
+    @Transactional
+    public void deleteLikesByProductId(Long productId) {
+        productLikeRepository.deleteByProductId(productId);
+    }
 }
