@@ -7,6 +7,8 @@ import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,6 +183,70 @@ class OrderV1ControllerTest {
         mockMvc.perform(get("/api/v1/orders")
                         .param("startDate", "2026-01-01")
                         .param("endDate", "2026-01-31"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void 주문_상세를_조회하면_200_OK와_주문_정보를_반환한다() throws Exception {
+        // given
+        ZonedDateTime now = ZonedDateTime.now();
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
+                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        ), now, now);
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn("loginId");
+        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(orderService.getOrder(1L, 1L)).willReturn(orderInfo);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/orders/1")
+                        .header(LOGIN_ID_HEADER, "loginId")
+                        .header(LOGIN_PW_HEADER, "password1!"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.totalPrice").value(100000))
+                .andExpect(jsonPath("$.data.orderItems[0].productName").value("운동화"));
+    }
+
+    @Test
+    void 본인_주문이_아니면_주문_상세_조회시_403_FORBIDDEN을_반환한다() throws Exception {
+        // given
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(2L);
+        given(mockUser.getLoginId()).willReturn("loginId");
+        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(orderService.getOrder(2L, 1L)).willThrow(new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 조회할 수 있습니다."));
+
+        // when & then
+        mockMvc.perform(get("/api/v1/orders/1")
+                        .header(LOGIN_ID_HEADER, "loginId")
+                        .header(LOGIN_PW_HEADER, "password1!"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void 존재하지_않는_주문_상세_조회시_404_NOT_FOUND를_반환한다() throws Exception {
+        // given
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn("loginId");
+        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(orderService.getOrder(1L, 999L)).willThrow(new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
+
+        // when & then
+        mockMvc.perform(get("/api/v1/orders/999")
+                        .header(LOGIN_ID_HEADER, "loginId")
+                        .header(LOGIN_PW_HEADER, "password1!"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void 인증_헤더가_없으면_주문_상세_조회시_401_UNAUTHORIZED를_반환한다() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/v1/orders/1"))
                 .andExpect(status().isUnauthorized());
     }
 }

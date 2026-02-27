@@ -52,6 +52,15 @@ public class OrderV1Controller implements OrderV1ApiSpec {
     }
 
     @Override
+    @GetMapping("/{orderId}")
+    public ApiResponse<OrderV1Dto.GetOrderResponse> getOrder(
+            @LoginUser AuthUser authUser,
+            @PathVariable Long orderId) {
+        OrderInfo orderInfo = orderService.getOrder(authUser.id(), orderId);
+        return ApiResponse.success(OrderV1Dto.GetOrderResponse.from(orderInfo));
+    }
+
+    @Override
     @GetMapping
     public ApiResponse<Page<OrderV1Dto.GetOrderResponse>> getOrders(
             @LoginUser AuthUser authUser,

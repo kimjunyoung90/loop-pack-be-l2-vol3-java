@@ -24,6 +24,12 @@ public interface OrderV1ApiSpec {
     ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(AuthUser authUser, Long orderId);
 
     @Operation(
+        summary = "주문 상세 조회",
+        description = "주문 상세 정보를 조회합니다. 본인의 주문만 조회할 수 있습니다."
+    )
+    ApiResponse<OrderV1Dto.GetOrderResponse> getOrder(AuthUser authUser, Long orderId);
+
+    @Operation(
         summary = "주문 목록 조회",
         description = "본인의 주문 목록을 기간별로 조회합니다."
     )

@@ -4,6 +4,7 @@ import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.order.OrderRepository;
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -89,6 +90,83 @@ class OrderServiceTest {
 
         // when & then
         assertThatThrownBy(() -> orderService.findOrder(999L))
+                .isInstanceOf(CoreException.class);
+    }
+
+    @Test
+    void 관리자용_주문_상세_조회시_OrderInfo를_반환한다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+        order.addOrderItem(OrderItem.builder()
+                .productId(1L)
+                .productName("운동화")
+                .productPrice(50000)
+                .quantity(2)
+                .build());
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when
+        OrderInfo result = orderService.getOrder(1L);
+
+        // then
+        assertThat(result.userId()).isEqualTo(1L);
+        assertThat(result.totalPrice()).isEqualTo(100000);
+        assertThat(result.orderItems()).hasSize(1);
+    }
+
+    @Test
+    void 관리자용_주문_상세_조회시_존재하지_않는_주문이면_NOT_FOUND가_발생한다() {
+        // given
+        given(orderRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrder(999L))
+                .isInstanceOf(CoreException.class);
+    }
+
+    @Test
+    void 일반_사용자용_주문_상세_조회시_본인_주문이면_OrderInfo를_반환한다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+        order.addOrderItem(OrderItem.builder()
+                .productId(1L)
+                .productName("운동화")
+                .productPrice(50000)
+                .quantity(2)
+                .build());
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when
+        OrderInfo result = orderService.getOrder(1L, 1L);
+
+        // then
+        assertThat(result.userId()).isEqualTo(1L);
+        assertThat(result.totalPrice()).isEqualTo(100000);
+        assertThat(result.orderItems()).hasSize(1);
+    }
+
+    @Test
+    void 일반_사용자용_주문_상세_조회시_본인_주문이_아니면_FORBIDDEN이_발생한다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+        given(orderRepository.findById(1L)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrder(2L, 1L))
+                .isInstanceOf(CoreException.class)
+                .satisfies(exception -> {
+                    CoreException coreException = (CoreException) exception;
+                    assertThat(coreException.getErrorType()).isEqualTo(ErrorType.FORBIDDEN);
+                });
+    }
+
+    @Test
+    void 일반_사용자용_주문_상세_조회시_존재하지_않는_주문이면_NOT_FOUND가_발생한다() {
+        // given
+        given(orderRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrder(1L, 999L))
                 .isInstanceOf(CoreException.class);
     }
 
