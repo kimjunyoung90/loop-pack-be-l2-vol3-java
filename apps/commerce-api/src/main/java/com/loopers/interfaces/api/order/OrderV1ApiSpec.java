@@ -13,9 +13,9 @@ public interface OrderV1ApiSpec {
 
     @Operation(
         summary = "주문 생성",
-        description = "주문을 생성합니다."
+        description = "주문을 생성합니다. 인증된 사용자의 주문을 생성합니다."
     )
-    ApiResponse<OrderV1Dto.CreateOrderResponse> createOrder(OrderV1Dto.CreateOrderRequest request);
+    ApiResponse<OrderV1Dto.CreateOrderResponse> createOrder(AuthUser authUser, OrderV1Dto.CreateOrderRequest request);
 
     @Operation(
         summary = "주문 취소",

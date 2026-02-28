@@ -12,7 +12,6 @@ import java.util.List;
 public class OrderV1Dto {
 
     public record CreateOrderRequest(
-            @NotNull Long userId,
             @NotEmpty @Valid List<CreateOrderItemRequest> orderItems
     ) {}
 

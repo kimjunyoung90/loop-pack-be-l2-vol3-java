@@ -64,16 +64,20 @@ class OrderV1ControllerTest {
         OrderInfo orderInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
+
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn("loginId");
+        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
         given(orderFacade.createOrder(any())).willReturn(orderInfo);
 
         Map<String, Object> request = Map.of(
-                "userId", 1,
                 "orderItems", List.of(Map.of("productId", 1, "quantity", 2))
         );
 
         // when & then
         mockMvc.perform(post("/api/v1/orders")
-                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -85,7 +89,7 @@ class OrderV1ControllerTest {
     }
 
     @Test
-    void userId가_null이면_400_BAD_REQUEST를_반환한다() throws Exception {
+    void 인증_헤더가_없으면_주문_생성시_401_UNAUTHORIZED를_반환한다() throws Exception {
         // given
         Map<String, Object> request = Map.of(
                 "orderItems", List.of(Map.of("productId", 1, "quantity", 2))
@@ -93,24 +97,26 @@ class OrderV1ControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/v1/orders")
-                        .header(LOGIN_ID_HEADER, "testuser")
-                        .header(LOGIN_PW_HEADER, "password1!")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void orderItems가_빈_목록이면_400_BAD_REQUEST를_반환한다() throws Exception {
         // given
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(1L);
+        given(mockUser.getLoginId()).willReturn("loginId");
+        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+
         Map<String, Object> request = Map.of(
-                "userId", 1,
                 "orderItems", List.of()
         );
 
         // when & then
         mockMvc.perform(post("/api/v1/orders")
-                        .header(LOGIN_ID_HEADER, "testuser")
+                        .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

@@ -27,9 +27,10 @@ public class OrderV1Controller implements OrderV1ApiSpec {
     @Override
     @PostMapping
     public ApiResponse<OrderV1Dto.CreateOrderResponse> createOrder(
+            @LoginUser AuthUser authUser,
             @Valid @RequestBody OrderV1Dto.CreateOrderRequest request) {
         CreateOrderCommand command = new CreateOrderCommand(
-                request.userId(),
+                authUser.id(),
                 request.orderItems().stream()
                         .map(item -> new CreateOrderCommand.CreateOrderItemCommand(
                                 item.productId(),
