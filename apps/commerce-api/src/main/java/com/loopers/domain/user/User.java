@@ -36,16 +36,16 @@ public class User extends BaseEntity {
     private User(String loginId, String password, String name, String birthDate, String email, PasswordEncoder passwordEncoder) {
         this.loginId = loginId;
         this.name = name;
-        setBirthDate(birthDate);
-        setEmail(email);
-        setPassword(password, birthDate, passwordEncoder);
+        updateBirthDate(birthDate);
+        updateEmail(email);
+        changePassword(password, birthDate, passwordEncoder);
     }
 
     public String getMaskedName() {
         return name.substring(0, name.length() - 1) + "*";
     }
 
-    public void setPassword(String password, String birthDate, PasswordEncoder passwordEncoder) {
+    public void changePassword(String password, String birthDate, PasswordEncoder passwordEncoder) {
         if (password.length() < 8 || password.length() > 16) {
             throw new IllegalArgumentException();
         }
@@ -59,14 +59,14 @@ public class User extends BaseEntity {
         this.password = passwordEncoder.encode(password);
     }
 
-    public void setEmail(String email) {
+    public void updateEmail(String email) {
         if(!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
             throw new IllegalArgumentException();
         }
         this.email = email;
     }
 
-    public void setBirthDate(String birthDate) {
+    public void updateBirthDate(String birthDate) {
         try {
             LocalDate.parse(birthDate);
         } catch (DateTimeParseException e) {

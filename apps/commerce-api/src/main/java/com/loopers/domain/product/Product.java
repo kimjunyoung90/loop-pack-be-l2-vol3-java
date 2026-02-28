@@ -2,6 +2,8 @@ package com.loopers.domain.product;
 
 import com.loopers.domain.BaseEntity;
 import com.loopers.domain.brand.Brand;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,6 +31,12 @@ public class Product extends BaseEntity {
 
     @Builder
     private Product(Brand brand, String name, int price, int stock) {
+        if (price <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품 가격은 0보다 커야 합니다.");
+        }
+        if (stock < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품 재고는 0 이상이어야 합니다.");
+        }
         this.brand = brand;
         this.name = name;
         this.price = price;
@@ -36,6 +44,12 @@ public class Product extends BaseEntity {
     }
 
     public void update(Brand brand, String name, int price, int stock) {
+        if (price <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품 가격은 0보다 커야 합니다.");
+        }
+        if (stock < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품 재고는 0 이상이어야 합니다.");
+        }
         this.brand = brand;
         this.name = name;
         this.price = price;
@@ -44,7 +58,7 @@ public class Product extends BaseEntity {
 
     public void deductStock(int quantity) {
         if (this.stock < quantity) {
-            throw new IllegalArgumentException("재고가 부족합니다. 현재 재고: " + this.stock);
+            throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다. 현재 재고: " + this.stock);
         }
         this.stock -= quantity;
     }

@@ -54,7 +54,7 @@ public class UserService {
         }
 
         // 비밀번호 암호화 후 저장
-        user.setPassword(newPassword, user.getBirthDate(), passwordEncoder);
+        user.changePassword(newPassword, user.getBirthDate(), passwordEncoder);
     }
 
     @Transactional(readOnly = true)

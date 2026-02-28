@@ -102,7 +102,7 @@ class OrderFacadeTest {
     }
 
     @Test
-    void 재고가_부족한_상품이_포함되면_IllegalArgumentException이_발생한다() {
+    void 재고가_부족한_상품이_포함되면_CoreException이_발생한다() {
         // given
         Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
@@ -120,7 +120,7 @@ class OrderFacadeTest {
 
         // when & then
         assertThatThrownBy(() -> orderFacade.createOrder(command))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test

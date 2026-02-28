@@ -26,7 +26,7 @@ class UserTest {
         String password = "1234567";
         User user = createValidUser();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, "1990-01-01", passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
     }
@@ -36,7 +36,7 @@ class UserTest {
         String password = "12345678901234567";
         User user = createValidUser();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, "1990-01-01", passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
     }
@@ -46,7 +46,7 @@ class UserTest {
         String password = "12345678";
         User user = createValidUser();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, "1990-01-01", passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
         assertThat(thrown).isNull();
     }
@@ -56,7 +56,7 @@ class UserTest {
         String password = "1234567890123456";
         User user = createValidUser();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, "1990-01-01", passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
         assertThat(thrown).isNull();
     }
@@ -66,7 +66,7 @@ class UserTest {
         String password = "ㄱ12345561";
         User user = createValidUser();
 
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, "1990-01-01", passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
     }
@@ -76,7 +76,7 @@ class UserTest {
         String password = "1234 5561";
         User user = createValidUser();
 
-        assertThatThrownBy(() -> user.setPassword(password, "1990-01-01", passwordEncoder))
+        assertThatThrownBy(() -> user.changePassword(password, "1990-01-01", passwordEncoder))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -88,7 +88,7 @@ class UserTest {
         User user = createValidUser();
 
         //when
-        Throwable thrown = catchThrowable(() -> user.setPassword(password, date, passwordEncoder));
+        Throwable thrown = catchThrowable(() -> user.changePassword(password, date, passwordEncoder));
 
         //then
         assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
