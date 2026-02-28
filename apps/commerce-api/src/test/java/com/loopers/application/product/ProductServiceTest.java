@@ -1,6 +1,5 @@
 package com.loopers.application.product;
 
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
@@ -33,10 +32,9 @@ class ProductServiceTest {
     @Test
     void 상품을_생성하면_저장된_상품의_ProductInfo를_반환한다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         CreateProductCommand command = new CreateProductCommand(1L, "운동화", 100000, 50);
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -44,7 +42,7 @@ class ProductServiceTest {
         given(productRepository.save(any(Product.class))).willReturn(product);
 
         // when
-        ProductInfo result = productService.createProduct(brand, command);
+        ProductInfo result = productService.createProduct(command);
 
         // then
         assertThat(result.name()).isEqualTo("운동화");
@@ -55,9 +53,8 @@ class ProductServiceTest {
     @Test
     void 상품_목록을_조회하면_삭제되지_않은_상품을_Page로_반환한다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -76,9 +73,8 @@ class ProductServiceTest {
     @Test
     void 존재하는_상품을_조회하면_ProductInfo를_반환한다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -106,10 +102,8 @@ class ProductServiceTest {
     @Test
     void 존재하는_상품을_수정하면_변경된_정보가_반영된_ProductInfo를_반환한다() {
         // given
-        Brand brand1 = Brand.builder().name("나이키").build();
-        Brand brand2 = Brand.builder().name("아디다스").build();
         Product product = Product.builder()
-                .brand(brand1)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -118,7 +112,7 @@ class ProductServiceTest {
         UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
 
         // when
-        ProductInfo result = productService.updateProduct(1L, brand2, command);
+        ProductInfo result = productService.updateProduct(1L, command);
 
         // then
         assertThat(result.name()).isEqualTo("슬리퍼");
@@ -129,21 +123,19 @@ class ProductServiceTest {
     @Test
     void 존재하지_않는_상품을_수정하면_CoreException_NOT_FOUND가_발생한다() {
         // given
-        Brand brand = Brand.builder().name("아디다스").build();
         given(productRepository.findById(1L)).willReturn(Optional.empty());
         UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
 
         // when & then
-        assertThatThrownBy(() -> productService.updateProduct(1L, brand, command))
+        assertThatThrownBy(() -> productService.updateProduct(1L, command))
                 .isInstanceOf(CoreException.class);
     }
 
     @Test
     void 존재하는_상품을_삭제하면_deletedAt이_설정된다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)

@@ -26,6 +26,13 @@ public class BrandService {
     }
 
     @Transactional(readOnly = true)
+    public void validateBrandExists(Long brandId) {
+        if (!brandRepository.existsById(brandId)) {
+            throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
+        }
+    }
+
+    @Transactional(readOnly = true)
     public Brand findBrand(Long brandId) {
         return brandRepository.findById(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));

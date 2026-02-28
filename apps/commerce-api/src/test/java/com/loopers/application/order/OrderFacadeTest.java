@@ -2,7 +2,6 @@ package com.loopers.application.order;
 
 import com.loopers.application.product.ProductService;
 import com.loopers.application.user.UserService;
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.product.Product;
@@ -42,9 +41,8 @@ class OrderFacadeTest {
     @Test
     void 유효한_사용자와_상품으로_주문하면_재고_차감_후_OrderInfo를_반환한다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(50000)
                 .stock(10)
@@ -104,9 +102,8 @@ class OrderFacadeTest {
     @Test
     void 재고가_부족한_상품이_포함되면_CoreException이_발생한다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(50000)
                 .stock(1)
@@ -136,9 +133,8 @@ class OrderFacadeTest {
         order.addOrderItem(item);
         given(orderService.findOrder(1L)).willReturn(order);
 
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(50000)
                 .stock(8)

@@ -1,8 +1,6 @@
 package com.loopers.application.like;
 
 import com.loopers.application.product.ProductService;
-import com.loopers.domain.brand.Brand;
-import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
@@ -35,18 +33,10 @@ class LikeFacadeTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
-        Product product = Product.builder()
-                .brand(brand)
-                .name("운동화")
-                .price(100000)
-                .stock(50)
-                .build();
         ZonedDateTime now = ZonedDateTime.now();
         LikeInfo expectedInfo = new LikeInfo(1L, userId, productId, now);
 
-        given(productService.findProduct(productId)).willReturn(product);
-        given(likeService.createLike(userId, product)).willReturn(expectedInfo);
+        given(likeService.createLike(userId, productId)).willReturn(expectedInfo);
 
         // when
         LikeInfo result = likeFacade.createLike(userId, productId);
@@ -62,7 +52,7 @@ class LikeFacadeTest {
         Long userId = 1L;
         Long productId = 999L;
         willThrow(new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."))
-                .given(productService).findProduct(productId);
+                .given(productService).validateProductExists(productId);
 
         // when & then
         assertThatThrownBy(() -> likeFacade.createLike(userId, productId))

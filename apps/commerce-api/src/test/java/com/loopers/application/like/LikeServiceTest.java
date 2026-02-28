@@ -1,9 +1,7 @@
 package com.loopers.application.like;
 
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.like.ProductLike;
 import com.loopers.domain.like.ProductLikeRepository;
-import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,44 +36,32 @@ class LikeServiceTest {
     void 좋아요를_등록하면_저장된_LikeInfo를_반환한다() {
         // given
         Long userId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
-        Product product = Product.builder()
-                .brand(brand)
-                .name("운동화")
-                .price(100000)
-                .stock(50)
-                .build();
-        ProductLike productLike = new ProductLike(userId, product);
+        Long productId = 1L;
+        ProductLike productLike = new ProductLike(userId, productId);
 
-        given(productLikeRepository.findByUserIdAndProductId(userId, product.getId())).willReturn(Optional.empty());
+        given(productLikeRepository.findByUserIdAndProductId(userId, productId)).willReturn(Optional.empty());
         given(productLikeRepository.save(any(ProductLike.class))).willReturn(productLike);
 
         // when
-        LikeInfo result = likeService.createLike(userId, product);
+        LikeInfo result = likeService.createLike(userId, productId);
 
         // then
         assertThat(result.userId()).isEqualTo(userId);
-        assertThat(result.productId()).isEqualTo(product.getId());
+        assertThat(result.productId()).isEqualTo(productId);
     }
 
     @Test
     void 이미_좋아요한_상품에_다시_좋아요하면_CoreException_CONFLICT가_발생한다() {
         // given
         Long userId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
-        Product product = Product.builder()
-                .brand(brand)
-                .name("운동화")
-                .price(100000)
-                .stock(50)
-                .build();
-        ProductLike existingLike = new ProductLike(userId, product);
+        Long productId = 1L;
+        ProductLike existingLike = new ProductLike(userId, productId);
 
-        given(productLikeRepository.findByUserIdAndProductId(userId, product.getId()))
+        given(productLikeRepository.findByUserIdAndProductId(userId, productId))
                 .willReturn(Optional.of(existingLike));
 
         // when & then
-        assertThatThrownBy(() -> likeService.createLike(userId, product))
+        assertThatThrownBy(() -> likeService.createLike(userId, productId))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -84,14 +70,7 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
-        Product product = Product.builder()
-                .brand(brand)
-                .name("운동화")
-                .price(100000)
-                .stock(50)
-                .build();
-        ProductLike productLike = new ProductLike(userId, product);
+        ProductLike productLike = new ProductLike(userId, productId);
 
         given(productLikeRepository.findByUserIdAndProductId(userId, productId))
                 .willReturn(Optional.of(productLike));
@@ -121,15 +100,9 @@ class LikeServiceTest {
     void 좋아요한_상품이_존재하면_해당_유저의_좋아요_목록을_Page로_반환한다() {
         // given
         Long userId = 1L;
+        Long productId = 1L;
         Pageable pageable = PageRequest.of(0, 20);
-        Brand brand = Brand.builder().name("나이키").build();
-        Product product = Product.builder()
-                .brand(brand)
-                .name("운동화")
-                .price(100000)
-                .stock(50)
-                .build();
-        ProductLike productLike = new ProductLike(userId, product);
+        ProductLike productLike = new ProductLike(userId, productId);
         Page<ProductLike> productLikes = new PageImpl<>(List.of(productLike), pageable, 1);
 
         given(productLikeRepository.findAllByUserId(userId, pageable)).willReturn(productLikes);

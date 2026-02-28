@@ -12,4 +12,6 @@ public interface BrandRepository {
     Optional<Brand> findById(Long id);
 
     Page<Brand> findAll(Pageable pageable);
+
+    boolean existsById(Long id);
 }

@@ -1,5 +1,6 @@
 package com.loopers.application.order;
 
+import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
 import com.loopers.application.brand.CreateBrandCommand;
 import com.loopers.application.product.CreateProductCommand;
@@ -8,7 +9,6 @@ import com.loopers.application.product.ProductService;
 import com.loopers.application.user.CreateUserCommand;
 import com.loopers.application.user.UserInfo;
 import com.loopers.application.user.UserService;
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.product.Product;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
@@ -46,10 +46,9 @@ class OrderFacadeIntegrationTest {
                 new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        Brand brand = brandService.findBrand(
-                brandService.createBrand(new CreateBrandCommand("나이키")).id());
-        ProductInfo productInfo1 = productService.createProduct(brand, new CreateProductCommand(brand.getId(), "운동화", 50000, 10));
-        ProductInfo productInfo2 = productService.createProduct(brand, new CreateProductCommand(brand.getId(), "슬리퍼", 30000, 5));
+        BrandInfo brandInfo = brandService.createBrand(new CreateBrandCommand("나이키"));
+        ProductInfo productInfo1 = productService.createProduct(new CreateProductCommand(brandInfo.id(), "운동화", 50000, 10));
+        ProductInfo productInfo2 = productService.createProduct(new CreateProductCommand(brandInfo.id(), "슬리퍼", 30000, 5));
 
         // 주문 생성
         CreateOrderCommand command = new CreateOrderCommand(userInfo.id(), List.of(
@@ -78,9 +77,8 @@ class OrderFacadeIntegrationTest {
                 new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록 (재고 2개)
-        Brand brand = brandService.findBrand(
-                brandService.createBrand(new CreateBrandCommand("나이키")).id());
-        ProductInfo productInfo = productService.createProduct(brand, new CreateProductCommand(brand.getId(), "운동화", 50000, 2));
+        BrandInfo brandInfo = brandService.createBrand(new CreateBrandCommand("나이키"));
+        ProductInfo productInfo = productService.createProduct(new CreateProductCommand(brandInfo.id(), "운동화", 50000, 2));
 
         // 재고 초과 주문
         CreateOrderCommand command = new CreateOrderCommand(userInfo.id(), List.of(
@@ -99,9 +97,8 @@ class OrderFacadeIntegrationTest {
                 new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        Brand brand = brandService.findBrand(
-                brandService.createBrand(new CreateBrandCommand("나이키")).id());
-        ProductInfo productInfo = productService.createProduct(brand, new CreateProductCommand(brand.getId(), "운동화", 50000, 10));
+        BrandInfo brandInfo = brandService.createBrand(new CreateBrandCommand("나이키"));
+        ProductInfo productInfo = productService.createProduct(new CreateProductCommand(brandInfo.id(), "운동화", 50000, 10));
 
         // 주문 생성
         CreateOrderCommand command = new CreateOrderCommand(userInfo.id(), List.of(

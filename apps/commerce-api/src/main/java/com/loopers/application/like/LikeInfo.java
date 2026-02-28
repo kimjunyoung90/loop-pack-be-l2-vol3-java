@@ -14,7 +14,7 @@ public record LikeInfo(
         return new LikeInfo(
                 productLike.getId(),
                 productLike.getUserId(),
-                productLike.getProduct().getId(),
+                productLike.getProductId(),
                 productLike.getCreatedAt()
         );
     }

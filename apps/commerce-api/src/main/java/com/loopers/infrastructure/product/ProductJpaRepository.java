@@ -1,6 +1,5 @@
 package com.loopers.infrastructure.product;
 
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.product.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,5 +14,7 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findAllByDeletedAtIsNull(Pageable pageable);
 
-    List<Product> findAllByBrandAndDeletedAtIsNull(Brand brand);
+    List<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId);
+
+    boolean existsByIdAndDeletedAtIsNull(Long id);
 }

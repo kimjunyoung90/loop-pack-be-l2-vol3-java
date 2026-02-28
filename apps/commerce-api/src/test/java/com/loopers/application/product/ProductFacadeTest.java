@@ -1,7 +1,6 @@
 package com.loopers.application.product;
 
 import com.loopers.application.brand.BrandService;
-import com.loopers.domain.brand.Brand;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
@@ -33,12 +32,10 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_생성하면_브랜드_검증_후_ProductInfo를_반환한다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         CreateProductCommand command = new CreateProductCommand(1L, "운동화", 100000, 50);
         ZonedDateTime now = ZonedDateTime.now();
         ProductInfo expectedInfo = new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now);
-        given(brandService.findBrand(1L)).willReturn(brand);
-        given(productService.createProduct(eq(brand), eq(command))).willReturn(expectedInfo);
+        given(productService.createProduct(eq(command))).willReturn(expectedInfo);
 
         // when
         ProductInfo result = productFacade.createProduct(command);
@@ -53,7 +50,7 @@ class ProductFacadeTest {
         // given
         CreateProductCommand command = new CreateProductCommand(999L, "운동화", 100000, 50);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))
-                .given(brandService).findBrand(999L);
+                .given(brandService).validateBrandExists(999L);
 
         // when & then
         assertThatThrownBy(() -> productFacade.createProduct(command))
@@ -63,12 +60,10 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_수정하면_브랜드_검증_후_ProductInfo를_반환한다() {
         // given
-        Brand brand = Brand.builder().name("아디다스").build();
         UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
         ZonedDateTime now = ZonedDateTime.now();
         ProductInfo expectedInfo = new ProductInfo(1L, 2L, "슬리퍼", 50000, 30, now, now);
-        given(brandService.findBrand(2L)).willReturn(brand);
-        given(productService.updateProduct(eq(1L), eq(brand), eq(command))).willReturn(expectedInfo);
+        given(productService.updateProduct(eq(1L), eq(command))).willReturn(expectedInfo);
 
         // when
         ProductInfo result = productFacade.updateProduct(1L, command);
@@ -83,7 +78,7 @@ class ProductFacadeTest {
         // given
         UpdateProductCommand command = new UpdateProductCommand(999L, "슬리퍼", 50000, 30);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))
-                .given(brandService).findBrand(999L);
+                .given(brandService).validateBrandExists(999L);
 
         // when & then
         assertThatThrownBy(() -> productFacade.updateProduct(1L, command))
