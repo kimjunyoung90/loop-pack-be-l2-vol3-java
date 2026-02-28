@@ -74,12 +74,17 @@ description:
 | **상태 변경 메서드** | setter 대신 의미 있는 이름의 메서드(예: `update()`, `activate()`)를 통해 상태를 변경한다. |
 | **Soft Delete** | `BaseEntity.delete()`를 활용하고, 삭제 시 `deletedAt`을 설정한다. |
 | **규칙 위치 판단** | 서비스에 있는 로직이 도메인 객체에 속해야 하는지, 또는 그 반대인지 확인한다. |
+| **Aggregate 간 참조는 ID로** | 서로 다른 Aggregate 간에는 직접 객체 참조(`@ManyToOne`, `@OneToOne` 등)를 사용하지 않고, ID 값(`Long memberId`)으로만 참조한다. 직접 참조는 Aggregate 경계를 무너뜨리고 트랜잭션 범위를 확대시킨다. |
+| **Aggregate Root 진입점** | 외부에서 Aggregate 내부 엔티티에 직접 접근하지 않는다. 반드시 Aggregate Root를 통해서만 내부 엔티티를 조작한다. |
+| **Aggregate 단위 트랜잭션** | 하나의 트랜잭션에서 하나의 Aggregate만 수정한다. 여러 Aggregate를 동시에 변경해야 하는 경우 도메인 이벤트 또는 Facade에서의 순차 처리를 검토한다. |
 
 ### 판단 보조 질문
 
 - "이 로직은 엔티티 자신의 필드만으로 판단 가능한가?" → Yes면 도메인 객체로 이동 고려
 - "이 규칙이 여러 서비스에서 반복되는가?" → Yes면 도메인 객체에 속할 가능성 높음
 - "외부 의존(DB 조회, 다른 도메인)이 필요한가?" → Yes면 서비스 레이어에 유지
+- "이 엔티티가 다른 Aggregate의 엔티티를 직접 참조하는가?" → Yes면 ID 참조로 변경 고려
+- "이 트랜잭션에서 여러 Aggregate를 동시에 수정하는가?" → Yes면 분리 또는 이벤트 기반 처리 검토
 
 ### 출력 형식
 
