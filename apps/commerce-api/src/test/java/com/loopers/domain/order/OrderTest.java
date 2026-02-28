@@ -1,8 +1,10 @@
 package com.loopers.domain.order;
 
+import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OrderTest {
 
@@ -16,34 +18,36 @@ class OrderTest {
     }
 
     @Test
-    void 주문을_취소하면_상태가_CANCELLED로_변경된다() {
+    void 본인_주문을_취소하면_상태가_CANCELLED로_변경된다() {
         // given
         Order order = Order.builder().userId(1L).build();
 
         // when
-        order.cancel();
+        order.cancel(1L);
 
         // then
-        assertThat(order.isCancelled()).isTrue();
         assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
 
     @Test
-    void 본인_userId와_일치하면_isOwnedBy가_true를_반환한다() {
+    void 본인이_아닌_사용자가_취소하면_예외가_발생한다() {
         // given
         Order order = Order.builder().userId(1L).build();
 
         // when & then
-        assertThat(order.isOwnedBy(1L)).isTrue();
+        assertThatThrownBy(() -> order.cancel(999L))
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
-    void 다른_userId이면_isOwnedBy가_false를_반환한다() {
+    void 이미_취소된_주문을_취소하면_예외가_발생한다() {
         // given
         Order order = Order.builder().userId(1L).build();
+        order.cancel(1L);
 
         // when & then
-        assertThat(order.isOwnedBy(999L)).isFalse();
+        assertThatThrownBy(() -> order.cancel(1L))
+                .isInstanceOf(CoreException.class);
     }
 
     @Test

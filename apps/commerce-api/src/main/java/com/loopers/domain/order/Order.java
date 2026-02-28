@@ -1,6 +1,8 @@
 package com.loopers.domain.order;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -42,15 +44,17 @@ public class Order extends BaseEntity {
         this.totalPrice += orderItem.getTotalPrice();
     }
 
-    public void cancel() {
-        this.status = OrderStatus.CANCELLED;
-    }
-
-    public boolean isCancelled() {
-        return this.status == OrderStatus.CANCELLED;
-    }
-
     public boolean isOwnedBy(Long userId) {
         return this.userId.equals(userId);
+    }
+
+    public void cancel(Long userId) {
+        if (!isOwnedBy(userId)) {
+            throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다.");
+        }
+        if (this.status == OrderStatus.CANCELLED) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다.");
+        }
+        this.status = OrderStatus.CANCELLED;
     }
 }

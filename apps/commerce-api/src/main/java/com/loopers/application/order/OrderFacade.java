@@ -5,8 +5,6 @@ import com.loopers.application.user.UserService;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.product.Product;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,15 +45,7 @@ public class OrderFacade {
     public OrderInfo cancelOrder(Long userId, Long orderId) {
         Order order = orderService.findOrder(orderId);
 
-        if (!order.isOwnedBy(userId)) {
-            throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다.");
-        }
-
-        if (order.isCancelled()) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다.");
-        }
-
-        order.cancel();
+        order.cancel(userId);
 
         for (OrderItem item : order.getOrderItems()) {
             Product product = productService.findProduct(item.getProductId());

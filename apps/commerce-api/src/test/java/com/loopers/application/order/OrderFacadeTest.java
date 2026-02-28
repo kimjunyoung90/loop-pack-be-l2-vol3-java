@@ -164,7 +164,7 @@ class OrderFacadeTest {
     void 이미_취소된_주문이면_CoreException_BAD_REQUEST가_발생한다() {
         // given
         Order order = Order.builder().userId(1L).build();
-        order.cancel();
+        order.cancel(1L);
         given(orderService.findOrder(1L)).willReturn(order);
 
         // when & then
