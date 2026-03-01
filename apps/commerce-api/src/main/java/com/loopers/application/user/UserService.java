@@ -36,11 +36,11 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserInfo getMyInfo(String loginId) {
+    public MaskedUserInfo getMyInfo(String loginId) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
-        return UserInfo.fromWithMaskedName(user);
+        return MaskedUserInfo.from(user);
     }
 
     @Transactional

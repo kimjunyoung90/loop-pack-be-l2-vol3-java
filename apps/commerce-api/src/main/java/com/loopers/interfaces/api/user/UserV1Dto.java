@@ -1,5 +1,6 @@
 package com.loopers.interfaces.api.user;
 
+import com.loopers.application.user.MaskedUserInfo;
 import com.loopers.application.user.UserInfo;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -50,7 +51,7 @@ public class UserV1Dto {
             String birthDate,
             String email
     ) {
-        public static GetMyInfoResponse from(UserInfo userInfo) {
+        public static GetMyInfoResponse from(MaskedUserInfo userInfo) {
             return new GetMyInfoResponse(
                     userInfo.loginId(),
                     userInfo.name(),

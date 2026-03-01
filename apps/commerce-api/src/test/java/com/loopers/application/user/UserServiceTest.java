@@ -57,7 +57,7 @@ public class UserServiceTest {
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
 
         // when
-        UserInfo userInfo = userService.getMyInfo(loginId);
+        MaskedUserInfo userInfo = userService.getMyInfo(loginId);
 
         // then
         assertThat(userInfo, not(hasProperty("password")));

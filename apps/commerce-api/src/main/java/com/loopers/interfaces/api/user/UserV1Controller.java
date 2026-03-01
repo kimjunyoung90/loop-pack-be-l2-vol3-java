@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.user;
 
 import com.loopers.application.user.UserCommand;
+import com.loopers.application.user.MaskedUserInfo;
 import com.loopers.application.user.UserInfo;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.ApiResponse;
@@ -32,7 +33,7 @@ public class UserV1Controller implements UserV1ApiSpec {
     public ApiResponse<UserV1Dto.GetMyInfoResponse> getMyInfo(
             @LoginUser AuthUser authUser
     ) {
-        UserInfo userInfo = userService.getMyInfo(authUser.loginId());
+        MaskedUserInfo userInfo = userService.getMyInfo(authUser.loginId());
         return ApiResponse.success(UserV1Dto.GetMyInfoResponse.from(userInfo));
     }
 

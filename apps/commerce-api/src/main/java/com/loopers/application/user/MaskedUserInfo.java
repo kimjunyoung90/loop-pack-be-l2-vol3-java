@@ -2,21 +2,20 @@ package com.loopers.application.user;
 
 import com.loopers.domain.user.User;
 
-public record UserInfo(
+public record MaskedUserInfo(
         Long id,
         String loginId,
         String name,
         String birthDate,
         String email
 ) {
-    public static UserInfo from(User user) {
-        return new UserInfo(
+    public static MaskedUserInfo from(User user) {
+        return new MaskedUserInfo(
                 user.getId(),
                 user.getLoginId(),
-                user.getName(),
+                user.getMaskedName(),
                 user.getBirthDate(),
                 user.getEmail()
         );
     }
-
 }
