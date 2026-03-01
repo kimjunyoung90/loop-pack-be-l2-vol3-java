@@ -1,0 +1,16 @@
+{
+  "enable_tool_search": true,
+  "hooks": {
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "작업이 완료되면 해당 작업을 skill로 구성해야하는지 확인"
+          }
+        ]
+      }
+    ]
+  }
+}
