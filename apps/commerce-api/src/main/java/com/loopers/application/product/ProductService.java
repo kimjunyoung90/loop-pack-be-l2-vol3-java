@@ -83,10 +83,19 @@ public class ProductService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Product findProduct(Long productId) {
-        return productRepository.findById(productId)
+    @Transactional
+    public ProductInfo deductStock(Long productId, int quantity) {
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+        product.deductStock(quantity);
+        return ProductInfo.from(product);
+    }
+
+    @Transactional
+    public void restoreStock(Long productId, int quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+        product.restoreStock(quantity);
     }
 
 }

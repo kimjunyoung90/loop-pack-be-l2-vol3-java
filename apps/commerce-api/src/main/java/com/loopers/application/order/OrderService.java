@@ -39,10 +39,12 @@ public class OrderService {
         return OrderInfo.from(orderRepository.save(order));
     }
 
-    @Transactional(readOnly = true)
-    public Order findOrder(Long orderId) {
-        return orderRepository.findById(orderId)
+    @Transactional
+    public OrderInfo cancelOrder(Long userId, Long orderId) {
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
+        order.cancel(userId);
+        return OrderInfo.from(order);
     }
 
     @Transactional(readOnly = true)

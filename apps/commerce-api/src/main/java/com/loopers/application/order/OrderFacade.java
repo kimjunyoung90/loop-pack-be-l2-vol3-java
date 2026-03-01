@@ -1,10 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.user.UserService;
-import com.loopers.domain.order.Order;
-import com.loopers.domain.order.OrderItem;
-import com.loopers.domain.product.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,28 +9,25 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @RequiredArgsConstructor
 @Component
 public class OrderFacade {
 
-    private final UserService userService;
     private final ProductService productService;
     private final OrderService orderService;
 
     @Transactional
     public OrderInfo createOrder(CreateOrderCommand command) {
-        userService.findUser(command.userId());
-
         List<OrderItemCommand> orderItemCommands = new ArrayList<>();
 
         for (CreateOrderCommand.CreateOrderItemCommand item : command.orderItems()) {
-            Product product = productService.findProduct(item.productId());
-            product.deductStock(item.quantity());
+            ProductInfo product = productService.deductStock(item.productId(), item.quantity());
 
             orderItemCommands.add(new OrderItemCommand(
-                    product.getId(),
-                    product.getName(),
-                    product.getPrice(),
+                    product.id(),
+                    product.name(),
+                    product.price(),
                     item.quantity()
             ));
         }
@@ -43,15 +37,12 @@ public class OrderFacade {
 
     @Transactional
     public OrderInfo cancelOrder(Long userId, Long orderId) {
-        Order order = orderService.findOrder(orderId);
+        OrderInfo orderInfo = orderService.cancelOrder(userId, orderId);
 
-        order.cancel(userId);
-
-        for (OrderItem item : order.getOrderItems()) {
-            Product product = productService.findProduct(item.getProductId());
-            product.restoreStock(item.getQuantity());
+        for (OrderInfo.OrderItemInfo item : orderInfo.orderItems()) {
+            productService.restoreStock(item.productId(), item.quantity());
         }
 
-        return OrderInfo.from(order);
+        return orderInfo;
     }
 }
