@@ -64,7 +64,7 @@ class LikeV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(likeFacade.createLike(eq(1L), eq(1L))).willReturn(likeInfo);
 
         // when & then
@@ -83,7 +83,7 @@ class LikeV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(likeFacade.createLike(eq(1L), eq(999L)))
                 .willThrow(new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
@@ -100,7 +100,7 @@ class LikeV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(likeFacade.createLike(eq(1L), eq(1L)))
                 .willThrow(new CoreException(ErrorType.CONFLICT, "이미 좋아요한 상품입니다."));
 
@@ -124,7 +124,7 @@ class LikeV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         willDoNothing().given(likeService).deleteLike(eq(1L), eq(1L));
 
         // when & then
@@ -140,7 +140,7 @@ class LikeV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "좋아요를 찾을 수 없습니다."))
                 .given(likeService).deleteLike(eq(1L), eq(999L));
 
@@ -168,7 +168,7 @@ class LikeV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(likeService.getLikes(eq(1L), any(Pageable.class))).willReturn(likePage);
 
         // when & then

@@ -58,13 +58,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User findUser(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-    }
-
-    @Transactional(readOnly = true)
-    public User authenticateUser(String loginId, String password) {
+    public User authenticate(String loginId, String password) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new CoreException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다."));
 

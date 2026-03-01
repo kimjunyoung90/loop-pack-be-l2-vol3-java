@@ -147,7 +147,7 @@ public class UserControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn(loginId);
-        given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
+        given(userService.authenticate(loginId, password)).willReturn(mockUser);
 
         //when
         mockMvc.perform(get("/api/v1/users/me")
@@ -173,7 +173,7 @@ public class UserControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn(loginId);
-        given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
+        given(userService.authenticate(loginId, password)).willReturn(mockUser);
 
         UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest("");
 
@@ -196,7 +196,7 @@ public class UserControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn(loginId);
-        given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
+        given(userService.authenticate(loginId, password)).willReturn(mockUser);
 
         UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest(newPassword);
 
@@ -229,7 +229,7 @@ public class UserControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn(loginId);
-        given(userService.authenticateUser(loginId, loginPasswd)).willReturn(mockUser);
+        given(userService.authenticate(loginId, loginPasswd)).willReturn(mockUser);
 
         mockMvc.perform(patch("/api/v1/users/password")
                 .contentType(MediaType.APPLICATION_JSON)

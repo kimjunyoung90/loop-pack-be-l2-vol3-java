@@ -68,7 +68,7 @@ class OrderV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(orderFacade.createOrder(any())).willReturn(orderInfo);
 
         Map<String, Object> request = Map.of(
@@ -108,7 +108,7 @@ class OrderV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
 
         Map<String, Object> request = Map.of(
                 "orderItems", List.of()
@@ -134,7 +134,7 @@ class OrderV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(orderFacade.cancelOrder(1L, 1L)).willReturn(orderInfo);
 
         // when & then
@@ -167,7 +167,7 @@ class OrderV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(orderService.getOrders(eq(1L), any(LocalDate.class), any(LocalDate.class), any())).willReturn(orderPage);
 
         // when & then
@@ -203,7 +203,7 @@ class OrderV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(orderService.getOrder(1L, 1L)).willReturn(orderInfo);
 
         // when & then
@@ -223,7 +223,7 @@ class OrderV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(2L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(orderService.getOrder(2L, 1L)).willThrow(new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 조회할 수 있습니다."));
 
         // when & then
@@ -239,7 +239,7 @@ class OrderV1ControllerTest {
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
-        given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
+        given(userService.authenticate("loginId", "password1!")).willReturn(mockUser);
         given(orderService.getOrder(1L, 999L)).willThrow(new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
 
         // when & then

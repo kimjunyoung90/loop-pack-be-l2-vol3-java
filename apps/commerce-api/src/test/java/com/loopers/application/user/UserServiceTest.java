@@ -81,7 +81,7 @@ public class UserServiceTest {
         given(passwordEncoder.matches(rawPassword, "encodedPassword")).willReturn(true);
 
         // when
-        User result = userService.authenticateUser(loginId, rawPassword);
+        User result = userService.authenticate(loginId, rawPassword);
 
         // then
         assertThat(result.getLoginId(), is(loginId));
@@ -93,7 +93,7 @@ public class UserServiceTest {
         given(userRepository.findByLoginId("unknown")).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> userService.authenticateUser("unknown", "password1!"))
+        assertThatThrownBy(() -> userService.authenticate("unknown", "password1!"))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -115,7 +115,7 @@ public class UserServiceTest {
         given(passwordEncoder.matches("wrongPass1!", "encodedPassword")).willReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> userService.authenticateUser(loginId, "wrongPass1!"))
+        assertThatThrownBy(() -> userService.authenticate(loginId, "wrongPass1!"))
                 .isInstanceOf(CoreException.class);
     }
 }

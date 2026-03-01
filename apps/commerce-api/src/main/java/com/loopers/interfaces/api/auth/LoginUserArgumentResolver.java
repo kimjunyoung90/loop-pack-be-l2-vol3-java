@@ -5,8 +5,6 @@ import com.loopers.domain.user.User;
 import com.loopers.support.auth.AuthConstants;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -32,7 +30,7 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
 		String loginId = webRequest.getHeader(AuthConstants.LOGIN_ID_HEADER);
 		String loginPwd = webRequest.getHeader(AuthConstants.LOGIN_PW_HEADER);
 
-		User user = userService.authenticateUser(loginId, loginPwd);
+		User user = userService.authenticate(loginId, loginPwd);
 
 		return new AuthUser(user.getId(), user.getLoginId());
 	}
