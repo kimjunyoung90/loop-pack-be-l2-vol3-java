@@ -1,7 +1,7 @@
 package com.loopers.application.like;
 
-import com.loopers.domain.like.ProductLike;
-import com.loopers.domain.like.ProductLikeRepository;
+import com.loopers.domain.like.Like;
+import com.loopers.domain.like.LikeRepository;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ import static org.mockito.BDDMockito.then;
 class LikeServiceTest {
 
     @Mock
-    private ProductLikeRepository productLikeRepository;
+    private LikeRepository likeRepository;
 
     @InjectMocks
     private LikeService likeService;
@@ -37,10 +37,10 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        ProductLike productLike = new ProductLike(userId, productId);
+        Like like = new Like(userId, productId);
 
-        given(productLikeRepository.findByUserIdAndProductId(userId, productId)).willReturn(Optional.empty());
-        given(productLikeRepository.save(any(ProductLike.class))).willReturn(productLike);
+        given(likeRepository.findByUserIdAndProductId(userId, productId)).willReturn(Optional.empty());
+        given(likeRepository.save(any(Like.class))).willReturn(like);
 
         // when
         LikeInfo result = likeService.createLike(userId, productId);
@@ -55,9 +55,9 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        ProductLike existingLike = new ProductLike(userId, productId);
+        Like existingLike = new Like(userId, productId);
 
-        given(productLikeRepository.findByUserIdAndProductId(userId, productId))
+        given(likeRepository.findByUserIdAndProductId(userId, productId))
                 .willReturn(Optional.of(existingLike));
 
         // when & then
@@ -70,16 +70,16 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        ProductLike productLike = new ProductLike(userId, productId);
+        Like like = new Like(userId, productId);
 
-        given(productLikeRepository.findByUserIdAndProductId(userId, productId))
-                .willReturn(Optional.of(productLike));
+        given(likeRepository.findByUserIdAndProductId(userId, productId))
+                .willReturn(Optional.of(like));
 
         // when
         likeService.deleteLike(userId, productId);
 
         // then
-        then(productLikeRepository).should().delete(productLike);
+        then(likeRepository).should().delete(like);
     }
 
     @Test
@@ -88,7 +88,7 @@ class LikeServiceTest {
         Long userId = 1L;
         Long productId = 999L;
 
-        given(productLikeRepository.findByUserIdAndProductId(userId, productId))
+        given(likeRepository.findByUserIdAndProductId(userId, productId))
                 .willReturn(Optional.empty());
 
         // when & then
@@ -102,10 +102,10 @@ class LikeServiceTest {
         Long userId = 1L;
         Long productId = 1L;
         Pageable pageable = PageRequest.of(0, 20);
-        ProductLike productLike = new ProductLike(userId, productId);
-        Page<ProductLike> productLikes = new PageImpl<>(List.of(productLike), pageable, 1);
+        Like like = new Like(userId, productId);
+        Page<Like> likes = new PageImpl<>(List.of(like), pageable, 1);
 
-        given(productLikeRepository.findAllByUserId(userId, pageable)).willReturn(productLikes);
+        given(likeRepository.findAllByUserId(userId, pageable)).willReturn(likes);
 
         // when
         Page<LikeInfo> result = likeService.getLikes(userId, pageable);
@@ -120,9 +120,9 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 20);
-        Page<ProductLike> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        Page<Like> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
-        given(productLikeRepository.findAllByUserId(userId, pageable)).willReturn(emptyPage);
+        given(likeRepository.findAllByUserId(userId, pageable)).willReturn(emptyPage);
 
         // when
         Page<LikeInfo> result = likeService.getLikes(userId, pageable);

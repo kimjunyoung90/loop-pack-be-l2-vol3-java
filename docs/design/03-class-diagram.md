@@ -36,7 +36,7 @@ classDiagram
         +delete()
     }
 
-    class ProductLike {
+    class Like {
         -Long id
         -Long userId
         -Long productId
@@ -65,10 +65,10 @@ classDiagram
     }
 
     User ..> UserRole
-    User "1" -- "*" ProductLike : likes
+    User "1" -- "*" Like : likes
     User "1" -- "*" Order : places
     Brand "1" *-- "*" Product : has
-    Product "1" -- "*" ProductLike : receives
+    Product "1" -- "*" Like : receives
     Order "1" *-- "*" OrderItem : contains
     Order ..> OrderStatus
     Product "1" ..> "*" OrderItem : snapshot

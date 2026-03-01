@@ -1,6 +1,6 @@
 package com.loopers.application.like;
 
-import com.loopers.domain.like.ProductLike;
+import com.loopers.domain.like.Like;
 
 import java.time.ZonedDateTime;
 
@@ -10,12 +10,12 @@ public record LikeInfo(
         Long productId,
         ZonedDateTime createdAt
 ) {
-    public static LikeInfo from(ProductLike productLike) {
+    public static LikeInfo from(Like like) {
         return new LikeInfo(
-                productLike.getId(),
-                productLike.getUserId(),
-                productLike.getProductId(),
-                productLike.getCreatedAt()
+                like.getId(),
+                like.getUserId(),
+                like.getProductId(),
+                like.getCreatedAt()
         );
     }
 }

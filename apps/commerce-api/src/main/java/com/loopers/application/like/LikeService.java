@@ -1,7 +1,7 @@
 package com.loopers.application.like;
 
-import com.loopers.domain.like.ProductLike;
-import com.loopers.domain.like.ProductLikeRepository;
+import com.loopers.domain.like.Like;
+import com.loopers.domain.like.LikeRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -14,34 +14,34 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class LikeService {
 
-    private final ProductLikeRepository productLikeRepository;
+    private final LikeRepository likeRepository;
 
     @Transactional
     public LikeInfo createLike(Long userId, Long productId) {
-        productLikeRepository.findByUserIdAndProductId(userId, productId)
+        likeRepository.findByUserIdAndProductId(userId, productId)
                 .ifPresent(like -> {
                     throw new CoreException(ErrorType.CONFLICT, "이미 좋아요한 상품입니다.");
                 });
 
-        ProductLike productLike = new ProductLike(userId, productId);
-        return LikeInfo.from(productLikeRepository.save(productLike));
+        Like newLike = new Like(userId, productId);
+        return LikeInfo.from(likeRepository.save(newLike));
     }
 
     @Transactional(readOnly = true)
     public Page<LikeInfo> getLikes(Long userId, Pageable pageable) {
-        return productLikeRepository.findAllByUserId(userId, pageable)
+        return likeRepository.findAllByUserId(userId, pageable)
                 .map(LikeInfo::from);
     }
 
     @Transactional
     public void deleteLike(Long userId, Long productId) {
-        ProductLike productLike = productLikeRepository.findByUserIdAndProductId(userId, productId)
+        Like like = likeRepository.findByUserIdAndProductId(userId, productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "좋아요를 찾을 수 없습니다."));
-        productLikeRepository.delete(productLike);
+        likeRepository.delete(like);
     }
 
     @Transactional
     public void deleteLikesByProductId(Long productId) {
-        productLikeRepository.deleteByProductId(productId);
+        likeRepository.deleteByProductId(productId);
     }
 }

@@ -1,29 +1,20 @@
 package com.loopers.domain.like;
 
+import com.loopers.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
-
 @Entity
-@Table(name = "product_likes",
+@Table(name = "likes",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "product_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ProductLike {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Like extends BaseEntity {
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -31,16 +22,8 @@ public class ProductLike {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private ZonedDateTime createdAt;
-
-    public ProductLike(Long userId, Long productId) {
+    public Like(Long userId, Long productId) {
         this.userId = userId;
         this.productId = productId;
-    }
-
-    @PrePersist
-    private void prePersist() {
-        this.createdAt = ZonedDateTime.now();
     }
 }
