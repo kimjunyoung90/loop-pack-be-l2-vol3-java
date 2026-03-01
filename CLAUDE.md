@@ -6,10 +6,10 @@
 
 ## 코드 작성 컨벤션
 
-### 아키텍처 및 패키지 구성
+### 아키텍처
 - 본 프로젝트는 레이어드 아키텍처를 따르며, DIP (의존성 역전 원칙) 을 준수합니다.
 - API request, response DTO와 응용 레이어의 DTO는 분리해 작성하도록 합니다.
-- 패키징 전략은 4개 레이어 패키지를 두고, 하위에 도메인별로 패키징하는 형태로 작성한다.
+- 4개 레이어를 패키지로 구분하고, 하위에 도메인별로 패키징하는 형태로 작성한다.
 - 각 레이어의 역할은 아래와 같다.
 
 | 레이어 | 역할 |
@@ -19,15 +19,16 @@
 | **domain** | 엔티티, VO, Repository 인터페이스 — 비즈니스 규칙 캡슐화 |
 | **infrastructure** | Repository 구현체 — JPA, soft delete 등 인프라 세부사항 캡슐화 |
 
-#### 계층별 DTO 전략
+#### DTO 관리 전략
+- 모든 DTO는 불변성을 보장한다.
 - 각 계층은 자신만의 데이터 객체를 정의하고, 변환 책임은 상위 계층(호출하는 쪽)이 갖는다.
 - 의존 방향: interfaces → application → domain (역방향 의존 금지)
 
-| 계층 | 입력 | 출력 | 변환 위치 |
-|------|------|------|-----------|
-| interfaces | `V1Dto.XxxRequest` | `V1Dto.XxxResponse` | Controller (`Request→Command`, `Info→Response`) |
-| application | `XxxCommand` | `XxxInfo` | Service (`Entity→Info`) |
-| domain | 원시 타입 / VO | 엔티티 | - |
+| 계층 | 입력 | 출력 |
+|------|------|------|
+| interfaces | `xxRequest` | `xxResponse` |
+| application | `XxxCommand` | `XxxInfo` |
+| domain | 원시 타입 / VO | 엔티티 |
 
 ### Application 레이어 책임 분리: Service vs Facade
 | 구분 | 책임 | 의존 대상 | 예시 |
