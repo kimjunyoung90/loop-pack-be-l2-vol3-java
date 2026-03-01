@@ -1,10 +1,9 @@
 package com.loopers.interfaces.api.product.admin;
 
-import com.loopers.application.product.CreateProductCommand;
+import com.loopers.application.product.ProductCommand;
 import com.loopers.application.product.ProductFacade;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.product.UpdateProductCommand;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
@@ -24,46 +23,46 @@ public class ProductAdminV1Controller implements ProductAdminV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<ProductAdminV1Dto.CreateProductResponse> createProduct(
+    public ApiResponse<ProductAdminV1Dto.ProductResponse> createProduct(
             @Valid @RequestBody ProductAdminV1Dto.CreateProductRequest request
     ) {
         ProductInfo productInfo = productFacade.createProduct(
-                new CreateProductCommand(request.brandId(), request.name(), request.price(), request.stock())
+                new ProductCommand.Create(request.brandId(), request.name(), request.price(), request.stock())
         );
-        return ApiResponse.success(ProductAdminV1Dto.CreateProductResponse.from(productInfo));
+        return ApiResponse.success(ProductAdminV1Dto.ProductResponse.from(productInfo));
     }
 
     @GetMapping
     @Override
-    public ApiResponse<Page<ProductAdminV1Dto.GetProductResponse>> getProducts(
+    public ApiResponse<Page<ProductAdminV1Dto.ProductResponse>> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<ProductAdminV1Dto.GetProductResponse> products = productService.getProducts(PageRequest.of(page, size))
-                .map(ProductAdminV1Dto.GetProductResponse::from);
+        Page<ProductAdminV1Dto.ProductResponse> products = productService.getProducts(PageRequest.of(page, size))
+                .map(ProductAdminV1Dto.ProductResponse::from);
         return ApiResponse.success(products);
     }
 
     @GetMapping("/{productId}")
     @Override
-    public ApiResponse<ProductAdminV1Dto.GetProductResponse> getProduct(
+    public ApiResponse<ProductAdminV1Dto.ProductResponse> getProduct(
             @PathVariable Long productId
     ) {
         ProductInfo productInfo = productService.getProduct(productId);
-        return ApiResponse.success(ProductAdminV1Dto.GetProductResponse.from(productInfo));
+        return ApiResponse.success(ProductAdminV1Dto.ProductResponse.from(productInfo));
     }
 
     @PutMapping("/{productId}")
     @Override
-    public ApiResponse<ProductAdminV1Dto.UpdateProductResponse> updateProduct(
+    public ApiResponse<ProductAdminV1Dto.ProductResponse> updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductAdminV1Dto.UpdateProductRequest request
     ) {
         ProductInfo productInfo = productFacade.updateProduct(
                 productId,
-                new UpdateProductCommand(request.brandId(), request.name(), request.price(), request.stock())
+                new ProductCommand.Update(request.brandId(), request.name(), request.price(), request.stock())
         );
-        return ApiResponse.success(ProductAdminV1Dto.UpdateProductResponse.from(productInfo));
+        return ApiResponse.success(ProductAdminV1Dto.ProductResponse.from(productInfo));
     }
 
     @DeleteMapping("/{productId}")

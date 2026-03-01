@@ -21,7 +21,7 @@ public class ProductAdminV1Dto {
     ) {
     }
 
-    public record CreateProductResponse(
+    public record ProductResponse(
             Long id,
             Long brandId,
             String name,
@@ -30,30 +30,8 @@ public class ProductAdminV1Dto {
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
     ) {
-        public static CreateProductResponse from(ProductInfo info) {
-            return new CreateProductResponse(
-                    info.id(),
-                    info.brandId(),
-                    info.name(),
-                    info.price(),
-                    info.stock(),
-                    info.createdAt(),
-                    info.updatedAt()
-            );
-        }
-    }
-
-    public record GetProductResponse(
-            Long id,
-            Long brandId,
-            String name,
-            int price,
-            int stock,
-            ZonedDateTime createdAt,
-            ZonedDateTime updatedAt
-    ) {
-        public static GetProductResponse from(ProductInfo info) {
-            return new GetProductResponse(
+        public static ProductResponse from(ProductInfo info) {
+            return new ProductResponse(
                     info.id(),
                     info.brandId(),
                     info.name(),
@@ -75,27 +53,5 @@ public class ProductAdminV1Dto {
             @Min(0)
             int stock
     ) {
-    }
-
-    public record UpdateProductResponse(
-            Long id,
-            Long brandId,
-            String name,
-            int price,
-            int stock,
-            ZonedDateTime createdAt,
-            ZonedDateTime updatedAt
-    ) {
-        public static UpdateProductResponse from(ProductInfo info) {
-            return new UpdateProductResponse(
-                    info.id(),
-                    info.brandId(),
-                    info.name(),
-                    info.price(),
-                    info.stock(),
-                    info.createdAt(),
-                    info.updatedAt()
-            );
-        }
     }
 }

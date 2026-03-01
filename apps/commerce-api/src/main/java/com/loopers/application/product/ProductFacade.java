@@ -15,13 +15,13 @@ public class ProductFacade {
     private final LikeService likeService;
 
     @Transactional
-    public ProductInfo createProduct(CreateProductCommand command) {
+    public ProductInfo createProduct(ProductCommand.Create command) {
         brandService.validateBrandExists(command.brandId());
         return productService.createProduct(command);
     }
 
     @Transactional
-    public ProductInfo updateProduct(Long productId, UpdateProductCommand command) {
+    public ProductInfo updateProduct(Long productId, ProductCommand.Update command) {
         brandService.validateBrandExists(command.brandId());
         return productService.updateProduct(productId, command);
     }

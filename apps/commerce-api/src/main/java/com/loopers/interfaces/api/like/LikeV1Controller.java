@@ -26,12 +26,12 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @PostMapping("/products/{productId}")
     @Override
-    public ApiResponse<LikeV1Dto.CreateLikeResponse> createLike(
+    public ApiResponse<LikeV1Dto.LikeResponse> createLike(
             @LoginUser AuthUser authUser,
             @PathVariable Long productId
     ) {
         LikeInfo likeInfo = likeFacade.createLike(authUser.id(), productId);
-        return ApiResponse.success(LikeV1Dto.CreateLikeResponse.from(likeInfo));
+        return ApiResponse.success(LikeV1Dto.LikeResponse.from(likeInfo));
     }
 
     @DeleteMapping("/products/{productId}")
@@ -46,11 +46,11 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @GetMapping("/products")
     @Override
-    public ApiResponse<Page<LikeV1Dto.GetLikeResponse>> getLikes(
+    public ApiResponse<Page<LikeV1Dto.LikeResponse>> getLikes(
             @LoginUser AuthUser authUser,
             Pageable pageable
     ) {
         Page<LikeInfo> likes = likeService.getLikes(authUser.id(), pageable);
-        return ApiResponse.success(likes.map(LikeV1Dto.GetLikeResponse::from));
+        return ApiResponse.success(likes.map(LikeV1Dto.LikeResponse::from));
     }
 }

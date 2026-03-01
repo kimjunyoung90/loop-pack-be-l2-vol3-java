@@ -32,7 +32,7 @@ class ProductServiceTest {
     @Test
     void 상품을_생성하면_저장된_상품의_ProductInfo를_반환한다() {
         // given
-        CreateProductCommand command = new CreateProductCommand(1L, "운동화", 100000, 50);
+        ProductCommand.Create command = new ProductCommand.Create(1L, "운동화", 100000, 50);
         Product product = Product.builder()
                 .brandId(1L)
                 .name("운동화")
@@ -109,7 +109,7 @@ class ProductServiceTest {
                 .stock(50)
                 .build();
         given(productRepository.findById(1L)).willReturn(Optional.of(product));
-        UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
+        ProductCommand.Update command = new ProductCommand.Update(2L, "슬리퍼", 50000, 30);
 
         // when
         ProductInfo result = productService.updateProduct(1L, command);
@@ -124,7 +124,7 @@ class ProductServiceTest {
     void 존재하지_않는_상품을_수정하면_CoreException_NOT_FOUND가_발생한다() {
         // given
         given(productRepository.findById(1L)).willReturn(Optional.empty());
-        UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
+        ProductCommand.Update command = new ProductCommand.Update(2L, "슬리퍼", 50000, 30);
 
         // when & then
         assertThatThrownBy(() -> productService.updateProduct(1L, command))

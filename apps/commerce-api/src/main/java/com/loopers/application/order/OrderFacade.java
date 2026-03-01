@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
 @RequiredArgsConstructor
 @Component
 public class OrderFacade {
@@ -18,13 +19,13 @@ public class OrderFacade {
     private final OrderService orderService;
 
     @Transactional
-    public OrderInfo createOrder(CreateOrderCommand command) {
-        List<OrderItemCommand> orderItemCommands = new ArrayList<>();
+    public OrderInfo createOrder(OrderCommand.Create command) {
+        List<OrderCommand.Item> orderItemCommands = new ArrayList<>();
 
-        for (CreateOrderCommand.CreateOrderItemCommand item : command.orderItems()) {
+        for (OrderCommand.CreateItem item : command.orderItems()) {
             ProductInfo product = productService.deductStock(item.productId(), item.quantity());
 
-            orderItemCommands.add(new OrderItemCommand(
+            orderItemCommands.add(new OrderCommand.Item(
                     product.id(),
                     product.name(),
                     product.price(),

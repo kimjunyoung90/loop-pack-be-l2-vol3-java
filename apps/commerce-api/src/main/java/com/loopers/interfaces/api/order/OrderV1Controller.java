@@ -1,6 +1,6 @@
 package com.loopers.interfaces.api.order;
 
-import com.loopers.application.order.CreateOrderCommand;
+import com.loopers.application.order.OrderCommand;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
 import com.loopers.application.order.OrderService;
@@ -26,13 +26,13 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
     @Override
     @PostMapping
-    public ApiResponse<OrderV1Dto.CreateOrderResponse> createOrder(
+    public ApiResponse<OrderV1Dto.OrderResponse> createOrder(
             @LoginUser AuthUser authUser,
             @Valid @RequestBody OrderV1Dto.CreateOrderRequest request) {
-        CreateOrderCommand command = new CreateOrderCommand(
+        OrderCommand.Create command = new OrderCommand.Create(
                 authUser.id(),
                 request.orderItems().stream()
-                        .map(item -> new CreateOrderCommand.CreateOrderItemCommand(
+                        .map(item -> new OrderCommand.CreateItem(
                                 item.productId(),
                                 item.quantity()
                         ))
@@ -40,38 +40,38 @@ public class OrderV1Controller implements OrderV1ApiSpec {
         );
 
         OrderInfo orderInfo = orderFacade.createOrder(command);
-        return ApiResponse.success(OrderV1Dto.CreateOrderResponse.from(orderInfo));
+        return ApiResponse.success(OrderV1Dto.OrderResponse.from(orderInfo));
     }
 
     @Override
     @PatchMapping("/{orderId}/cancel")
-    public ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(
+    public ApiResponse<OrderV1Dto.OrderResponse> cancelOrder(
             @LoginUser AuthUser authUser,
             @PathVariable Long orderId) {
         OrderInfo orderInfo = orderFacade.cancelOrder(authUser.id(), orderId);
-        return ApiResponse.success(OrderV1Dto.CancelOrderResponse.from(orderInfo));
+        return ApiResponse.success(OrderV1Dto.OrderResponse.from(orderInfo));
     }
 
     @Override
     @GetMapping("/{orderId}")
-    public ApiResponse<OrderV1Dto.GetOrderResponse> getOrder(
+    public ApiResponse<OrderV1Dto.OrderResponse> getOrder(
             @LoginUser AuthUser authUser,
             @PathVariable Long orderId) {
         OrderInfo orderInfo = orderService.getOrder(authUser.id(), orderId);
-        return ApiResponse.success(OrderV1Dto.GetOrderResponse.from(orderInfo));
+        return ApiResponse.success(OrderV1Dto.OrderResponse.from(orderInfo));
     }
 
     @Override
     @GetMapping
-    public ApiResponse<Page<OrderV1Dto.GetOrderResponse>> getOrders(
+    public ApiResponse<Page<OrderV1Dto.OrderResponse>> getOrders(
             @LoginUser AuthUser authUser,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Page<OrderV1Dto.GetOrderResponse> orders = orderService.getOrders(
+        Page<OrderV1Dto.OrderResponse> orders = orderService.getOrders(
                         authUser.id(), startDate, endDate, PageRequest.of(page, size))
-                .map(OrderV1Dto.GetOrderResponse::from);
+                .map(OrderV1Dto.OrderResponse::from);
         return ApiResponse.success(orders);
     }
 }

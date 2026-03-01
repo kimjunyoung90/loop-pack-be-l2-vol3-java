@@ -20,7 +20,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public ProductInfo createProduct(CreateProductCommand command) {
+    public ProductInfo createProduct(ProductCommand.Create command) {
         Product product = Product.builder()
                 .brandId(command.brandId())
                 .name(command.name())
@@ -46,7 +46,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductInfo updateProduct(Long productId, UpdateProductCommand command) {
+    public ProductInfo updateProduct(Long productId, ProductCommand.Update command) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 

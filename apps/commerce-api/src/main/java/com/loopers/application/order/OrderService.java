@@ -21,12 +21,12 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderInfo createOrder(Long userId, List<OrderItemCommand> items) {
+    public OrderInfo createOrder(Long userId, List<OrderCommand.Item> items) {
         Order order = Order.builder()
                 .userId(userId)
                 .build();
 
-        for (OrderItemCommand item : items) {
+        for (OrderCommand.Item item : items) {
             OrderItem orderItem = OrderItem.builder()
                     .productId(item.productId())
                     .productName(item.productName())

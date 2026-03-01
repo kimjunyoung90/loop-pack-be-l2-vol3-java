@@ -15,24 +15,24 @@ public interface OrderV1ApiSpec {
         summary = "주문 생성",
         description = "주문을 생성합니다. 인증된 사용자의 주문을 생성합니다."
     )
-    ApiResponse<OrderV1Dto.CreateOrderResponse> createOrder(AuthUser authUser, OrderV1Dto.CreateOrderRequest request);
+    ApiResponse<OrderV1Dto.OrderResponse> createOrder(AuthUser authUser, OrderV1Dto.CreateOrderRequest request);
 
     @Operation(
         summary = "주문 취소",
         description = "주문을 취소합니다. 본인의 주문만 취소할 수 있으며, 취소 시 재고가 복원됩니다."
     )
-    ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(AuthUser authUser, Long orderId);
+    ApiResponse<OrderV1Dto.OrderResponse> cancelOrder(AuthUser authUser, Long orderId);
 
     @Operation(
         summary = "주문 상세 조회",
         description = "주문 상세 정보를 조회합니다. 본인의 주문만 조회할 수 있습니다."
     )
-    ApiResponse<OrderV1Dto.GetOrderResponse> getOrder(AuthUser authUser, Long orderId);
+    ApiResponse<OrderV1Dto.OrderResponse> getOrder(AuthUser authUser, Long orderId);
 
     @Operation(
         summary = "주문 목록 조회",
         description = "본인의 주문 목록을 기간별로 조회합니다."
     )
-    ApiResponse<Page<OrderV1Dto.GetOrderResponse>> getOrders(
+    ApiResponse<Page<OrderV1Dto.OrderResponse>> getOrders(
             AuthUser authUser, LocalDate startDate, LocalDate endDate, int page, int size);
 }

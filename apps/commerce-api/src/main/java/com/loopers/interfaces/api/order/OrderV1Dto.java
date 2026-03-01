@@ -20,7 +20,7 @@ public class OrderV1Dto {
             @Min(1) int quantity
     ) {}
 
-    public record CreateOrderResponse(
+    public record OrderResponse(
             Long id,
             Long userId,
             String status,
@@ -29,56 +29,8 @@ public class OrderV1Dto {
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
     ) {
-        public static CreateOrderResponse from(OrderInfo info) {
-            return new CreateOrderResponse(
-                    info.id(),
-                    info.userId(),
-                    info.status(),
-                    info.totalPrice(),
-                    info.orderItems().stream()
-                            .map(OrderItemResponse::from)
-                            .toList(),
-                    info.createdAt(),
-                    info.updatedAt()
-            );
-        }
-    }
-
-    public record CancelOrderResponse(
-            Long id,
-            Long userId,
-            String status,
-            int totalPrice,
-            List<OrderItemResponse> orderItems,
-            ZonedDateTime createdAt,
-            ZonedDateTime updatedAt
-    ) {
-        public static CancelOrderResponse from(OrderInfo info) {
-            return new CancelOrderResponse(
-                    info.id(),
-                    info.userId(),
-                    info.status(),
-                    info.totalPrice(),
-                    info.orderItems().stream()
-                            .map(OrderItemResponse::from)
-                            .toList(),
-                    info.createdAt(),
-                    info.updatedAt()
-            );
-        }
-    }
-
-    public record GetOrderResponse(
-            Long id,
-            Long userId,
-            String status,
-            int totalPrice,
-            List<OrderItemResponse> orderItems,
-            ZonedDateTime createdAt,
-            ZonedDateTime updatedAt
-    ) {
-        public static GetOrderResponse from(OrderInfo info) {
-            return new GetOrderResponse(
+        public static OrderResponse from(OrderInfo info) {
+            return new OrderResponse(
                     info.id(),
                     info.userId(),
                     info.status(),

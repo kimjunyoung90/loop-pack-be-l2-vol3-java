@@ -12,25 +12,25 @@ public interface BrandAdminV1ApiSpec {
         summary = "브랜드 등록",
         description = "새로운 브랜드를 등록합니다."
     )
-    ApiResponse<BrandAdminV1Dto.CreateBrandResponse> createBrand(BrandAdminV1Dto.CreateBrandRequest request);
+    ApiResponse<BrandAdminV1Dto.BrandResponse> createBrand(BrandAdminV1Dto.CreateBrandRequest request);
 
     @Operation(
         summary = "브랜드 목록 조회",
         description = "브랜드 목록을 페이징하여 조회합니다."
     )
-    ApiResponse<Page<BrandAdminV1Dto.GetBrandResponse>> getBrands(int page, int size);
+    ApiResponse<Page<BrandAdminV1Dto.BrandResponse>> getBrands(int page, int size);
 
     @Operation(
         summary = "브랜드 상세 조회",
         description = "브랜드 상세 정보를 조회합니다."
     )
-    ApiResponse<BrandAdminV1Dto.GetBrandResponse> getBrand(Long brandId);
+    ApiResponse<BrandAdminV1Dto.BrandResponse> getBrand(Long brandId);
 
     @Operation(
         summary = "브랜드 수정",
         description = "브랜드 정보를 수정합니다."
     )
-    ApiResponse<BrandAdminV1Dto.UpdateBrandResponse> updateBrand(Long brandId, BrandAdminV1Dto.UpdateBrandRequest request);
+    ApiResponse<BrandAdminV1Dto.BrandResponse> updateBrand(Long brandId, BrandAdminV1Dto.UpdateBrandRequest request);
 
     @Operation(
         summary = "브랜드 삭제",

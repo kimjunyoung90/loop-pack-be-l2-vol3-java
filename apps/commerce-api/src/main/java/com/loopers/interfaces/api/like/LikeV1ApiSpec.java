@@ -13,7 +13,7 @@ public interface LikeV1ApiSpec {
             summary = "좋아요 등록",
             description = "상품에 좋아요를 등록합니다."
     )
-    ApiResponse<LikeV1Dto.CreateLikeResponse> createLike(
+    ApiResponse<LikeV1Dto.LikeResponse> createLike(
             com.loopers.support.auth.AuthUser authUser,
             Long productId
     );
@@ -31,7 +31,7 @@ public interface LikeV1ApiSpec {
             summary = "좋아요한 상품 목록 조회",
             description = "좋아요한 상품 목록을 조회합니다."
     )
-    ApiResponse<Page<LikeV1Dto.GetLikeResponse>> getLikes(
+    ApiResponse<Page<LikeV1Dto.LikeResponse>> getLikes(
             com.loopers.support.auth.AuthUser authUser,
             Pageable pageable
     );

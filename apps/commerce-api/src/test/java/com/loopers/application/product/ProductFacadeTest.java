@@ -32,7 +32,7 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_생성하면_브랜드_검증_후_ProductInfo를_반환한다() {
         // given
-        CreateProductCommand command = new CreateProductCommand(1L, "운동화", 100000, 50);
+        ProductCommand.Create command = new ProductCommand.Create(1L, "운동화", 100000, 50);
         ZonedDateTime now = ZonedDateTime.now();
         ProductInfo expectedInfo = new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now);
         given(productService.createProduct(eq(command))).willReturn(expectedInfo);
@@ -48,7 +48,7 @@ class ProductFacadeTest {
     @Test
     void 존재하지_않는_브랜드로_상품을_생성하면_CoreException_NOT_FOUND가_발생한다() {
         // given
-        CreateProductCommand command = new CreateProductCommand(999L, "운동화", 100000, 50);
+        ProductCommand.Create command = new ProductCommand.Create(999L, "운동화", 100000, 50);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))
                 .given(brandService).validateBrandExists(999L);
 
@@ -60,7 +60,7 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_수정하면_브랜드_검증_후_ProductInfo를_반환한다() {
         // given
-        UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
+        ProductCommand.Update command = new ProductCommand.Update(2L, "슬리퍼", 50000, 30);
         ZonedDateTime now = ZonedDateTime.now();
         ProductInfo expectedInfo = new ProductInfo(1L, 2L, "슬리퍼", 50000, 30, now, now);
         given(productService.updateProduct(eq(1L), eq(command))).willReturn(expectedInfo);
@@ -76,7 +76,7 @@ class ProductFacadeTest {
     @Test
     void 존재하지_않는_브랜드로_상품을_수정하면_CoreException_NOT_FOUND가_발생한다() {
         // given
-        UpdateProductCommand command = new UpdateProductCommand(999L, "슬리퍼", 50000, 30);
+        ProductCommand.Update command = new ProductCommand.Update(999L, "슬리퍼", 50000, 30);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))
                 .given(brandService).validateBrandExists(999L);
 

@@ -32,7 +32,7 @@ class BrandServiceTest {
     @Test
     void 유효한_이름으로_브랜드를_생성하면_성공한다() {
         // given
-        CreateBrandCommand command = new CreateBrandCommand("나이키");
+        BrandCommand.Create command = new BrandCommand.Create("나이키");
         Brand brand = Brand.builder().name("나이키").build();
         given(brandRepository.save(any(Brand.class))).willReturn(brand);
 
@@ -86,7 +86,7 @@ class BrandServiceTest {
         // given
         Brand brand = Brand.builder().name("나이키").build();
         given(brandRepository.findById(1L)).willReturn(Optional.of(brand));
-        UpdateBrandCommand command = new UpdateBrandCommand("아디다스");
+        BrandCommand.Update command = new BrandCommand.Update("아디다스");
 
         // when
         BrandInfo result = brandService.updateBrand(1L, command);
@@ -99,7 +99,7 @@ class BrandServiceTest {
     void 존재하지_않는_브랜드를_수정하면_NOT_FOUND_예외가_발생한다() {
         // given
         given(brandRepository.findById(1L)).willReturn(Optional.empty());
-        UpdateBrandCommand command = new UpdateBrandCommand("아디다스");
+        BrandCommand.Update command = new BrandCommand.Update("아디다스");
 
         // when & then
         assertThatThrownBy(() -> brandService.updateBrand(1L, command))

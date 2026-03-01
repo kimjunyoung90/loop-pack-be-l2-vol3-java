@@ -17,7 +17,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserInfo createUser(CreateUserCommand command) {
+    public UserInfo createUser(UserCommand.Create command) {
 
         if(userRepository.existsByLoginId(command.loginId())){
             throw new CoreException(ErrorType.CONFLICT, "이미 사용 중인 로그인 ID입니다.");

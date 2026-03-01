@@ -2,7 +2,7 @@ package com.loopers.application.product;
 
 import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
-import com.loopers.application.brand.CreateBrandCommand;
+import com.loopers.application.brand.BrandCommand;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
@@ -30,10 +30,10 @@ class ProductServiceIntegrationTest {
     @Test
     void 상품_등록_조회_수정_삭제_전체_흐름을_검증한다() {
         // 브랜드 등록
-        BrandInfo brandInfo = brandService.createBrand(new CreateBrandCommand("나이키"));
+        BrandInfo brandInfo = brandService.createBrand(new BrandCommand.Create("나이키"));
 
         // 상품 등록
-        CreateProductCommand createCommand = new CreateProductCommand(brandInfo.id(), "운동화", 100000, 50);
+        ProductCommand.Create createCommand = new ProductCommand.Create(brandInfo.id(), "운동화", 100000, 50);
         ProductInfo created = productService.createProduct(createCommand);
         assertThat(created.name()).isEqualTo("운동화");
         assertThat(created.price()).isEqualTo(100000);
@@ -45,8 +45,8 @@ class ProductServiceIntegrationTest {
         assertThat(found.name()).isEqualTo("운동화");
 
         // 상품 수정
-        BrandInfo brandInfo2 = brandService.createBrand(new CreateBrandCommand("아디다스"));
-        UpdateProductCommand updateCommand = new UpdateProductCommand(brandInfo2.id(), "슬리퍼", 50000, 30);
+        BrandInfo brandInfo2 = brandService.createBrand(new BrandCommand.Create("아디다스"));
+        ProductCommand.Update updateCommand = new ProductCommand.Update(brandInfo2.id(), "슬리퍼", 50000, 30);
         ProductInfo updated = productService.updateProduct(created.id(), updateCommand);
         assertThat(updated.brandId()).isEqualTo(brandInfo2.id());
         assertThat(updated.name()).isEqualTo("슬리퍼");
@@ -64,11 +64,11 @@ class ProductServiceIntegrationTest {
     @Test
     void 삭제된_상품은_목록에서_제외된다() {
         // given
-        BrandInfo brandInfo = brandService.createBrand(new CreateBrandCommand("나이키"));
+        BrandInfo brandInfo = brandService.createBrand(new BrandCommand.Create("나이키"));
         ProductInfo product1 = productService.createProduct(
-                new CreateProductCommand(brandInfo.id(), "운동화", 100000, 50));
+                new ProductCommand.Create(brandInfo.id(), "운동화", 100000, 50));
         ProductInfo product2 = productService.createProduct(
-                new CreateProductCommand(brandInfo.id(), "슬리퍼", 50000, 30));
+                new ProductCommand.Create(brandInfo.id(), "슬리퍼", 50000, 30));
         productService.deleteProduct(product1.id());
 
         // when

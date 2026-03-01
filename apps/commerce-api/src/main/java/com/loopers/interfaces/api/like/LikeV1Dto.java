@@ -6,30 +6,14 @@ import java.time.ZonedDateTime;
 
 public class LikeV1Dto {
 
-    public record CreateLikeResponse(
+    public record LikeResponse(
             Long id,
             Long userId,
             Long productId,
             ZonedDateTime createdAt
     ) {
-        public static CreateLikeResponse from(LikeInfo info) {
-            return new CreateLikeResponse(
-                    info.id(),
-                    info.userId(),
-                    info.productId(),
-                    info.createdAt()
-            );
-        }
-    }
-
-    public record GetLikeResponse(
-            Long id,
-            Long userId,
-            Long productId,
-            ZonedDateTime createdAt
-    ) {
-        public static GetLikeResponse from(LikeInfo info) {
-            return new GetLikeResponse(
+        public static LikeResponse from(LikeInfo info) {
+            return new LikeResponse(
                     info.id(),
                     info.userId(),
                     info.productId(),

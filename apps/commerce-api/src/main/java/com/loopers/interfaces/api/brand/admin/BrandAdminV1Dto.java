@@ -13,30 +13,14 @@ public class BrandAdminV1Dto {
     ) {
     }
 
-    public record CreateBrandResponse(
+    public record BrandResponse(
             Long id,
             String name,
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
     ) {
-        public static CreateBrandResponse from(BrandInfo brandInfo) {
-            return new CreateBrandResponse(
-                    brandInfo.id(),
-                    brandInfo.name(),
-                    brandInfo.createdAt(),
-                    brandInfo.updatedAt()
-            );
-        }
-    }
-
-    public record GetBrandResponse(
-            Long id,
-            String name,
-            ZonedDateTime createdAt,
-            ZonedDateTime updatedAt
-    ) {
-        public static GetBrandResponse from(BrandInfo brandInfo) {
-            return new GetBrandResponse(
+        public static BrandResponse from(BrandInfo brandInfo) {
+            return new BrandResponse(
                     brandInfo.id(),
                     brandInfo.name(),
                     brandInfo.createdAt(),
@@ -49,21 +33,5 @@ public class BrandAdminV1Dto {
             @NotBlank
             String name
     ) {
-    }
-
-    public record UpdateBrandResponse(
-            Long id,
-            String name,
-            ZonedDateTime createdAt,
-            ZonedDateTime updatedAt
-    ) {
-        public static UpdateBrandResponse from(BrandInfo brandInfo) {
-            return new UpdateBrandResponse(
-                    brandInfo.id(),
-                    brandInfo.name(),
-                    brandInfo.createdAt(),
-                    brandInfo.updatedAt()
-            );
-        }
     }
 }

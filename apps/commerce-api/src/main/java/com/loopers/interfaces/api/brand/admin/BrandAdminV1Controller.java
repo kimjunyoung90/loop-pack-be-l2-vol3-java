@@ -1,10 +1,9 @@
 package com.loopers.interfaces.api.brand.admin;
 
+import com.loopers.application.brand.BrandCommand;
 import com.loopers.application.brand.BrandFacade;
 import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
-import com.loopers.application.brand.CreateBrandCommand;
-import com.loopers.application.brand.UpdateBrandCommand;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
@@ -24,41 +23,41 @@ public class BrandAdminV1Controller implements BrandAdminV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<BrandAdminV1Dto.CreateBrandResponse> createBrand(
+    public ApiResponse<BrandAdminV1Dto.BrandResponse> createBrand(
             @Valid @RequestBody BrandAdminV1Dto.CreateBrandRequest request
     ) {
-        BrandInfo brandInfo = brandService.createBrand(new CreateBrandCommand(request.name()));
-        return ApiResponse.success(BrandAdminV1Dto.CreateBrandResponse.from(brandInfo));
+        BrandInfo brandInfo = brandService.createBrand(new BrandCommand.Create(request.name()));
+        return ApiResponse.success(BrandAdminV1Dto.BrandResponse.from(brandInfo));
     }
 
     @GetMapping
     @Override
-    public ApiResponse<Page<BrandAdminV1Dto.GetBrandResponse>> getBrands(
+    public ApiResponse<Page<BrandAdminV1Dto.BrandResponse>> getBrands(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<BrandAdminV1Dto.GetBrandResponse> brands = brandService.getBrands(PageRequest.of(page, size))
-                .map(BrandAdminV1Dto.GetBrandResponse::from);
+        Page<BrandAdminV1Dto.BrandResponse> brands = brandService.getBrands(PageRequest.of(page, size))
+                .map(BrandAdminV1Dto.BrandResponse::from);
         return ApiResponse.success(brands);
     }
 
     @GetMapping("/{brandId}")
     @Override
-    public ApiResponse<BrandAdminV1Dto.GetBrandResponse> getBrand(
+    public ApiResponse<BrandAdminV1Dto.BrandResponse> getBrand(
             @PathVariable Long brandId
     ) {
         BrandInfo brandInfo = brandService.getBrand(brandId);
-        return ApiResponse.success(BrandAdminV1Dto.GetBrandResponse.from(brandInfo));
+        return ApiResponse.success(BrandAdminV1Dto.BrandResponse.from(brandInfo));
     }
 
     @PutMapping("/{brandId}")
     @Override
-    public ApiResponse<BrandAdminV1Dto.UpdateBrandResponse> updateBrand(
+    public ApiResponse<BrandAdminV1Dto.BrandResponse> updateBrand(
             @PathVariable Long brandId,
             @Valid @RequestBody BrandAdminV1Dto.UpdateBrandRequest request
     ) {
-        BrandInfo brandInfo = brandService.updateBrand(brandId, new UpdateBrandCommand(request.name()));
-        return ApiResponse.success(BrandAdminV1Dto.UpdateBrandResponse.from(brandInfo));
+        BrandInfo brandInfo = brandService.updateBrand(brandId, new BrandCommand.Update(request.name()));
+        return ApiResponse.success(BrandAdminV1Dto.BrandResponse.from(brandInfo));
     }
 
     @DeleteMapping("/{brandId}")

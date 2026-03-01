@@ -1,6 +1,6 @@
 package com.loopers.interfaces.api.user;
 
-import com.loopers.application.user.CreateUserCommand;
+import com.loopers.application.user.UserCommand;
 import com.loopers.application.user.UserInfo;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.ApiResponse;
@@ -20,7 +20,7 @@ public class UserV1Controller implements UserV1ApiSpec {
     @PostMapping
     @Override
     public ApiResponse<UserV1Dto.CreateUserResponse> createUser(@Valid @RequestBody UserV1Dto.CreateUserRequest request) {
-        CreateUserCommand command = new CreateUserCommand(
+        UserCommand.Create command = new UserCommand.Create(
                 request.loginId(), request.password(), request.name(), request.birthDate(), request.email()
         );
         UserInfo userInfo = userService.createUser(command);
