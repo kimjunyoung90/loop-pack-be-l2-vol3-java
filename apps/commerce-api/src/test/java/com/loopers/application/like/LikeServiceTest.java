@@ -1,6 +1,5 @@
 package com.loopers.application.like;
 
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.like.ProductLike;
 import com.loopers.domain.like.ProductLikeRepository;
 import com.loopers.domain.product.Product;
@@ -38,9 +37,8 @@ class LikeServiceTest {
     void 좋아요를_등록하면_저장된_LikeInfo를_반환한다() {
         // given
         Long userId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -62,9 +60,8 @@ class LikeServiceTest {
     void 이미_좋아요한_상품에_다시_좋아요하면_CoreException_CONFLICT가_발생한다() {
         // given
         Long userId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -84,9 +81,8 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -122,9 +118,8 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 20);
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)

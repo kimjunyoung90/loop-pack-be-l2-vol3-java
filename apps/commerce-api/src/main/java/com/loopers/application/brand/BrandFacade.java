@@ -2,7 +2,6 @@ package com.loopers.application.brand;
 
 import com.loopers.application.like.LikeService;
 import com.loopers.application.product.ProductService;
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.product.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,10 +19,10 @@ public class BrandFacade {
 
     @Transactional
     public void deleteBrand(Long brandId) {
-        Brand brand = brandService.findBrand(brandId);
-        List<Product> products = productService.findProductsByBrand(brand);
+        brandService.findBrand(brandId);
+        List<Product> products = productService.findProductsByBrandId(brandId);
         products.forEach(product -> likeService.deleteLikesByProductId(product.getId()));
-        productService.deleteProductsByBrand(brand);
+        productService.deleteProductsByBrandId(brandId);
         brandService.deleteBrand(brandId);
     }
 }
