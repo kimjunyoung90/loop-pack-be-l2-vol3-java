@@ -44,7 +44,7 @@ class LikeFacadeTest {
         LikeInfo expectedInfo = new LikeInfo(1L, userId, productId, now);
 
         given(productService.findProduct(productId)).willReturn(product);
-        given(likeService.createLike(userId, product)).willReturn(expectedInfo);
+        given(likeService.createLike(userId, productId)).willReturn(expectedInfo);
 
         // when
         LikeInfo result = likeFacade.createLike(userId, productId);

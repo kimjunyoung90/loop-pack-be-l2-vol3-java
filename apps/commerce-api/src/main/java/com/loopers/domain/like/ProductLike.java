@@ -1,12 +1,8 @@
 package com.loopers.domain.like;
 
 import com.loopers.domain.BaseEntity;
-import com.loopers.domain.product.Product;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -23,12 +19,11 @@ public class ProductLike extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
 
-    public ProductLike(Long userId, Product product) {
+    public ProductLike(Long userId, Long productId) {
         this.userId = userId;
-        this.product = product;
+        this.productId = productId;
     }
 }
