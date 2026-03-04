@@ -10,8 +10,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.List;
+import java.util.Map;
+
 @Component
 public class AdminAuthInterceptor implements HandlerInterceptor {
+
+    private static final Map<String, Map<String, List<String>>> LDAP_DIRECTORY = Map.of(
+            "loopers", Map.of(
+                    "admin", List.of("john.doe", "jane.kim")
+            )
+    );
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -26,11 +35,18 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        String ldap = request.getHeader(AuthConstants.LDAP_HEADER);
-        if (!AuthConstants.ADMIN_LDAP.equals(ldap)) {
+        String account = request.getHeader(AuthConstants.LDAP_HEADER);
+        if (!isAdmin(account)) {
             throw new CoreException(ErrorType.FORBIDDEN);
         }
 
         return true;
+    }
+
+    private boolean isAdmin(String account) {
+        return LDAP_DIRECTORY
+                .getOrDefault("loopers", Map.of())
+                .getOrDefault("admin", List.of())
+                .contains(account);
     }
 }
