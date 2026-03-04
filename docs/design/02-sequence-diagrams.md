@@ -29,6 +29,15 @@
   - [주문 상세 조회 (사용자)](#주문-상세-조회-사용자)
   - [주문 목록 조회 (관리자)](#주문-목록-조회-관리자)
   - [주문 상세 조회 (관리자)](#주문-상세-조회-관리자)
+- [쿠폰](#쿠폰)
+  - [쿠폰 발급 요청](#쿠폰-발급-요청)
+  - [내 쿠폰 목록 조회](#내-쿠폰-목록-조회)
+  - [쿠폰 생성 (관리자)](#쿠폰-생성-관리자)
+  - [쿠폰 목록 조회 (관리자)](#쿠폰-목록-조회-관리자)
+  - [쿠폰 상세 조회 (관리자)](#쿠폰-상세-조회-관리자)
+  - [쿠폰 수정 (관리자)](#쿠폰-수정-관리자)
+  - [쿠폰 삭제 (관리자)](#쿠폰-삭제-관리자)
+  - [쿠폰 발급 내역 조회 (관리자)](#쿠폰-발급-내역-조회-관리자)
 
 ---
 
@@ -790,4 +799,307 @@ sequenceDiagram
 
     OS-->>-OC: 주문 상세 정보 (주문 상품 스냅샷 포함)
     OC-->>-Admin: 주문 상세 응답
+```
+
+---
+
+## 쿠폰
+
+쿠폰 도메인은 쿠폰(Coupon)과 사용자 쿠폰(UserCoupon) 두 개의 도메인으로 구성된다. 각 도메인은 별도의 서비스가 담당하며, 두 도메인이 엮이는 기능은 Facade를 통해 조합한다.
+
+| 구분 | 담당 도메인 | 의존 대상 |
+|------|-----------|----------|
+| CouponService | 쿠폰 | CouponRepository |
+| UserCouponService | 사용자 쿠폰 | UserCouponRepository |
+| CouponFacade | 조합 | CouponService, UserCouponService |
+
+---
+
+### 쿠폰 발급 요청
+
+사용자가 쿠폰 발급을 요청한다. 쿠폰의 삭제 여부, 유효기간, 중복 발급 여부를 검증한 후 사용자 쿠폰을 생성한다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant CC as CouponController
+    participant CF as CouponFacade
+    participant CS as CouponService
+    participant UCS as UserCouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+    participant UCR as UserCouponRepository
+
+    User->>+CC: 쿠폰 발급 요청 (couponId)
+    CC->>+CF: 쿠폰 발급 요청(userId, couponId)
+
+    rect rgb(240, 248, 255)
+        Note over CF, UCR: 트랜잭션
+
+        CF->>+CS: 발급 가능한 쿠폰 조회(couponId)
+        CS->>+CR: 쿠폰 조회
+        CR-->>-CS: 쿠폰 정보
+
+        opt 쿠폰 미존재
+            CS-->>CF: 예외
+            CF-->>CC: 예외
+            CC-->>User: 404 Not Found
+        end
+
+        CS->>+C: 발급 가능 여부 검증
+        C->>C: 삭제 여부 확인
+        C->>C: 유효기간 확인
+        C-->>-CS: 검증 완료
+
+        opt 삭제된 쿠폰 or 유효기간 만료
+            CS-->>CF: 예외
+        end
+
+        CS-->>-CF: 쿠폰 정보
+
+        CF->>+UCS: 중복 발급 확인(userId, couponId)
+        UCS->>+UCR: 사용자 쿠폰 존재 확인
+        UCR-->>-UCS: 존재 여부
+        UCS-->>-CF: 존재 여부
+
+        opt 이미 발급받은 쿠폰
+            CF-->>CC: 예외
+            CC-->>User: 409 Conflict
+        end
+
+        CF->>+UCS: 사용자 쿠폰 생성(userId, coupon)
+        UCS->>+UCR: 사용자 쿠폰 저장
+        UCR-->>-UCS: 저장 완료
+        UCS-->>-CF: 생성 완료
+    end
+
+    CF-->>-CC: 발급 완료
+    CC-->>-User: 쿠폰 발급 응답
+```
+
+**해석**:
+- CouponService가 쿠폰 조회와 발급 가능 여부 검증(삭제 여부, 유효기간)을 담당한다. Coupon 엔티티가 자기 상태로 판단한다.
+- UserCouponService가 중복 발급 확인과 사용자 쿠폰 생성을 담당한다.
+- 단일 트랜잭션에서 검증과 생성을 처리하여 데이터 일관성을 보장한다.
+
+---
+
+### 내 쿠폰 목록 조회
+
+사용자는 본인이 발급받은 쿠폰 목록을 조회할 수 있다. 사용 가능, 사용 완료, 만료 상태의 쿠폰을 모두 반환한다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant CC as CouponController
+    participant UCS as UserCouponService
+    participant UCR as UserCouponRepository
+
+    User->>+CC: 내 쿠폰 목록 조회 요청
+    CC->>+UCS: 내 쿠폰 목록 조회(userId)
+    UCS->>+UCR: 사용자 쿠폰 목록 조회 (userId)
+    UCR-->>-UCS: 사용자 쿠폰 목록
+    UCS-->>-CC: 쿠폰 목록
+    CC-->>-User: 내 쿠폰 목록 응답
+```
+
+---
+
+### 쿠폰 생성 (관리자)
+
+관리자는 새로운 쿠폰을 생성할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 생성 요청
+    CC->>+CS: 쿠폰 생성(name, discountType, discountValue, minOrderAmount, expiredAt)
+    CS->>+C: 쿠폰 생성
+    C-->>-CS: 생성 완료
+    CS->>+CR: 쿠폰 저장
+    CR-->>-CS: 저장 완료
+    CS-->>-CC: 생성된 쿠폰 정보
+    CC-->>-Admin: 쿠폰 생성 응답
+```
+
+---
+
+### 쿠폰 목록 조회 (관리자)
+
+관리자는 등록된 쿠폰 목록을 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 목록 조회 요청
+    CC->>+CS: 쿠폰 목록 조회
+    CS->>+CR: 쿠폰 목록 조회
+    CR-->>-CS: 쿠폰 목록
+    CS-->>-CC: 쿠폰 목록
+    CC-->>-Admin: 쿠폰 목록 응답
+```
+
+---
+
+### 쿠폰 상세 조회 (관리자)
+
+관리자는 특정 쿠폰의 상세 정보를 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 상세 조회 요청 (couponId)
+    CC->>+CS: 쿠폰 상세 조회(couponId)
+    CS->>+CR: 쿠폰 조회
+    CR-->>-CS: 쿠폰 정보
+
+    opt 쿠폰 미존재
+        CS-->>CC: 예외
+        CC-->>Admin: 404 Not Found
+    end
+
+    CS-->>-CC: 쿠폰 상세 정보
+    CC-->>-Admin: 쿠폰 상세 응답
+```
+
+---
+
+### 쿠폰 수정 (관리자)
+
+관리자는 쿠폰 정보를 수정할 수 있다. 발급된 사용자 쿠폰이 있는 경우 수정할 수 없다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CF as CouponFacade
+    participant CS as CouponService
+    participant UCS as UserCouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+    participant UCR as UserCouponRepository
+
+    Admin->>+CC: 쿠폰 수정 요청 (couponId)
+    CC->>+CF: 쿠폰 수정(couponId, command)
+
+    rect rgb(255, 245, 238)
+        Note over CF, UCR: 트랜잭션
+
+        CF->>+CS: 쿠폰 조회(couponId)
+        CS->>+CR: 쿠폰 조회
+        CR-->>-CS: 쿠폰 정보
+        CS-->>-CF: 쿠폰 정보
+
+        opt 쿠폰 미존재
+            CF-->>CC: 예외
+            CC-->>Admin: 404 Not Found
+        end
+
+        CF->>+UCS: 발급된 사용자 쿠폰 존재 여부 확인(couponId)
+        UCS->>+UCR: 사용자 쿠폰 존재 확인
+        UCR-->>-UCS: 존재 여부
+        UCS-->>-CF: 존재 여부
+
+        opt 발급된 사용자 쿠폰 존재
+            CF-->>CC: 예외
+        end
+
+        CF->>+CS: 쿠폰 수정(coupon, command)
+        CS->>+C: 쿠폰 정보 수정
+        C-->>-CS: 수정 완료
+        CS->>+CR: 변경사항 반영
+        CR-->>-CS: 반영 완료
+        CS-->>-CF: 수정된 쿠폰 정보
+    end
+
+    CF-->>-CC: 수정된 쿠폰 정보
+    CC-->>-Admin: 쿠폰 수정 응답
+```
+
+**해석**:
+- CouponFacade가 CouponService와 UserCouponService를 조합하여 수정 가능 여부를 판단한다.
+- 발급된 사용자 쿠폰이 존재하면 수정을 차단하여 발급된 쿠폰의 일관성을 보장한다 (CPN-07).
+- 트랜잭션 내에서 조회와 수정을 처리하여 동시성 이슈를 방지한다.
+
+---
+
+### 쿠폰 삭제 (관리자)
+
+관리자는 쿠폰을 삭제할 수 있다. 쿠폰이 삭제되어도 이미 발급된 사용자 쿠폰에는 영향을 주지 않는다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 삭제 요청 (couponId)
+    CC->>+CS: 쿠폰 삭제(couponId)
+    CS->>+CR: 쿠폰 조회
+    CR-->>-CS: 쿠폰 정보
+
+    opt 쿠폰 미존재
+        CS-->>CC: 예외
+        CC-->>Admin: 404 Not Found
+    end
+
+    CS->>+C: 쿠폰 삭제
+    C-->>-CS: 삭제 완료
+    CS->>+CR: 변경사항 반영
+    CR-->>-CS: 반영 완료
+    CS-->>-CC: 삭제 완료
+    CC-->>-Admin: 쿠폰 삭제 응답
+```
+
+---
+
+### 쿠폰 발급 내역 조회 (관리자)
+
+관리자는 특정 쿠폰의 발급 내역(사용자 쿠폰)을 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CF as CouponFacade
+    participant CS as CouponService
+    participant UCS as UserCouponService
+    participant CR as CouponRepository
+    participant UCR as UserCouponRepository
+
+    Admin->>+CC: 쿠폰 발급 내역 조회 요청 (couponId)
+    CC->>+CF: 쿠폰 발급 내역 조회(couponId)
+
+    CF->>+CS: 쿠폰 조회(couponId)
+    CS->>+CR: 쿠폰 조회
+    CR-->>-CS: 쿠폰 정보
+    CS-->>-CF: 쿠폰 정보
+
+    opt 쿠폰 미존재
+        CF-->>CC: 예외
+        CC-->>Admin: 404 Not Found
+    end
+
+    CF->>+UCS: 사용자 쿠폰 목록 조회(couponId)
+    UCS->>+UCR: 해당 쿠폰 발급 내역 조회
+    UCR-->>-UCS: 사용자 쿠폰 목록
+    UCS-->>-CF: 사용자 쿠폰 목록
+
+    CF-->>-CC: 발급 내역
+    CC-->>-Admin: 쿠폰 발급 내역 응답
 ```

@@ -1,8 +1,9 @@
 # 클래스 다이어그램
 
-각 도메인의 책임 범위와 의존 방향을 확인하기 위한 다이어그램이다. Order가 Product를 직접 참조하지 않고 스냅샷(OrderItem)으로 분리한 것이 핵심 설계 결정이다.
+각 도메인의 책임 범위와 의존 방향을 확인하기 위한 다이어그램이다. Order가 Product를 직접 참조하지 않고 스냅샷(OrderItem)으로 분리한 것이 핵심 설계 결정이다. UserCoupon은 Coupon과 독립적인 생명주기를 가진다.
 
 ```mermaid
+%%{init: {'flowchart': {'curve': 'stepBefore'}}}%%
 classDiagram
     class User {
         -Long id
@@ -64,12 +65,50 @@ classDiagram
         CANCELED
     }
 
+    class Coupon {
+        -Long id
+        -String name
+        -DiscountType discountType
+        -int discountValue
+        -Integer minOrderAmount
+        -LocalDate expiredAt
+        +calculateDiscount(totalAmount) int
+        +validateIssuable()
+        +delete()
+    }
+
+    class UserCoupon {
+        -Long id
+        -Long userId
+        -Long couponId
+        -CouponStatus status
+        +use()
+        +restore()
+    }
+
+    class DiscountType {
+        <<enumeration>>
+        FIXED
+        RATE
+    }
+
+    class CouponStatus {
+        <<enumeration>>
+        AVAILABLE
+        USED
+        EXPIRED
+    }
+
     User ..> UserRole
     User "1" -- "*" ProductLike : likes
     User "1" -- "*" Order : places
+    User "1" -- "*" UserCoupon : owns
     Brand "1" *-- "*" Product : has
     Product "1" -- "*" ProductLike : receives
     Order "1" *-- "*" OrderItem : contains
     Order ..> OrderStatus
     Product "1" ..> "*" OrderItem : snapshot
+    Coupon ..> DiscountType
+    Coupon "1" -- "*" UserCoupon : issues
+    UserCoupon ..> CouponStatus
 ```
