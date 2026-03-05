@@ -1,8 +1,10 @@
 package com.loopers.interfaces.api.coupon.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.application.coupon.CouponFacade;
 import com.loopers.application.coupon.CouponInfo;
 import com.loopers.application.coupon.CouponService;
+import com.loopers.application.coupon.UserCouponInfo;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
@@ -40,6 +42,9 @@ class CouponAdminV1ControllerTest {
 
     @MockitoBean
     private CouponService couponService;
+
+    @MockitoBean
+    private CouponFacade couponFacade;
 
     @MockitoBean
     private UserService userService;
@@ -250,5 +255,25 @@ class CouponAdminV1ControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 쿠폰_발급_내역_조회_시_페이징된_발급_내역을_반환한다() throws Exception {
+        // given
+        LocalDate expiredAt = LocalDate.now().plusDays(30);
+        UserCouponInfo info = new UserCouponInfo(
+                1L, 1L, 1L, "테스트 쿠폰", DiscountType.FIXED, 1000, null,
+                "AVAILABLE", expiredAt, null, null
+        );
+        given(couponFacade.getIssuedCoupons(any(), any())).willReturn(new PageImpl<>(List.of(info)));
+
+        // when & then
+        mockMvc.perform(get("/api-admin/v1/coupons/1/issues")
+                        .header(LDAP_HEADER, VALID_LDAP))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].id").value(1))
+                .andExpect(jsonPath("$.data.content[0].userId").value(1))
+                .andExpect(jsonPath("$.data.content[0].couponName").value("테스트 쿠폰"))
+                .andExpect(jsonPath("$.data.content[0].status").value("AVAILABLE"));
     }
 }

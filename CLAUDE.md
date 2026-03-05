@@ -36,28 +36,32 @@
 - Controller는 단일 도메인 작업이면 Service를, 여러 도메인이 엮이면 Facade를 호출한다.
 
 ## 4. 계층별 DTO
-각 계층은 자신만의 데이터 객체를 정의하고, 변환 책임은 상위 계층(호출하는 쪽)이 갖는다.
+- 각 계층은 자신만의 데이터 객체를 정의하고, 변환 책임은 상위 계층(호출하는 쪽)이 갖는다.
+- 매개변수가 3개를 초과하는 경우 DTO를 생성하여 전달한다.
+- DTO는 record를 사용하여 불변성을 유지한다.
 
-| 계층 | 입력 | 출력 | 변환 위치 |
-|------|------|------|-----------|
-| interfaces | `V1Dto.XxxRequest` | `V1Dto.XxxResponse` | Controller (`Request→Command`, `Info→Response`) |
-| application | `XxxCommand` | `XxxInfo` | Service (`Entity→Info`) |
-| domain | 원시 타입 / VO | 엔티티 | - |
+| 계층           | 입력      | 출력       |
+|----------------|-----------|------------|
+| interface      | `Request` | `Response` |
+| application    | `Command` | `Result`   |
+| infrastructure | `Dto`     | `Domain`   |
 
-- **API DTO**: `{Domain}V1Dto` 클래스 내부에 record로 그룹화 (Request/Response)
-- **Application DTO**: 별도 파일 (`{Domain}Info.java`, `Create{Domain}Command.java`)
-- **변환**: `static from()` 메서드 사용
-- **Controller 흐름**: Request 검증(`@Valid`) → Command 변환 → Service/Facade 호출 → Info → Response 변환 → `ApiResponse.success()` 반환
+- 변환 메서드는 수신 객체에 `static from()` 또는 `toXxx()`로 정의한다.
+
+- **Interface DTO**: Request/Response
+- **Application DTO**: Command/Result
+- **변환**: DTO 내부 `static from()` 메서드 사용
 
 ## 5. 도메인 설계 원칙
 - 도메인 객체는 비즈니스 규칙을 캡슐화해야 한다.
-- 애플리케이션 서비스는 서로 다른 도메인을 조립해, 도메인 로직을 조정하여 기능을 제공해야 한다.
+- 도메인 서비스는 서로 다른 도메인을 조립해, 도메인 로직을 조정하여 기능을 제공해야 한다.
 - 규칙이 여러 서비스에 나타나면 도메인 객체에 속할 가능성이 높다.
 - 각 기능에 대한 책임과 결합도에 대해 개발자의 의도를 확인하고 개발을 진행한다.
 
 ### BaseEntity 상속
 - 모든 엔티티는 `BaseEntity`를 상속 — `id`, `createdAt`, `updatedAt`, `deletedAt` 자동 관리
 - Soft Delete: `delete()`/`restore()` 멱등 동작
+- Hard Delete 정책이 적용된 도메인도 BaseEntity를 상속한다.(코드 일관성)
 - `guard()` 오버라이드로 `@PrePersist`/`@PreUpdate` 시점 검증 가능
 
 ### 엔티티 생성 패턴
@@ -80,6 +84,7 @@ public class Product extends BaseEntity {
 ```
 - `@Builder` + private 생성자, `@NoArgsConstructor(access = PROTECTED)`
 - `@Getter`만 사용, setter 금지 — 변경은 도메인 메서드를 통해서만
+- 도메인 모델의 메서드 명칭은 유비쿼터스 언어를 바탕으로 비즈니스 의미가 드러나도록 작성한다.
 - 비즈니스 규칙 검증은 생성자/변경 메서드에서 수행
 
 ## 6. 네이밍 규칙
@@ -118,7 +123,7 @@ public class Product extends BaseEntity {
 - 날짜 형식: `yyyy-MM-dd` (ISO 8601)
 - 페이징 기본값: `page=0`, `size=20`
 - 인증: `X-Loopers-LoginId` / `X-Loopers-LoginPw` 헤더 → `@LoginUser AuthUser` 파라미터로 주입
-- 관리자: `/api-admin/**` + `@AdminOnly` 어노테이션, `X-Loopers-Ldap` 헤더(`loopers.admin`)
+- 관리자: `/api-admin/**` + `@AdminOnly` 어노테이션, `X-Loopers-Ldap`
 
 ## 8. 에러 핸들링
 - `CoreException(ErrorType)` 또는 `CoreException(ErrorType, customMessage)`으로 예외 발생

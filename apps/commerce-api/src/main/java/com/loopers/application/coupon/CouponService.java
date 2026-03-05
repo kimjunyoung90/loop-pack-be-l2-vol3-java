@@ -59,6 +59,14 @@ public class CouponService {
         return CouponInfo.from(coupon);
     }
 
+    @Transactional(readOnly = true)
+    public CouponInfo getIssuableCoupon(Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
+        coupon.validateIssuable();
+        return CouponInfo.from(coupon);
+    }
+
     @Transactional
     public void deleteCoupon(Long couponId) {
         Coupon coupon = couponRepository.findById(couponId)

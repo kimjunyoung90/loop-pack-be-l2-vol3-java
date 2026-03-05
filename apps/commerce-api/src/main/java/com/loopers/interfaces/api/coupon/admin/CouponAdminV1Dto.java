@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.coupon.admin;
 
 import com.loopers.application.coupon.CouponInfo;
+import com.loopers.application.coupon.UserCouponInfo;
 import com.loopers.domain.coupon.DiscountType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -101,6 +102,36 @@ public class CouponAdminV1Dto {
                     info.discountType(),
                     info.discountValue(),
                     info.minOrderAmount(),
+                    info.expiredAt(),
+                    info.createdAt(),
+                    info.updatedAt()
+            );
+        }
+    }
+
+    public record GetIssuedCouponResponse(
+            Long id,
+            Long userId,
+            Long couponId,
+            String couponName,
+            DiscountType discountType,
+            int discountValue,
+            Integer minOrderAmount,
+            String status,
+            LocalDate expiredAt,
+            ZonedDateTime createdAt,
+            ZonedDateTime updatedAt
+    ) {
+        public static GetIssuedCouponResponse from(UserCouponInfo info) {
+            return new GetIssuedCouponResponse(
+                    info.id(),
+                    info.userId(),
+                    info.couponId(),
+                    info.couponName(),
+                    info.discountType(),
+                    info.discountValue(),
+                    info.minOrderAmount(),
+                    info.status(),
                     info.expiredAt(),
                     info.createdAt(),
                     info.updatedAt()

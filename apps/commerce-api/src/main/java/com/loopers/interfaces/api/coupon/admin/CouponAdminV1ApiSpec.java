@@ -37,4 +37,10 @@ public interface CouponAdminV1ApiSpec {
             description = "쿠폰을 삭제합니다."
     )
     ApiResponse<Object> deleteCoupon(Long couponId);
+
+    @Operation(
+            summary = "쿠폰 발급 내역 조회",
+            description = "특정 쿠폰의 발급 내역을 페이징하여 조회합니다."
+    )
+    ApiResponse<Page<CouponAdminV1Dto.GetIssuedCouponResponse>> getIssuedCoupons(Long couponId, int page, int size);
 }

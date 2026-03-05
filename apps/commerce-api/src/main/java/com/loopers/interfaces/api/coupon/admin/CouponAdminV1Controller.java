@@ -1,5 +1,6 @@
 package com.loopers.interfaces.api.coupon.admin;
 
+import com.loopers.application.coupon.CouponFacade;
 import com.loopers.application.coupon.CouponInfo;
 import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.CreateCouponCommand;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     private final CouponService couponService;
+    private final CouponFacade couponFacade;
 
     @PostMapping
     @Override
@@ -91,5 +93,17 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
     ) {
         couponService.deleteCoupon(couponId);
         return ApiResponse.success();
+    }
+
+    @GetMapping("/{couponId}/issues")
+    @Override
+    public ApiResponse<Page<CouponAdminV1Dto.GetIssuedCouponResponse>> getIssuedCoupons(
+            @PathVariable Long couponId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Page<CouponAdminV1Dto.GetIssuedCouponResponse> issuedCoupons = couponFacade.getIssuedCoupons(couponId, PageRequest.of(page, size))
+                .map(CouponAdminV1Dto.GetIssuedCouponResponse::from);
+        return ApiResponse.success(issuedCoupons);
     }
 }

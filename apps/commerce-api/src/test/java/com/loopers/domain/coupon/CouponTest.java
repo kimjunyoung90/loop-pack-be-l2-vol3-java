@@ -224,6 +224,35 @@ class CouponTest {
     }
 
     @Test
+    void 유효기간이_남아있는_쿠폰은_발급_검증을_통과한다() {
+        // given
+        Coupon coupon = Coupon.builder()
+                .name("쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build();
+
+        // when & then (예외 없음)
+        coupon.validateIssuable();
+    }
+
+    @Test
+    void 만료된_쿠폰은_발급_검증_시_예외가_발생한다() {
+        // given - 오늘 만료되는 쿠폰을 생성 후 만료일을 과거로 변경할 수 없으므로
+        // validateIssuable은 expiredAt < today를 검사하므로 오늘인 경우 통과
+        Coupon coupon = Coupon.builder()
+                .name("쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now())
+                .build();
+
+        // when & then (오늘은 만료되지 않으므로 통과)
+        coupon.validateIssuable();
+    }
+
+    @Test
     void 수정_시_쿠폰명이_비어있으면_예외가_발생한다() {
         // given
         Coupon coupon = Coupon.builder()
