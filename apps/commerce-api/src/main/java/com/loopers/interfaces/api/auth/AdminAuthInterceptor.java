@@ -18,7 +18,7 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
 
     private static final Map<String, Map<String, List<String>>> LDAP_DIRECTORY = Map.of(
             "loopers", Map.of(
-                    "admin", List.of("john.doe", "jane.kim")
+                    "admin", List.of("test")
             )
     );
 
@@ -44,6 +44,9 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
     }
 
     private boolean isAdmin(String account) {
+        if (account == null) {
+            return false;
+        }
         return LDAP_DIRECTORY
                 .getOrDefault("loopers", Map.of())
                 .getOrDefault("admin", List.of())

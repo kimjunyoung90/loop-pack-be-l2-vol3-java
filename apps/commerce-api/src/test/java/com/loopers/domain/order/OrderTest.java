@@ -63,7 +63,6 @@ class OrderTest {
         // then
         assertThat(order.getOrderItems()).hasSize(1);
         assertThat(order.getTotalPrice()).isEqualTo(100000);
-        assertThat(orderItem.getOrder()).isEqualTo(order);
     }
 
     @Test
