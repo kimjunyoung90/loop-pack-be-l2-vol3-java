@@ -76,7 +76,7 @@ public class ProductService {
 
     @Transactional
     public ProductInfo deductStock(Long productId, int quantity) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdWithPessimisticLock(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
         product.deductStock(quantity);
         return ProductInfo.from(product);
@@ -84,7 +84,7 @@ public class ProductService {
 
     @Transactional
     public void restoreStock(Long productId, int quantity) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdWithPessimisticLock(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
         product.restoreStock(quantity);
     }

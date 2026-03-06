@@ -13,5 +13,7 @@ public interface ProductRepository {
 
     Optional<Product> findById(Long productId);
 
+    Optional<Product> findByIdWithPessimisticLock(Long productId);
+
     Product save(Product product);
 }

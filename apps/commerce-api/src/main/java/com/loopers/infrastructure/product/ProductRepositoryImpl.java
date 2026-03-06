@@ -31,6 +31,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public Optional<Product> findByIdWithPessimisticLock(Long productId) {
+        return productJpaRepository.findByIdWithPessimisticLock(productId);
+    }
+
+    @Override
     public Product save(Product product) {
         return productJpaRepository.save(product);
     }

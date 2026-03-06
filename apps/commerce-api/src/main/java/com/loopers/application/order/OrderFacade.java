@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -20,9 +21,12 @@ public class OrderFacade {
 
     @Transactional
     public OrderInfo createOrder(CreateOrderCommand command) {
-        // 1. 주문 상품의 재고를 차감한다.
+        // 1. 주문 상품의 재고를 차감한다. (productId 오름차순 정렬로 데드락 방지)
+        List<CreateOrderCommand.CreateOrderItemCommand> sortedItems = command.orderItems().stream()
+                .sorted(Comparator.comparing(CreateOrderCommand.CreateOrderItemCommand::productId))
+                .toList();
         List<OrderItemCommand> orderItemCommands = new ArrayList<>();
-        for (CreateOrderCommand.CreateOrderItemCommand item : command.orderItems()) {
+        for (CreateOrderCommand.CreateOrderItemCommand item : sortedItems) {
             ProductInfo product = productService.deductStock(item.productId(), item.quantity());
             orderItemCommands.add(new OrderItemCommand(
                     product.id(), product.name(), product.price(), item.quantity()));
