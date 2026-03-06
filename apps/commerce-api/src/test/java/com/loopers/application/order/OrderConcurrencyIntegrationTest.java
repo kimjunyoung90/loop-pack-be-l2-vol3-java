@@ -41,11 +41,12 @@ class OrderConcurrencyIntegrationTest {
     private ProductService productService;
 
     /**
-     * 동시성 제어 검증: 비관적 락(PESSIMISTIC_WRITE)으로 재고 정합성 보장
+     * 동시성 제어 검증: 원자적 업데이트(Atomic Update)로 재고 정합성 보장
      *
      * 시나리오: 재고 100개인 상품에 10명이 동시에 1개씩 주문
      * 기대 결과: 10건 모두 성공, 재고 100 → 90
-     * 핵심: 비관적 락으로 순차 처리되어 재고 갱신 손실(lost update)이 발생하지 않음
+     * 핵심: UPDATE ... SET stock = stock - :quantity WHERE stock >= :quantity 로
+     *       DB 레벨에서 원자적으로 차감하여 재고 갱신 손실(lost update)이 발생하지 않음
      */
     @Test
     void 동시에_같은_상품을_주문하면_재고가_정확히_차감된다() throws InterruptedException {
