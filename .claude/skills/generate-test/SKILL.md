@@ -1,5 +1,5 @@
 ---
-name: generate-test
+name: Generate-Test
 description:
   테스트 코드를 레이어별로 체계적으로 생성하는 스킬.
   "테스트 코드 작성", "테스트 생성", "테스트 만들어줘" 등의 요청이 있을 때 이 스킬을 사용한다.
@@ -26,7 +26,7 @@ Step 4. 테스트 실행 및 검증
 
 | 레이어 | 대상 파일 |
 |---|---|
-| **Domain** | 엔티티, Repository 인터페이스 |
+| **Domain** | 엔티티, repository 인터페이스 |
 | **Application** | Service, Facade(있을 경우), Command, Info DTO |
 | **Interfaces** | Controller, API DTO, ApiSpec |
 | **Infrastructure** | Repository 구현체, JPA Repository |
@@ -52,7 +52,7 @@ Step 4. 테스트 실행 및 검증
 | 테스트 종류 | 파일 위치 | 범위 |
 |---|---|---|
 | **Domain 단위 테스트** | `test/.../domain/{도메인}/` | 엔티티의 상태 변경 메서드, 도메인 규칙 |
-| **Service 단위 테스트** | `test/.../application/{도메인}/` | Mock 기반 서비스 로직 검증 |
+| **Service 단위 테스트** | `test/.../application/{도메인}/` | mock 기반 서비스 로직 검증 |
 | **Facade 단위 테스트** | `test/.../application/{도메인}/` | Mock 기반 도메인 간 조합 로직 검증 (Facade가 있을 때만) |
 | **Controller 슬라이스 테스트** | `test/.../interfaces/api/{도메인}/` | @WebMvcTest 기반 API 동작 검증 |
 | **통합 테스트** | `test/.../application/{도메인}/` | @SpringBootTest + Testcontainers 전체 흐름 검증 |
@@ -89,6 +89,16 @@ Step 4. 테스트 실행 및 검증
 **핵심 원칙: "성공한다", "예외가 발생한다" 같은 모호한 표현을 사용하지 않는다.**
 
 테스트 메서드명은 `{조건}_{행위}_시_{구체적_기대결과}` 형태로 작성한다.
+
+**메서드명에 구현 메서드명(validateUsable, calculateDiscount 등)을 넣지 않는다.**
+구현 메서드명 대신 해당 메서드가 수행하는 **비즈니스 행위**로 표현한다.
+구현 메서드명이 바뀌면 테스트명도 바꿔야 하므로, 행위 기반으로 작성해야 리팩토링에 강하다.
+
+| 나쁜 예 | 좋은 예 | 이유 |
+|---|---|---|
+| `validateUsable에서_BAD_Request가_발생한다` | `사용_가능_여부_검증_시_BAD_REQUEST가_발생한다` | 비즈니스 행위로 표현 |
+| `calculateDiscount가_5000을_반환한다` | `정액_할인_쿠폰은_고정_금액을_할인한다` | 할인 계산의 비즈니스 의미 표현 |
+| `validateUsable이_정상_통과한다` | `사용_가능_여부_검증_시_예외가_발생하지_않는다` | 구현명 제거 + 결과 명시 |
 
 #### 레이어별 기대결과 표현
 
@@ -315,3 +325,4 @@ class ProductServiceIntegrationTest {
 3. 테스트 메서드명에 "성공한다", "실패한다" 같은 모호한 표현을 사용하지 않는다.
 4. 테스트 코드 작성 전 반드시 Step 2의 설계 결과를 사용자에게 확인받는다.
 5. 불필요한 테스트(getter 검증, 단순 위임, 반환값 필드 매핑 등)는 단위 테스트에서 작성하지 않는다.
+6. 테스트 메서드명과 섹션 주석에 구현 메서드명을 사용하지 않는다. `// --- validateUsable 테스트 ---` 대신 `// --- 쿠폰 사용 가능 여부 검증 테스트 ---`처럼 비즈니스 행위로 표현한다.

@@ -87,4 +87,38 @@ class UserCouponServiceIntegrationTest {
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent()).allMatch(info -> info.couponId().equals(coupon1.id()));
     }
+
+    @Test
+    void 쿠폰_사용_시_상태가_USED로_변경되고_할인_금액을_반환한다() {
+        // given
+        CouponInfo coupon = couponService.createCoupon(
+                new CreateCouponCommand("정액 할인 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7))
+        );
+        UserCouponInfo issued = couponService.issueCoupon(1L, coupon.id());
+
+        // when
+        int discount = couponService.useCoupon(issued.id(), 1L, 50000);
+
+        // then
+        assertThat(discount).isEqualTo(3000);
+        List<UserCouponInfo> userCoupons = couponService.getUserCoupons(1L);
+        assertThat(userCoupons.getFirst().status()).isEqualTo("USED");
+    }
+
+    @Test
+    void 쿠폰_사용_후_복원하면_상태가_AVAILABLE로_변경된다() {
+        // given
+        CouponInfo coupon = couponService.createCoupon(
+                new CreateCouponCommand("복원 테스트 쿠폰", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7))
+        );
+        UserCouponInfo issued = couponService.issueCoupon(1L, coupon.id());
+        couponService.useCoupon(issued.id(), 1L, 50000);
+
+        // when
+        couponService.restoreCoupon(issued.id());
+
+        // then
+        List<UserCouponInfo> userCoupons = couponService.getUserCoupons(1L);
+        assertThat(userCoupons.getFirst().status()).isEqualTo("AVAILABLE");
+    }
 }

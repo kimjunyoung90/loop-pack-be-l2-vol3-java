@@ -90,4 +90,26 @@ class CouponServiceTest {
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.CONFLICT));
     }
+
+    @Test
+    void 존재하지_않는_사용자_쿠폰_사용_시_CoreException_NOT_FOUND가_발생한다() {
+        // given
+        given(userCouponRepository.findByIdWithLock(1L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> couponService.useCoupon(1L, 1L, 50000))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
+    }
+
+    @Test
+    void 존재하지_않는_사용자_쿠폰_복원_시_CoreException_NOT_FOUND가_발생한다() {
+        // given
+        given(userCouponRepository.findById(1L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> couponService.restoreCoupon(1L))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
+    }
 }

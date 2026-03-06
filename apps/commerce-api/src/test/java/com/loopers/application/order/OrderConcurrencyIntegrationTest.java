@@ -11,10 +11,12 @@ import com.loopers.application.user.UserInfo;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.product.Product;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +42,9 @@ class OrderConcurrencyIntegrationTest {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     /**
      * 동시성 제어 검증: 원자적 업데이트(Atomic Update)로 재고 정합성 보장
      *
@@ -56,7 +61,7 @@ class OrderConcurrencyIntegrationTest {
         ProductInfo product = productService.createProduct(brand.id(),
                 new CreateProductCommand(brand.id(), "운동화", 50000, initialStock));
 
-        int threadCount = 10;
+        int threadCount = 100;
         int quantityPerOrder = 1;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);

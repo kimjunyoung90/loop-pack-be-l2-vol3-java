@@ -12,6 +12,8 @@ public interface UserCouponRepository {
 
     Optional<UserCoupon> findById(Long id);
 
+    Optional<UserCoupon> findByIdWithLock(Long id);
+
     List<UserCoupon> findAllByUserIdAndDeletedAtIsNull(Long userId);
 
     Page<UserCoupon> findAllByCouponIdAndDeletedAtIsNull(Long couponId, Pageable pageable);
