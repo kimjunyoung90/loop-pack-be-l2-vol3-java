@@ -21,9 +21,10 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderInfo createOrder(Long userId, List<OrderItemCommand> items) {
+    public OrderInfo createOrder(Long userId, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
         Order order = Order.builder()
                 .userId(userId)
+                .userCouponId(userCouponId)
                 .build();
 
         for (OrderItemCommand item : items) {
@@ -35,6 +36,8 @@ public class OrderService {
                     .build();
             order.addOrderItem(orderItem);
         }
+
+        order.applyDiscount(discountAmount);
 
         return OrderInfo.from(orderRepository.save(order));
     }

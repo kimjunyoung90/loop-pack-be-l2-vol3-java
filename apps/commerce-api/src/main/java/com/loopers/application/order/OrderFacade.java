@@ -1,10 +1,12 @@
 package com.loopers.application.order;
 
+import com.loopers.application.coupon.CouponService;
+import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.user.UserService;
+import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.order.Order;
-import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.product.Product;
+import com.loopers.domain.order.OrderItem;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -18,29 +20,29 @@ import java.util.List;
 @Component
 public class OrderFacade {
 
-    private final UserService userService;
     private final ProductService productService;
     private final OrderService orderService;
+    private final CouponService couponService;
 
     @Transactional
     public OrderInfo createOrder(CreateOrderCommand command) {
-        userService.findUser(command.userId());
-
+        // 1. 주문 상품의 재고를 차감한다.
         List<OrderItemCommand> orderItemCommands = new ArrayList<>();
-
         for (CreateOrderCommand.CreateOrderItemCommand item : command.orderItems()) {
-            Product product = productService.findProduct(item.productId());
-            product.deductStock(item.quantity());
-
+            ProductInfo product = productService.deductStock(item.productId(), item.quantity());
             orderItemCommands.add(new OrderItemCommand(
-                    product.getId(),
-                    product.getName(),
-                    product.getPrice(),
-                    item.quantity()
-            ));
+                    product.id(), product.name(), product.price(), item.quantity()));
         }
 
-        return orderService.createOrder(command.userId(), orderItemCommands);
+        // 2. 쿠폰을 적용한다. (쿠폰이 있는 경우)
+        int discountAmount = 0;
+        if (command.userCouponId() != null) {
+            int totalAmount = OrderItemCommand.calculateTotalAmount(orderItemCommands);
+            discountAmount = couponService.useCoupon(command.userCouponId(), command.userId(), totalAmount);
+        }
+
+        // 3. 주문을 생성한다.
+        return orderService.createOrder(command.userId(), command.userCouponId(), orderItemCommands, discountAmount);
     }
 
     @Transactional
@@ -60,6 +62,11 @@ public class OrderFacade {
         for (OrderItem item : order.getOrderItems()) {
             Product product = productService.findProduct(item.getProductId());
             product.restoreStock(item.getQuantity());
+        }
+
+        if (order.hasCoupon()) {
+            UserCoupon userCoupon = couponService.findUserCoupon(order.getUserCouponId());
+            userCoupon.restore();
         }
 
         return OrderInfo.from(order);

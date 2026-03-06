@@ -42,11 +42,11 @@ class OrderServiceTest {
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        OrderInfo result = orderService.createOrder(1L, items);
+        OrderInfo result = orderService.createOrder(1L, null, items, 0);
 
         // then
         assertThat(result.userId()).isEqualTo(1L);
-        assertThat(result.totalPrice()).isEqualTo(100000);
+        assertThat(result.totalAmount()).isEqualTo(100000);
         assertThat(result.orderItems()).hasSize(1);
         assertThat(result.orderItems().getFirst().productName()).isEqualTo("운동화");
     }
@@ -61,10 +61,10 @@ class OrderServiceTest {
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        OrderInfo result = orderService.createOrder(1L, items);
+        OrderInfo result = orderService.createOrder(1L, null, items, 0);
 
         // then
-        assertThat(result.totalPrice()).isEqualTo(130000);
+        assertThat(result.totalAmount()).isEqualTo(130000);
         assertThat(result.orderItems()).hasSize(2);
         assertThat(result.orderItems().get(0).productName()).isEqualTo("운동화");
         assertThat(result.orderItems().get(1).productName()).isEqualTo("슬리퍼");
@@ -110,7 +110,7 @@ class OrderServiceTest {
 
         // then
         assertThat(result.userId()).isEqualTo(1L);
-        assertThat(result.totalPrice()).isEqualTo(100000);
+        assertThat(result.totalAmount()).isEqualTo(100000);
         assertThat(result.orderItems()).hasSize(1);
     }
 
@@ -141,7 +141,7 @@ class OrderServiceTest {
 
         // then
         assertThat(result.userId()).isEqualTo(1L);
-        assertThat(result.totalPrice()).isEqualTo(100000);
+        assertThat(result.totalAmount()).isEqualTo(100000);
         assertThat(result.orderItems()).hasSize(1);
     }
 
@@ -193,7 +193,7 @@ class OrderServiceTest {
         // then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().userId()).isEqualTo(1L);
-        assertThat(result.getContent().getFirst().totalPrice()).isEqualTo(100000);
+        assertThat(result.getContent().getFirst().totalAmount()).isEqualTo(100000);
         assertThat(result.getContent().getFirst().orderItems()).hasSize(1);
         assertThat(result.getContent().getFirst().orderItems().getFirst().productName()).isEqualTo("운동화");
     }

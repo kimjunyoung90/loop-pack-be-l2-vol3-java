@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Repository
@@ -18,6 +19,11 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     @Override
     public UserCoupon save(UserCoupon userCoupon) {
         return userCouponJpaRepository.save(userCoupon);
+    }
+
+    @Override
+    public Optional<UserCoupon> findById(Long id) {
+        return userCouponJpaRepository.findById(id);
     }
 
     @Override

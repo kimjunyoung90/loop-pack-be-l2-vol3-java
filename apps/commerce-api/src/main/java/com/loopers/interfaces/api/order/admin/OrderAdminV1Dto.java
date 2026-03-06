@@ -10,8 +10,11 @@ public class OrderAdminV1Dto {
     public record GetOrderResponse(
             Long id,
             Long userId,
+            Long userCouponId,
             String status,
-            int totalPrice,
+            int totalAmount,
+            int discountAmount,
+            int finalAmount,
             List<OrderItemResponse> orderItems,
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
@@ -20,8 +23,11 @@ public class OrderAdminV1Dto {
             return new GetOrderResponse(
                     info.id(),
                     info.userId(),
+                    info.userCouponId(),
                     info.status(),
-                    info.totalPrice(),
+                    info.totalAmount(),
+                    info.discountAmount(),
+                    info.finalAmount(),
                     info.orderItems().stream()
                             .map(OrderItemResponse::from)
                             .toList(),

@@ -9,8 +9,11 @@ import java.util.List;
 public record OrderInfo(
         Long id,
         Long userId,
+        Long userCouponId,
         String status,
-        int totalPrice,
+        int totalAmount,
+        int discountAmount,
+        int finalAmount,
         List<OrderItemInfo> orderItems,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
@@ -19,8 +22,11 @@ public record OrderInfo(
         return new OrderInfo(
                 order.getId(),
                 order.getUserId(),
+                order.getUserCouponId(),
                 order.getStatus().name(),
-                order.getTotalPrice(),
+                order.getTotalAmount(),
+                order.getDiscountAmount(),
+                order.getFinalAmount(),
                 order.getOrderItems().stream()
                         .map(OrderItemInfo::from)
                         .toList(),

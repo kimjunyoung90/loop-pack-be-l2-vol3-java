@@ -1,9 +1,10 @@
 package com.loopers.application.order;
 
+import com.loopers.application.coupon.CouponService;
+import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.user.UserService;
 
-
+import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.product.Product;
@@ -21,15 +22,17 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class OrderFacadeTest {
-
-    @Mock
-    private UserService userService;
 
     @Mock
     private ProductService productService;
@@ -37,64 +40,45 @@ class OrderFacadeTest {
     @Mock
     private OrderService orderService;
 
+    @Mock
+    private CouponService couponService;
+
     @InjectMocks
     private OrderFacade orderFacade;
 
     @Test
-    void 유효한_사용자와_상품으로_주문하면_재고_차감_후_OrderInfo를_반환한다() {
+    void 유효한_상품으로_주문하면_재고_차감_후_OrderInfo를_반환한다() {
         // given
-        Product product = Product.builder()
-                .brandId(1L)
-                .name("운동화")
-                .price(50000)
-                .stock(10)
-                .build();
+        ProductInfo productInfo = new ProductInfo(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
 
-        CreateOrderCommand command = new CreateOrderCommand(1L, List.of(
+        CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
                 new CreateOrderCommand.CreateOrderItemCommand(1L, 2)
         ));
 
-        given(userService.findUser(1L)).willReturn(null);
-        given(productService.findProduct(1L)).willReturn(product);
+        given(productService.deductStock(1L, 2)).willReturn(productInfo);
 
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo expectedInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
+        OrderInfo expectedInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
-        given(orderService.createOrder(eq(1L), any())).willReturn(expectedInfo);
+        given(orderService.createOrder(eq(1L), any(), anyList(), eq(0))).willReturn(expectedInfo);
 
         // when
         OrderInfo result = orderFacade.createOrder(command);
 
         // then
-        assertThat(result.userId()).isEqualTo(1L);
-        assertThat(result.totalPrice()).isEqualTo(100000);
-        assertThat(product.getStock()).isEqualTo(8);
-    }
-
-    @Test
-    void 존재하지_않는_사용자로_주문하면_CoreException_NOT_FOUND가_발생한다() {
-        // given
-        CreateOrderCommand command = new CreateOrderCommand(999L, List.of(
-                new CreateOrderCommand.CreateOrderItemCommand(1L, 2)
-        ));
-        willThrow(new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."))
-                .given(userService).findUser(999L);
-
-        // when & then
-        assertThatThrownBy(() -> orderFacade.createOrder(command))
-                .isInstanceOf(CoreException.class);
+        assertThat(result.totalAmount()).isEqualTo(100000);
+        verify(productService).deductStock(1L, 2);
     }
 
     @Test
     void 존재하지_않는_상품으로_주문하면_CoreException_NOT_FOUND가_발생한다() {
         // given
-        CreateOrderCommand command = new CreateOrderCommand(1L, List.of(
+        CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
                 new CreateOrderCommand.CreateOrderItemCommand(999L, 2)
         ));
-        given(userService.findUser(1L)).willReturn(null);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."))
-                .given(productService).findProduct(999L);
+                .given(productService).deductStock(999L, 2);
 
         // when & then
         assertThatThrownBy(() -> orderFacade.createOrder(command))
@@ -104,18 +88,11 @@ class OrderFacadeTest {
     @Test
     void 재고가_부족한_상품이_포함되면_CoreException이_발생한다() {
         // given
-        Product product = Product.builder()
-                .brandId(1L)
-                .name("운동화")
-                .price(50000)
-                .stock(1)
-                .build();
-
-        CreateOrderCommand command = new CreateOrderCommand(1L, List.of(
+        CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
                 new CreateOrderCommand.CreateOrderItemCommand(1L, 5)
         ));
-        given(userService.findUser(1L)).willReturn(null);
-        given(productService.findProduct(1L)).willReturn(product);
+        willThrow(new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다."))
+                .given(productService).deductStock(1L, 5);
 
         // when & then
         assertThatThrownBy(() -> orderFacade.createOrder(command))
@@ -172,5 +149,119 @@ class OrderFacadeTest {
         // when & then
         assertThatThrownBy(() -> orderFacade.cancelOrder(1L, 1L))
                 .isInstanceOf(CoreException.class);
+    }
+
+    // --- 쿠폰 적용 주문 생성 테스트 ---
+
+    @Test
+    void 쿠폰을_적용하여_주문하면_할인이_반영된_OrderInfo를_반환한다() {
+        // given
+        ProductInfo productInfo = new ProductInfo(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
+
+        CreateOrderCommand command = new CreateOrderCommand(1L, 10L, List.of(
+                new CreateOrderCommand.CreateOrderItemCommand(1L, 2)
+        ));
+
+        given(productService.deductStock(1L, 2)).willReturn(productInfo);
+        given(couponService.useCoupon(10L, 1L, 100000)).willReturn(5000);
+
+        ZonedDateTime now = ZonedDateTime.now();
+        OrderInfo expectedInfo = new OrderInfo(1L, 1L, 10L, "COMPLETED", 100000, 5000, 95000, List.of(
+                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        ), now, now);
+        given(orderService.createOrder(eq(1L), eq(10L), anyList(), eq(5000))).willReturn(expectedInfo);
+
+        // when
+        OrderInfo result = orderFacade.createOrder(command);
+
+        // then
+        assertThat(result.discountAmount()).isEqualTo(5000);
+        assertThat(result.finalAmount()).isEqualTo(95000);
+        verify(couponService).useCoupon(10L, 1L, 100000);
+    }
+
+    @Test
+    void 쿠폰_검증에_실패하면_주문이_생성되지_않는다() {
+        // given
+        ProductInfo productInfo = new ProductInfo(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
+
+        CreateOrderCommand command = new CreateOrderCommand(1L, 10L, List.of(
+                new CreateOrderCommand.CreateOrderItemCommand(1L, 2)
+        ));
+
+        given(productService.deductStock(1L, 2)).willReturn(productInfo);
+        willThrow(new CoreException(ErrorType.FORBIDDEN, "본인 소유의 쿠폰만 사용할 수 있습니다."))
+                .given(couponService).useCoupon(10L, 1L, 100000);
+
+        // when & then
+        assertThatThrownBy(() -> orderFacade.createOrder(command))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.FORBIDDEN));
+
+        verify(orderService, never()).createOrder(any(), any(), anyList(), anyInt());
+    }
+
+    // --- 쿠폰 적용 주문 취소 테스트 ---
+
+    @Test
+    void 쿠폰이_적용된_주문을_취소하면_쿠폰이_복원된다() {
+        // given
+        Order order = Order.builder().userId(1L).userCouponId(10L).build();
+        OrderItem item = OrderItem.builder()
+                .productId(1L)
+                .productName("운동화")
+                .productPrice(50000)
+                .quantity(2)
+                .build();
+        order.addOrderItem(item);
+        order.applyDiscount(5000);
+        given(orderService.findOrder(1L)).willReturn(order);
+
+        Product product = Product.builder()
+                .brandId(1L)
+                .name("운동화")
+                .price(50000)
+                .stock(8)
+                .build();
+        given(productService.findProduct(1L)).willReturn(product);
+
+        UserCoupon userCoupon = mock(UserCoupon.class);
+        given(couponService.findUserCoupon(10L)).willReturn(userCoupon);
+
+        // when
+        OrderInfo result = orderFacade.cancelOrder(1L, 1L);
+
+        // then
+        assertThat(result.status()).isEqualTo("CANCELLED");
+        verify(userCoupon).restore();
+        assertThat(product.getStock()).isEqualTo(10);
+    }
+
+    @Test
+    void 쿠폰_미적용_주문을_취소하면_쿠폰_복원이_호출되지_않는다() {
+        // given
+        Order order = Order.builder().userId(1L).build();
+        OrderItem item = OrderItem.builder()
+                .productId(1L)
+                .productName("운동화")
+                .productPrice(50000)
+                .quantity(2)
+                .build();
+        order.addOrderItem(item);
+        given(orderService.findOrder(1L)).willReturn(order);
+
+        Product product = Product.builder()
+                .brandId(1L)
+                .name("운동화")
+                .price(50000)
+                .stock(8)
+                .build();
+        given(productService.findProduct(1L)).willReturn(product);
+
+        // when
+        orderFacade.cancelOrder(1L, 1L);
+
+        // then
+        verify(couponService, never()).findUserCoupon(any());
     }
 }

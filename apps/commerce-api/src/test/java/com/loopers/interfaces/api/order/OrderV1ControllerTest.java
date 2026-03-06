@@ -61,7 +61,7 @@ class OrderV1ControllerTest {
     void 주문을_생성하면_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
@@ -84,7 +84,7 @@ class OrderV1ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(1))
-                .andExpect(jsonPath("$.data.totalPrice").value(100000))
+                .andExpect(jsonPath("$.data.totalAmount").value(100000))
                 .andExpect(jsonPath("$.data.orderItems[0].productName").value("운동화"));
     }
 
@@ -127,7 +127,7 @@ class OrderV1ControllerTest {
     void 주문을_취소하면_200_OK와_취소된_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, "CANCELLED", 100000, List.of(
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
@@ -144,7 +144,7 @@ class OrderV1ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.status").value("CANCELLED"))
-                .andExpect(jsonPath("$.data.totalPrice").value(100000));
+                .andExpect(jsonPath("$.data.totalAmount").value(100000));
     }
 
     @Test
@@ -158,7 +158,7 @@ class OrderV1ControllerTest {
     void 주문_목록을_조회하면_200_OK와_주문_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
@@ -179,7 +179,7 @@ class OrderV1ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].id").value(1))
                 .andExpect(jsonPath("$.data.content[0].userId").value(1))
-                .andExpect(jsonPath("$.data.content[0].totalPrice").value(100000))
+                .andExpect(jsonPath("$.data.content[0].totalAmount").value(100000))
                 .andExpect(jsonPath("$.data.content[0].orderItems[0].productName").value("운동화"));
     }
 
@@ -196,7 +196,7 @@ class OrderV1ControllerTest {
     void 주문_상세를_조회하면_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
@@ -213,7 +213,7 @@ class OrderV1ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(1))
-                .andExpect(jsonPath("$.data.totalPrice").value(100000))
+                .andExpect(jsonPath("$.data.totalAmount").value(100000))
                 .andExpect(jsonPath("$.data.orderItems[0].productName").value("운동화"));
     }
 

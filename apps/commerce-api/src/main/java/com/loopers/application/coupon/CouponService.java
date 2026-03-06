@@ -77,6 +77,21 @@ public class CouponService {
         return UserCouponInfo.from(userCouponRepository.save(userCoupon));
     }
 
+    @Transactional
+    public int useCoupon(Long userCouponId, Long userId, int totalAmount) {
+        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
+        userCoupon.validateUsable(userId, totalAmount);
+		userCoupon.use();
+        return userCoupon.calculateDiscount(totalAmount);
+    }
+
+    @Transactional(readOnly = true)
+    public UserCoupon findUserCoupon(Long userCouponId) {
+        return userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
+    }
+
     @Transactional(readOnly = true)
     public List<UserCouponInfo> getUserCoupons(Long userId) {
         return userCouponRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()

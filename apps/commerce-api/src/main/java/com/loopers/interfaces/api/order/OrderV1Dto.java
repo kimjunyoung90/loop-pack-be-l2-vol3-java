@@ -12,7 +12,8 @@ import java.util.List;
 public class OrderV1Dto {
 
     public record CreateOrderRequest(
-            @NotEmpty @Valid List<CreateOrderItemRequest> orderItems
+            @NotEmpty @Valid List<CreateOrderItemRequest> orderItems,
+            Long userCouponId
     ) {}
 
     public record CreateOrderItemRequest(
@@ -23,8 +24,11 @@ public class OrderV1Dto {
     public record CreateOrderResponse(
             Long id,
             Long userId,
+            Long userCouponId,
             String status,
-            int totalPrice,
+            int totalAmount,
+            int discountAmount,
+            int finalAmount,
             List<OrderItemResponse> orderItems,
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
@@ -33,8 +37,11 @@ public class OrderV1Dto {
             return new CreateOrderResponse(
                     info.id(),
                     info.userId(),
+                    info.userCouponId(),
                     info.status(),
-                    info.totalPrice(),
+                    info.totalAmount(),
+                    info.discountAmount(),
+                    info.finalAmount(),
                     info.orderItems().stream()
                             .map(OrderItemResponse::from)
                             .toList(),
@@ -47,8 +54,11 @@ public class OrderV1Dto {
     public record CancelOrderResponse(
             Long id,
             Long userId,
+            Long userCouponId,
             String status,
-            int totalPrice,
+            int totalAmount,
+            int discountAmount,
+            int finalAmount,
             List<OrderItemResponse> orderItems,
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
@@ -57,8 +67,11 @@ public class OrderV1Dto {
             return new CancelOrderResponse(
                     info.id(),
                     info.userId(),
+                    info.userCouponId(),
                     info.status(),
-                    info.totalPrice(),
+                    info.totalAmount(),
+                    info.discountAmount(),
+                    info.finalAmount(),
                     info.orderItems().stream()
                             .map(OrderItemResponse::from)
                             .toList(),
@@ -71,8 +84,11 @@ public class OrderV1Dto {
     public record GetOrderResponse(
             Long id,
             Long userId,
+            Long userCouponId,
             String status,
-            int totalPrice,
+            int totalAmount,
+            int discountAmount,
+            int finalAmount,
             List<OrderItemResponse> orderItems,
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
@@ -81,8 +97,11 @@ public class OrderV1Dto {
             return new GetOrderResponse(
                     info.id(),
                     info.userId(),
+                    info.userCouponId(),
                     info.status(),
-                    info.totalPrice(),
+                    info.totalAmount(),
+                    info.discountAmount(),
+                    info.finalAmount(),
                     info.orderItems().stream()
                             .map(OrderItemResponse::from)
                             .toList(),
