@@ -55,6 +55,24 @@ public class Coupon extends BaseEntity {
         this.expiredAt = expiredAt;
     }
 
+    public UserCoupon issue(Long userId) {
+        if (getId() == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "저장되지 않은 쿠폰은 발급할 수 없습니다.");
+        }
+        if (userId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "사용자 ID는 필수입니다.");
+        }
+        return UserCoupon.builder()
+                .userId(userId)
+                .couponId(this.getId())
+                .couponName(this.name)
+                .discountType(this.discountType)
+                .discountValue(this.discountValue)
+                .minOrderAmount(this.minOrderAmount)
+                .expiredAt(this.expiredAt)
+                .build();
+    }
+
     public void validateIssuable() {
         if (getDeletedAt() != null) {
             throw new CoreException(ErrorType.NOT_FOUND, "삭제된 쿠폰은 발급할 수 없습니다.");

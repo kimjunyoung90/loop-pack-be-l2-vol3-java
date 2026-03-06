@@ -22,9 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserCouponServiceIntegrationTest {
 
     @Autowired
-    private UserCouponService userCouponService;
-
-    @Autowired
     private CouponService couponService;
 
     @Test
@@ -35,10 +32,10 @@ class UserCouponServiceIntegrationTest {
         );
 
         // when
-        userCouponService.createUserCoupon(1L, couponInfo);
+        couponService.issueCoupon(1L, couponInfo.id());
 
         // then - DB에서 조회하여 실제 저장 확인
-        List<UserCouponInfo> savedCoupons = userCouponService.getUserCoupons(1L);
+        List<UserCouponInfo> savedCoupons = couponService.getUserCoupons(1L);
         assertThat(savedCoupons).hasSize(1);
 
         UserCouponInfo saved = savedCoupons.getFirst();
@@ -59,11 +56,11 @@ class UserCouponServiceIntegrationTest {
         CouponInfo coupon2 = couponService.createCoupon(
                 new CreateCouponCommand("쿠폰2", DiscountType.FIXED, 2000, 10000, LocalDate.now().plusDays(7))
         );
-        userCouponService.createUserCoupon(1L, coupon1);
-        userCouponService.createUserCoupon(2L, coupon2);
+        couponService.issueCoupon(1L, coupon1.id());
+        couponService.issueCoupon(2L, coupon2.id());
 
         // when
-        List<UserCouponInfo> result = userCouponService.getUserCoupons(1L);
+        List<UserCouponInfo> result = couponService.getUserCoupons(1L);
 
         // then
         assertThat(result).hasSize(1);
@@ -79,12 +76,12 @@ class UserCouponServiceIntegrationTest {
         CouponInfo coupon2 = couponService.createCoupon(
                 new CreateCouponCommand("쿠폰2", DiscountType.FIXED, 2000, 10000, LocalDate.now().plusDays(7))
         );
-        userCouponService.createUserCoupon(1L, coupon1);
-        userCouponService.createUserCoupon(2L, coupon1);
-        userCouponService.createUserCoupon(3L, coupon2);
+        couponService.issueCoupon(1L, coupon1.id());
+        couponService.issueCoupon(2L, coupon1.id());
+        couponService.issueCoupon(3L, coupon2.id());
 
         // when
-        Page<UserCouponInfo> result = userCouponService.getUserCouponsByCouponId(coupon1.id(), PageRequest.of(0, 20));
+        Page<UserCouponInfo> result = couponService.getUserCouponsByCouponId(coupon1.id(), PageRequest.of(0, 20));
 
         // then
         assertThat(result.getTotalElements()).isEqualTo(2);

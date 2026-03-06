@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.coupon;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.application.coupon.CouponFacade;
+import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.UserCouponInfo;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.coupon.DiscountType;
@@ -38,7 +38,7 @@ class CouponV1ControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private CouponFacade couponFacade;
+    private CouponService couponService;
 
     @MockitoBean
     private UserService userService;
@@ -62,7 +62,7 @@ class CouponV1ControllerTest {
                 1L, 1L, 1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000,
                 "AVAILABLE", expiredAt, null, null
         );
-        given(couponFacade.issueCoupon(any())).willReturn(info);
+        given(couponService.issueCoupon(any(), any())).willReturn(info);
 
         // when & then
         mockMvc.perform(post("/api/v1/coupons/1/issues")
@@ -85,7 +85,7 @@ class CouponV1ControllerTest {
                 1L, 1L, 1L, "테스트 쿠폰", DiscountType.FIXED, 1000, null,
                 "AVAILABLE", expiredAt, null, null
         );
-        given(couponFacade.getMyCoupons(eq(1L))).willReturn(List.of(info));
+        given(couponService.getUserCoupons(eq(1L))).willReturn(List.of(info));
 
         // when & then
         mockMvc.perform(get("/api/v1/coupons/me")

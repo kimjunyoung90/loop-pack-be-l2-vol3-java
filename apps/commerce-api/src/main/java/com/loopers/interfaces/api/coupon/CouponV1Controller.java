@@ -1,7 +1,6 @@
 package com.loopers.interfaces.api.coupon;
 
-import com.loopers.application.coupon.CouponFacade;
-import com.loopers.application.coupon.IssueCouponCommand;
+import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.UserCouponInfo;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.support.auth.AuthUser;
@@ -20,7 +19,7 @@ import java.util.List;
 @RequestMapping("/api/v1/coupons")
 public class CouponV1Controller implements CouponV1ApiSpec {
 
-    private final CouponFacade couponFacade;
+    private final CouponService couponService;
 
     @PostMapping("/{couponId}/issues")
     @Override
@@ -28,7 +27,7 @@ public class CouponV1Controller implements CouponV1ApiSpec {
             @LoginUser AuthUser authUser,
             @PathVariable Long couponId
     ) {
-        UserCouponInfo info = couponFacade.issueCoupon(new IssueCouponCommand(authUser.id(), couponId));
+        UserCouponInfo info = couponService.issueCoupon(authUser.id(), couponId);
         return ApiResponse.success(CouponV1Dto.IssueCouponResponse.from(info));
     }
 
@@ -37,7 +36,7 @@ public class CouponV1Controller implements CouponV1ApiSpec {
     public ApiResponse<List<CouponV1Dto.GetMyCouponResponse>> getMyCoupons(
             @LoginUser AuthUser authUser
     ) {
-        List<UserCouponInfo> infos = couponFacade.getMyCoupons(authUser.id());
+        List<UserCouponInfo> infos = couponService.getUserCoupons(authUser.id());
         List<CouponV1Dto.GetMyCouponResponse> responses = infos.stream()
                 .map(CouponV1Dto.GetMyCouponResponse::from)
                 .toList();

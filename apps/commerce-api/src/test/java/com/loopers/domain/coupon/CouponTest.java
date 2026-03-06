@@ -1,7 +1,9 @@
 package com.loopers.domain.coupon;
 
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 
@@ -281,5 +283,63 @@ class CouponTest {
         // when & then
         assertThatThrownBy(() -> coupon.modify("", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7)))
                 .isInstanceOf(CoreException.class);
+    }
+
+    @Test
+    void 저장되지_않은_쿠폰을_발급하면_예외가_발생한다() {
+        // given
+        Coupon coupon = Coupon.builder()
+                .name("쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> coupon.issue(1L))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void userId가_null이면_쿠폰_발급_시_예외가_발생한다() {
+        // given
+        Coupon coupon = Coupon.builder()
+                .name("쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
+
+        // when & then
+        assertThatThrownBy(() -> coupon.issue(null))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void 저장된_쿠폰을_발급하면_UserCoupon이_생성된다() {
+        // given
+        Coupon coupon = Coupon.builder()
+                .name("신규 가입 쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(3000)
+                .minOrderAmount(10000)
+                .expiredAt(LocalDate.now().plusDays(30))
+                .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
+
+        // when
+        UserCoupon userCoupon = coupon.issue(5L);
+
+        // then
+        assertThat(userCoupon.getUserId()).isEqualTo(5L);
+        assertThat(userCoupon.getCouponId()).isEqualTo(1L);
+        assertThat(userCoupon.getCouponName()).isEqualTo("신규 가입 쿠폰");
+        assertThat(userCoupon.getDiscountType()).isEqualTo(DiscountType.FIXED);
+        assertThat(userCoupon.getDiscountValue()).isEqualTo(3000);
+        assertThat(userCoupon.getMinOrderAmount()).isEqualTo(10000);
+        assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.AVAILABLE);
     }
 }

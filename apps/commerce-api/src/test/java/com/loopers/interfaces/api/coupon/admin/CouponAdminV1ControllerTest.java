@@ -1,7 +1,6 @@
 package com.loopers.interfaces.api.coupon.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.application.coupon.CouponFacade;
 import com.loopers.application.coupon.CouponInfo;
 import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.UserCouponInfo;
@@ -42,9 +41,6 @@ class CouponAdminV1ControllerTest {
 
     @MockitoBean
     private CouponService couponService;
-
-    @MockitoBean
-    private CouponFacade couponFacade;
 
     @MockitoBean
     private UserService userService;
@@ -265,7 +261,7 @@ class CouponAdminV1ControllerTest {
                 1L, 1L, 1L, "테스트 쿠폰", DiscountType.FIXED, 1000, null,
                 "AVAILABLE", expiredAt, null, null
         );
-        given(couponFacade.getIssuedCoupons(any(), any())).willReturn(new PageImpl<>(List.of(info)));
+        given(couponService.getUserCouponsByCouponId(any(), any())).willReturn(new PageImpl<>(List.of(info)));
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/coupons/1/issues")

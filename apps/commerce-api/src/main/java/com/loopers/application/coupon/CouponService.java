@@ -2,6 +2,8 @@ package com.loopers.application.coupon;
 
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
+import com.loopers.domain.coupon.UserCoupon;
+import com.loopers.domain.coupon.UserCouponRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +12,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class CouponService {
 
     private final CouponRepository couponRepository;
+    private final UserCouponRepository userCouponRepository;
 
     @Transactional
     public CouponInfo createCoupon(CreateCouponCommand command) {
@@ -59,12 +64,30 @@ public class CouponService {
         return CouponInfo.from(coupon);
     }
 
-    @Transactional(readOnly = true)
-    public CouponInfo getIssuableCoupon(Long couponId) {
+    @Transactional
+    public UserCouponInfo issueCoupon(Long userId, Long couponId) {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
-        coupon.validateIssuable();
-        return CouponInfo.from(coupon);
+
+        if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
+            throw new CoreException(ErrorType.CONFLICT, "이미 발급받은 쿠폰입니다.");
+        }
+
+        UserCoupon userCoupon = coupon.issue(userId);
+        return UserCouponInfo.from(userCouponRepository.save(userCoupon));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserCouponInfo> getUserCoupons(Long userId) {
+        return userCouponRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()
+                .map(UserCouponInfo::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserCouponInfo> getUserCouponsByCouponId(Long couponId, Pageable pageable) {
+        return userCouponRepository.findAllByCouponIdAndDeletedAtIsNull(couponId, pageable)
+                .map(UserCouponInfo::from);
     }
 
     @Transactional
