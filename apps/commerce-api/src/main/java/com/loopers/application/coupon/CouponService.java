@@ -86,10 +86,11 @@ public class CouponService {
         return userCoupon.calculateDiscount(totalAmount);
     }
 
-    @Transactional(readOnly = true)
-    public UserCoupon findUserCoupon(Long userCouponId) {
-        return userCouponRepository.findById(userCouponId)
+    @Transactional
+    public void restoreCoupon(Long userCouponId) {
+        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
+        userCoupon.restore();
     }
 
     @Transactional(readOnly = true)

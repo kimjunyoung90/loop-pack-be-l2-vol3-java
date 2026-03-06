@@ -4,10 +4,6 @@ import com.loopers.application.coupon.CouponService;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
 
-import com.loopers.domain.coupon.UserCoupon;
-import com.loopers.domain.order.Order;
-import com.loopers.domain.order.OrderItem;
-import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
@@ -27,7 +23,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -102,37 +97,25 @@ class OrderFacadeTest {
     @Test
     void 주문을_취소하면_상태가_CANCELLED인_OrderInfo와_복원된_재고를_반환한다() {
         // given
-        Order order = Order.builder().userId(1L).build();
-        OrderItem item = OrderItem.builder()
-                .productId(1L)
-                .productName("운동화")
-                .productPrice(50000)
-                .quantity(2)
-                .build();
-        order.addOrderItem(item);
-        given(orderService.findOrder(1L)).willReturn(order);
-
-        Product product = Product.builder()
-                .brandId(1L)
-                .name("운동화")
-                .price(50000)
-                .stock(8)
-                .build();
-        given(productService.findProduct(1L)).willReturn(product);
+        ZonedDateTime now = ZonedDateTime.now();
+        OrderInfo cancelledInfo = new OrderInfo(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
+                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        ), now, now);
+        given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledInfo);
 
         // when
         OrderInfo result = orderFacade.cancelOrder(1L, 1L);
 
         // then
         assertThat(result.status()).isEqualTo("CANCELLED");
-        assertThat(product.getStock()).isEqualTo(10);
+        verify(productService).restoreStock(1L, 2);
     }
 
     @Test
     void 본인_주문이_아니면_CoreException_FORBIDDEN이_발생한다() {
         // given
-        Order order = Order.builder().userId(1L).build();
-        given(orderService.findOrder(1L)).willReturn(order);
+        willThrow(new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다."))
+                .given(orderService).cancelOrder(999L, 1L);
 
         // when & then
         assertThatThrownBy(() -> orderFacade.cancelOrder(999L, 1L))
@@ -142,9 +125,8 @@ class OrderFacadeTest {
     @Test
     void 이미_취소된_주문이면_CoreException_BAD_REQUEST가_발생한다() {
         // given
-        Order order = Order.builder().userId(1L).build();
-        order.cancel();
-        given(orderService.findOrder(1L)).willReturn(order);
+        willThrow(new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다."))
+                .given(orderService).cancelOrder(1L, 1L);
 
         // when & then
         assertThatThrownBy(() -> orderFacade.cancelOrder(1L, 1L))
@@ -206,62 +188,34 @@ class OrderFacadeTest {
     @Test
     void 쿠폰이_적용된_주문을_취소하면_쿠폰이_복원된다() {
         // given
-        Order order = Order.builder().userId(1L).userCouponId(10L).build();
-        OrderItem item = OrderItem.builder()
-                .productId(1L)
-                .productName("운동화")
-                .productPrice(50000)
-                .quantity(2)
-                .build();
-        order.addOrderItem(item);
-        order.applyDiscount(5000);
-        given(orderService.findOrder(1L)).willReturn(order);
-
-        Product product = Product.builder()
-                .brandId(1L)
-                .name("운동화")
-                .price(50000)
-                .stock(8)
-                .build();
-        given(productService.findProduct(1L)).willReturn(product);
-
-        UserCoupon userCoupon = mock(UserCoupon.class);
-        given(couponService.findUserCoupon(10L)).willReturn(userCoupon);
+        ZonedDateTime now = ZonedDateTime.now();
+        OrderInfo cancelledInfo = new OrderInfo(1L, 1L, 10L, "CANCELLED", 100000, 5000, 95000, List.of(
+                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        ), now, now);
+        given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledInfo);
 
         // when
         OrderInfo result = orderFacade.cancelOrder(1L, 1L);
 
         // then
         assertThat(result.status()).isEqualTo("CANCELLED");
-        verify(userCoupon).restore();
-        assertThat(product.getStock()).isEqualTo(10);
+        verify(productService).restoreStock(1L, 2);
+        verify(couponService).restoreCoupon(10L);
     }
 
     @Test
     void 쿠폰_미적용_주문을_취소하면_쿠폰_복원이_호출되지_않는다() {
         // given
-        Order order = Order.builder().userId(1L).build();
-        OrderItem item = OrderItem.builder()
-                .productId(1L)
-                .productName("운동화")
-                .productPrice(50000)
-                .quantity(2)
-                .build();
-        order.addOrderItem(item);
-        given(orderService.findOrder(1L)).willReturn(order);
-
-        Product product = Product.builder()
-                .brandId(1L)
-                .name("운동화")
-                .price(50000)
-                .stock(8)
-                .build();
-        given(productService.findProduct(1L)).willReturn(product);
+        ZonedDateTime now = ZonedDateTime.now();
+        OrderInfo cancelledInfo = new OrderInfo(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
+                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        ), now, now);
+        given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledInfo);
 
         // when
         orderFacade.cancelOrder(1L, 1L);
 
         // then
-        verify(couponService, never()).findUserCoupon(any());
+        verify(couponService, never()).restoreCoupon(any());
     }
 }

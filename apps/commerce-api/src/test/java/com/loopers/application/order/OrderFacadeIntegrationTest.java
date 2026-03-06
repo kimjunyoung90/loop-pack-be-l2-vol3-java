@@ -13,9 +13,7 @@ import com.loopers.application.product.ProductService;
 import com.loopers.application.user.CreateUserCommand;
 import com.loopers.application.user.UserInfo;
 import com.loopers.application.user.UserService;
-import com.loopers.domain.coupon.CouponStatus;
 import com.loopers.domain.coupon.DiscountType;
-import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 
@@ -167,8 +165,10 @@ class OrderFacadeIntegrationTest {
         assertThat(result.finalAmount()).isEqualTo(expectedTotalAmount - discountValue);
 
         // 쿠폰 상태 USED 검증
-        UserCoupon usedCoupon = couponService.findUserCoupon(userCouponInfo.id());
-        assertThat(usedCoupon.getStatus()).isEqualTo(CouponStatus.USED);
+        UserCouponInfo usedCoupon = couponService.getUserCoupons(userInfo.id()).stream()
+                .filter(c -> c.id().equals(userCouponInfo.id()))
+                .findFirst().orElseThrow();
+        assertThat(usedCoupon.status()).isEqualTo("USED");
 
         // 재고 차감 검증
         Product updatedProduct = productService.findProduct(productInfo.id());
@@ -200,8 +200,10 @@ class OrderFacadeIntegrationTest {
         OrderInfo orderResult = orderFacade.createOrder(command);
 
         // 쿠폰 사용 상태 확인
-        UserCoupon couponBeforeCancel = couponService.findUserCoupon(userCouponInfo.id());
-        assertThat(couponBeforeCancel.getStatus()).isEqualTo(CouponStatus.USED);
+        UserCouponInfo couponBeforeCancel = couponService.getUserCoupons(userInfo.id()).stream()
+                .filter(c -> c.id().equals(userCouponInfo.id()))
+                .findFirst().orElseThrow();
+        assertThat(couponBeforeCancel.status()).isEqualTo("USED");
 
         // 주문 취소
         OrderInfo cancelResult = orderFacade.cancelOrder(userInfo.id(), orderResult.id());
@@ -210,8 +212,10 @@ class OrderFacadeIntegrationTest {
         assertThat(cancelResult.status()).isEqualTo("CANCELLED");
 
         // 쿠폰 복원 확인
-        UserCoupon restoredCoupon = couponService.findUserCoupon(userCouponInfo.id());
-        assertThat(restoredCoupon.getStatus()).isEqualTo(CouponStatus.AVAILABLE);
+        UserCouponInfo restoredCoupon = couponService.getUserCoupons(userInfo.id()).stream()
+                .filter(c -> c.id().equals(userCouponInfo.id()))
+                .findFirst().orElseThrow();
+        assertThat(restoredCoupon.status()).isEqualTo("AVAILABLE");
 
         // 재고 복원 확인
         Product restoredProduct = productService.findProduct(productInfo.id());

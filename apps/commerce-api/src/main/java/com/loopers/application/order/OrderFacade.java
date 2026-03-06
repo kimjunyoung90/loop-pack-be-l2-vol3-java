@@ -3,12 +3,6 @@ package com.loopers.application.order;
 import com.loopers.application.coupon.CouponService;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
-import com.loopers.domain.coupon.UserCoupon;
-import com.loopers.domain.order.Order;
-import com.loopers.domain.product.Product;
-import com.loopers.domain.order.OrderItem;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,28 +41,19 @@ public class OrderFacade {
 
     @Transactional
     public OrderInfo cancelOrder(Long userId, Long orderId) {
-        Order order = orderService.findOrder(orderId);
+        // 1. 주문을 취소한다.
+        OrderInfo orderInfo = orderService.cancelOrder(userId, orderId);
 
-        if (!order.isOwnedBy(userId)) {
-            throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다.");
+        // 2. 재고를 복원한다.
+        for (OrderInfo.OrderItemInfo item : orderInfo.orderItems()) {
+            productService.restoreStock(item.productId(), item.quantity());
         }
 
-        if (order.isCancelled()) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다.");
+        // 3. 쿠폰을 복원한다. (쿠폰이 있는 경우)
+        if (orderInfo.userCouponId() != null) {
+            couponService.restoreCoupon(orderInfo.userCouponId());
         }
 
-        order.cancel();
-
-        for (OrderItem item : order.getOrderItems()) {
-            Product product = productService.findProduct(item.getProductId());
-            product.restoreStock(item.getQuantity());
-        }
-
-        if (order.hasCoupon()) {
-            UserCoupon userCoupon = couponService.findUserCoupon(order.getUserCouponId());
-            userCoupon.restore();
-        }
-
-        return OrderInfo.from(order);
+        return orderInfo;
     }
 }
