@@ -90,9 +90,10 @@ public class ProductService {
 
     @Transactional
     public void restoreStock(Long productId, int quantity) {
-        Product product = productRepository.findByIdWithPessimisticLock(productId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-        product.restoreStock(quantity);
+        int updatedCount = productRepository.restoreStock(productId, quantity);
+        if (updatedCount == 0) {
+            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
+        }
     }
 
     @Transactional(readOnly = true)

@@ -13,9 +13,9 @@ public interface ProductRepository {
 
     Optional<Product> findById(Long productId);
 
-    Optional<Product> findByIdWithPessimisticLock(Long productId);
-
     int deductStock(Long productId, int quantity);
+
+    int restoreStock(Long productId, int quantity);
 
     Product save(Product product);
 }

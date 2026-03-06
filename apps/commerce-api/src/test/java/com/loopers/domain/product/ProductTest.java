@@ -27,23 +27,6 @@ class ProductTest {
     }
 
     @Test
-    void 재고를_복원하면_stock이_수량만큼_증가한다() {
-        // given
-        Product product = Product.builder()
-                .brandId(1L)
-                .name("운동화")
-                .price(50000)
-                .stock(5)
-                .build();
-
-        // when
-        product.restoreStock(3);
-
-        // then
-        assertThat(product.getStock()).isEqualTo(8);
-    }
-
-    @Test
     void 상품을_삭제하면_deletedAt이_설정된다() {
         // given
         Product product = Product.builder()

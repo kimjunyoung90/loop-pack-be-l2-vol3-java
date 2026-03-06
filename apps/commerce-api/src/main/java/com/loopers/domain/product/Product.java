@@ -54,14 +54,4 @@ public class Product extends BaseEntity {
         this.stock = stock;
     }
 
-    public void deductStock(int quantity) {
-        if (this.stock < quantity) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다. 현재 재고: " + this.stock);
-        }
-        this.stock -= quantity;
-    }
-
-    public void restoreStock(int quantity) {
-        this.stock += quantity;
-    }
 }

@@ -31,13 +31,13 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public Optional<Product> findByIdWithPessimisticLock(Long productId) {
-        return productJpaRepository.findByIdWithPessimisticLock(productId);
+    public int deductStock(Long productId, int quantity) {
+        return productJpaRepository.deductStock(productId, quantity);
     }
 
     @Override
-    public int deductStock(Long productId, int quantity) {
-        return productJpaRepository.deductStock(productId, quantity);
+    public int restoreStock(Long productId, int quantity) {
+        return productJpaRepository.restoreStock(productId, quantity);
     }
 
     @Override
