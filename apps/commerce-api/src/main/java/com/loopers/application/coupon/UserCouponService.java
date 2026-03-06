@@ -18,11 +18,6 @@ public class UserCouponService {
 
     private final UserCouponRepository userCouponRepository;
 
-    @Transactional(readOnly = true)
-    public boolean existsByCouponId(Long couponId) {
-        return userCouponRepository.existsByCouponIdAndDeletedAtIsNull(couponId);
-    }
-
     @Transactional
     public UserCouponInfo createUserCoupon(Long userId, CouponInfo couponInfo) {
         if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponInfo.id())) {

@@ -1,6 +1,7 @@
 package com.loopers.domain.coupon;
 
 import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -23,34 +24,102 @@ class UserCouponTest {
     }
 
     @Test
-    void 사용자_쿠폰_생성_시_쿠폰_상태는_AVAILABLE이다() {
-        // given
-        Coupon coupon = Coupon.builder()
-                .name("신규 가입 쿠폰")
-                .discountType(DiscountType.FIXED)
-                .discountValue(3000)
-                .minOrderAmount(10000)
-                .expiredAt(LocalDate.now().plusDays(30))
-                .build();
-
+    void 사용자_쿠폰_생성_시_상태는_AVAILABLE이다() {
         // when
-        UserCoupon userCoupon = UserCoupon.builder()
-                .userId(1L)
-                .couponId(coupon.getId())
-                .couponName(coupon.getName())
-                .discountType(coupon.getDiscountType())
-                .discountValue(coupon.getDiscountValue())
-                .minOrderAmount(coupon.getMinOrderAmount())
-                .expiredAt(coupon.getExpiredAt())
-                .build();
+        UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
 
         // then
         assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.AVAILABLE);
-        assertThat(userCoupon.getCouponName()).isEqualTo(coupon.getName());
-        assertThat(userCoupon.getDiscountType()).isEqualTo(coupon.getDiscountType());
-        assertThat(userCoupon.getDiscountValue()).isEqualTo(coupon.getDiscountValue());
-        assertThat(userCoupon.getMinOrderAmount()).isEqualTo(coupon.getMinOrderAmount());
-        assertThat(userCoupon.getExpiredAt()).isEqualTo(coupon.getExpiredAt());
+    }
+
+    @Test
+    void userId가_null이면_CoreException_BAD_REQUEST가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> UserCoupon.builder()
+                .userId(null)
+                .couponId(1L)
+                .couponName("테스트 쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build())
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void couponId가_null이면_CoreException_BAD_REQUEST가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> UserCoupon.builder()
+                .userId(1L)
+                .couponId(null)
+                .couponName("테스트 쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build())
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void 쿠폰명이_null이면_CoreException_BAD_REQUEST가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> UserCoupon.builder()
+                .userId(1L)
+                .couponId(1L)
+                .couponName(null)
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build())
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void 쿠폰명이_빈문자열이면_CoreException_BAD_REQUEST가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> UserCoupon.builder()
+                .userId(1L)
+                .couponId(1L)
+                .couponName("  ")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build())
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void 할인유형이_null이면_CoreException_BAD_REQUEST가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> UserCoupon.builder()
+                .userId(1L)
+                .couponId(1L)
+                .couponName("테스트 쿠폰")
+                .discountType(null)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build())
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void 만료일이_null이면_CoreException_BAD_REQUEST가_발생한다() {
+        // when & then
+        assertThatThrownBy(() -> UserCoupon.builder()
+                .userId(1L)
+                .couponId(1L)
+                .couponName("테스트 쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(null)
+                .build())
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -66,24 +135,26 @@ class UserCouponTest {
     }
 
     @Test
-    void 이미_사용된_쿠폰을_다시_사용하면_예외가_발생한다() {
+    void 이미_사용된_쿠폰을_다시_사용하면_CoreException_BAD_REQUEST가_발생한다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
         userCoupon.use();
 
         // when & then
         assertThatThrownBy(userCoupon::use)
-                .isInstanceOf(CoreException.class);
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
-    void 만료된_쿠폰을_사용하면_예외가_발생한다() {
+    void 만료된_쿠폰을_사용하면_CoreException_BAD_REQUEST가_발생한다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().minusDays(1));
 
         // when & then
         assertThatThrownBy(userCoupon::use)
-                .isInstanceOf(CoreException.class);
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test

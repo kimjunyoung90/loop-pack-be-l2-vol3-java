@@ -34,9 +34,4 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     public boolean existsByUserIdAndCouponIdAndDeletedAtIsNull(Long userId, Long couponId) {
         return userCouponJpaRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId);
     }
-
-    @Override
-    public boolean existsByCouponIdAndDeletedAtIsNull(Long couponId) {
-        return userCouponJpaRepository.existsByCouponIdAndDeletedAtIsNull(couponId);
-    }
 }

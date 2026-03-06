@@ -14,6 +14,4 @@ public interface UserCouponRepository {
     Page<UserCoupon> findAllByCouponIdAndDeletedAtIsNull(Long couponId, Pageable pageable);
 
     boolean existsByUserIdAndCouponIdAndDeletedAtIsNull(Long userId, Long couponId);
-
-    boolean existsByCouponIdAndDeletedAtIsNull(Long couponId);
 }
