@@ -46,7 +46,11 @@ classDiagram
     class Order {
         -Long id
         -Long userId
+        -Long userCouponId
         -OrderStatus status
+        -int totalAmount
+        -int discountAmount
+        -int finalAmount
         +cancel()
     }
 
@@ -82,6 +86,8 @@ classDiagram
         -Long userId
         -Long couponId
         -CouponStatus status
+        +validateUsable(userId, totalAmount)
+        +calculateDiscount(totalAmount) int
         +use()
         +restore()
     }
@@ -109,6 +115,7 @@ classDiagram
     Order ..> OrderStatus
     Product "1" ..> "*" OrderItem : snapshot
     Coupon ..> DiscountType
+    Order "0..1" -- "0..1" UserCoupon : applies
     Coupon "1" -- "*" UserCoupon : issues
     UserCoupon ..> CouponStatus
 ```

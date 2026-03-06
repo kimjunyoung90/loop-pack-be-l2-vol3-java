@@ -45,7 +45,11 @@ erDiagram
     orders {
         bigint id PK
         bigint user_id FK
+        bigint user_coupon_id FK
         varchar status
+        int total_amount
+        int discount_amount
+        int final_amount
         timestamp created_at
         timestamp updated_at
         timestamp deleted_at
@@ -88,6 +92,7 @@ erDiagram
 
     users ||--o{ orders : ""
     users ||--o{ user_coupons : ""
+    orders |o--o| user_coupons : ""
     products ||--o{ product_likes : ""
     users ||--o{ product_likes : ""
     brands ||--o{ products : ""
