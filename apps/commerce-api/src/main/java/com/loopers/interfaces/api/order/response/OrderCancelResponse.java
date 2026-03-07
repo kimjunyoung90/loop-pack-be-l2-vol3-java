@@ -14,7 +14,7 @@ public record OrderCancelResponse(
         int totalAmount,
         int discountAmount,
         int finalAmount,
-        List<OrderItem> orderItems,
+        List<OrderItemResponse> orderItems,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -28,14 +28,14 @@ public record OrderCancelResponse(
                 result.discountAmount(),
                 result.finalAmount(),
                 result.orderItems().stream()
-                        .map(OrderItem::from)
+                        .map(OrderItemResponse::from)
                         .toList(),
                 result.createdAt(),
                 result.updatedAt()
         );
     }
 
-    public record OrderItem(
+    public record OrderItemResponse(
             Long id,
             Long productId,
             String productName,
@@ -45,8 +45,8 @@ public record OrderCancelResponse(
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
     ) {
-        public static OrderItem from(OrderItemResult result) {
-            return new OrderItem(
+        public static OrderItemResponse from(OrderItemResult result) {
+            return new OrderItemResponse(
                     result.id(),
                     result.productId(),
                     result.productName(),

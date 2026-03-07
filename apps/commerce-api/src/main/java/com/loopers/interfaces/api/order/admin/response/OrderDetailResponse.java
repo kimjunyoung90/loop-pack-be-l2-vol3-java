@@ -14,7 +14,7 @@ public record OrderDetailResponse(
         int totalAmount,
         int discountAmount,
         int finalAmount,
-        List<Item> orderItems,
+        List<OrderItemResponse> orderItems,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -28,14 +28,14 @@ public record OrderDetailResponse(
                 result.discountAmount(),
                 result.finalAmount(),
                 result.orderItems().stream()
-                        .map(Item::from)
+                        .map(OrderItemResponse::from)
                         .toList(),
                 result.createdAt(),
                 result.updatedAt()
         );
     }
 
-    public record Item(
+    public record OrderItemResponse(
             Long id,
             Long productId,
             String productName,
@@ -45,8 +45,8 @@ public record OrderDetailResponse(
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
     ) {
-        public static Item from(OrderItemResult result) {
-            return new Item(
+        public static OrderItemResponse from(OrderItemResult result) {
+            return new OrderItemResponse(
                     result.id(),
                     result.productId(),
                     result.productName(),
