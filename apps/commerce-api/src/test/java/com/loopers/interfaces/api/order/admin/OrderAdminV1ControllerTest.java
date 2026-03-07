@@ -42,7 +42,7 @@ class OrderAdminV1ControllerTest {
     void 관리자_헤더가_유효하면_주문_상세_조회에_성공한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, "COMPLETED", 100000, List.of(
+        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
                 new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
         given(orderService.getOrder(1L)).willReturn(orderInfo);
@@ -53,7 +53,7 @@ class OrderAdminV1ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.userId").value(1))
-                .andExpect(jsonPath("$.data.totalPrice").value(100000))
+                .andExpect(jsonPath("$.data.totalAmount").value(100000))
                 .andExpect(jsonPath("$.data.orderItems[0].productName").value("운동화"));
     }
 

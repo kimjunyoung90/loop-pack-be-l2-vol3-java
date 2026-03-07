@@ -1,6 +1,5 @@
 package com.loopers.application.product;
 
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
@@ -21,9 +20,9 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public ProductInfo createProduct(Brand brand, CreateProductCommand command) {
+    public ProductInfo createProduct(Long brandId, CreateProductCommand command) {
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(brandId)
                 .name(command.name())
                 .price(command.price())
                 .stock(command.stock())
@@ -47,11 +46,11 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductInfo updateProduct(Long productId, Brand brand, UpdateProductCommand command) {
+    public ProductInfo updateProduct(Long productId, Long brandId, UpdateProductCommand command) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
-        product.update(brand, command.name(), command.price(), command.stock());
+        product.update(brandId, command.name(), command.price(), command.stock());
 
         return ProductInfo.from(product);
     }
@@ -65,14 +64,36 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> findProductsByBrand(Brand brand) {
-        return productRepository.findAllByBrand(brand);
+    public List<Product> findProductsByBrandId(Long brandId) {
+        return productRepository.findAllByBrandId(brandId);
     }
 
     @Transactional
-    public void deleteProductsByBrand(Brand brand) {
-        List<Product> products = productRepository.findAllByBrand(brand);
+    public void deleteProductsByBrandId(Long brandId) {
+        List<Product> products = productRepository.findAllByBrandId(brandId);
         products.forEach(Product::delete);
+    }
+
+    @Transactional
+    public ProductInfo deductStock(Long productId, int quantity) {
+        int updatedCount = productRepository.deductStock(productId, quantity);
+
+		Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+
+		if (updatedCount == 0) {
+			throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
+		}
+
+        return ProductInfo.from(product);
+    }
+
+    @Transactional
+    public void restoreStock(Long productId, int quantity) {
+        int updatedCount = productRepository.restoreStock(productId, quantity);
+        if (updatedCount == 0) {
+            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
+        }
     }
 
     @Transactional(readOnly = true)

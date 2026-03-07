@@ -38,7 +38,7 @@ class ProductFacadeTest {
         ZonedDateTime now = ZonedDateTime.now();
         ProductInfo expectedInfo = new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now);
         given(brandService.findBrand(1L)).willReturn(brand);
-        given(productService.createProduct(eq(brand), eq(command))).willReturn(expectedInfo);
+        given(productService.createProduct(eq(1L), eq(command))).willReturn(expectedInfo);
 
         // when
         ProductInfo result = productFacade.createProduct(command);
@@ -68,7 +68,7 @@ class ProductFacadeTest {
         ZonedDateTime now = ZonedDateTime.now();
         ProductInfo expectedInfo = new ProductInfo(1L, 2L, "슬리퍼", 50000, 30, now, now);
         given(brandService.findBrand(2L)).willReturn(brand);
-        given(productService.updateProduct(eq(1L), eq(brand), eq(command))).willReturn(expectedInfo);
+        given(productService.updateProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedInfo);
 
         // when
         ProductInfo result = productFacade.updateProduct(1L, command);

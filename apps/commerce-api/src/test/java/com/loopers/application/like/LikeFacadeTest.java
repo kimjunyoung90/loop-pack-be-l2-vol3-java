@@ -1,7 +1,6 @@
 package com.loopers.application.like;
 
 import com.loopers.application.product.ProductService;
-import com.loopers.domain.brand.Brand;
 import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -35,9 +34,8 @@ class LikeFacadeTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        Brand brand = Brand.builder().name("나이키").build();
         Product product = Product.builder()
-                .brand(brand)
+                .brandId(1L)
                 .name("운동화")
                 .price(100000)
                 .stock(50)
@@ -46,7 +44,7 @@ class LikeFacadeTest {
         LikeInfo expectedInfo = new LikeInfo(1L, userId, productId, now);
 
         given(productService.findProduct(productId)).willReturn(product);
-        given(likeService.createLike(userId, product)).willReturn(expectedInfo);
+        given(likeService.createLike(userId, productId)).willReturn(expectedInfo);
 
         // when
         LikeInfo result = likeFacade.createLike(userId, productId);

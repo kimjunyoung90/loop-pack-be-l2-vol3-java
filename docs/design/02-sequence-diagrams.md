@@ -29,6 +29,15 @@
   - [주문 상세 조회 (사용자)](#주문-상세-조회-사용자)
   - [주문 목록 조회 (관리자)](#주문-목록-조회-관리자)
   - [주문 상세 조회 (관리자)](#주문-상세-조회-관리자)
+- [쿠폰](#쿠폰)
+  - [쿠폰 발급 요청](#쿠폰-발급-요청)
+  - [내 쿠폰 목록 조회](#내-쿠폰-목록-조회)
+  - [쿠폰 생성 (관리자)](#쿠폰-생성-관리자)
+  - [쿠폰 목록 조회 (관리자)](#쿠폰-목록-조회-관리자)
+  - [쿠폰 상세 조회 (관리자)](#쿠폰-상세-조회-관리자)
+  - [쿠폰 수정 (관리자)](#쿠폰-수정-관리자)
+  - [쿠폰 삭제 (관리자)](#쿠폰-삭제-관리자)
+  - [쿠폰 발급 내역 조회 (관리자)](#쿠폰-발급-내역-조회-관리자)
 
 ---
 
@@ -573,91 +582,139 @@ sequenceDiagram
 
 ### 주문 생성
 
-사용자는 여러 상품을 한 번에 주문할 수 있다. 단일 트랜잭션에서 재고 검증, 재고 차감, 주문 생성을 처리한다.
+사용자는 여러 상품을 한 번에 주문할 수 있다. 사용자 쿠폰을 선택적으로 적용할 수 있으며, 단일 트랜잭션에서 재고 검증, 재고 차감, 쿠폰 검증, 주문 생성을 처리한다.
 
 ```mermaid
 sequenceDiagram
     actor User as 사용자
     participant OC as OrderController
+    participant OF as OrderFacade
     participant OS as OrderService
     participant PS as ProductService
+    participant CS as CouponService
     participant P as Product
+    participant UC as UserCoupon
     participant O as Order
     participant PR as ProductRepository
+    participant UCR as UserCouponRepository
     participant OR as OrderRepository
 
-    User->>+OC: 주문 생성 요청 (상품 목록, 수량)
-    OC->>+OS: 주문 생성(userId, orderItems)
+    User->>+OC: 주문 생성 요청 (상품 목록, 수량, 사용자쿠폰ID)
+    OC->>+OF: 주문 생성(userId, orderItems, userCouponId)
 
     rect rgb(240, 248, 255)
-        Note over OS, OR: 트랜잭션
-        OS->>+PS: 전체 상품 조회
+        Note over OF, OR: 트랜잭션
+        OF->>+PS: 전체 상품 조회
         PS->>+PR: 상품 조회
         PR-->>-PS: 상품 목록
-        PS-->>-OS: 상품 목록
+        PS-->>-OF: 상품 목록
 
         opt 존재하지 않는 상품 포함
-            OS-->>OC: 예외
+            OF-->>OC: 예외
         end
 
         loop 주문 상품마다
-            OS->>+PS: 재고 차감 요청(상품, 주문수량)
+            OF->>+PS: 재고 차감 요청(상품, 주문수량)
             PS->>+P: 재고 차감(주문수량)
             P->>P: 재고 충분 여부 검증
             P->>P: 실제 재고 차감
             P-->>-PS: 차감 완료
-            PS-->>-OS: 차감 완료
+            PS-->>-OF: 차감 완료
         end
 
         opt 하나라도 재고 부족
-            Note over OS, OR: 롤백 → 전부 원복
-            OS-->>OC: 예외 (전부 아니면 전무)
+            Note over OF, OR: 롤백 → 전부 원복
+            OF-->>OC: 예외 (전부 아니면 전무)
         end
 
+        opt 사용자 쿠폰이 적용된 경우
+            OF->>+CS: 사용자 쿠폰 조회(userCouponId)
+            CS->>+UCR: 사용자 쿠폰 조회
+            UCR-->>-CS: 사용자 쿠폰 정보
+            CS-->>-OF: 사용자 쿠폰 정보
+
+            opt 사용자 쿠폰 미존재
+                OF-->>OC: 예외 (404)
+            end
+
+            OF->>+UC: 쿠폰 사용 가능 검증(userId, 주문금액)
+            UC->>UC: 본인 소유 확인
+            UC->>UC: 사용 완료 여부 확인
+            UC->>UC: 만료 여부 확인
+            UC->>UC: 최소 주문 금액 확인
+            UC-->>-OF: 검증 완료
+
+            opt 검증 실패
+                OF-->>OC: 예외
+            end
+
+            OF->>+UC: 할인 금액 계산(주문금액)
+            UC-->>-OF: 할인 금액
+        end
+
+        OF->>+OS: 주문 생성(userId, 상품스냅샷, 할인정보)
         OS->>+O: 주문 생성 (상태: COMPLETED)
         O->>O: 주문 항목 생성 (상품명, 단가 스냅샷)
+        O->>O: 금액 정보 설정 (쿠폰 적용 전 금액, 할인 금액, 최종 결제 금액)
         O-->>-OS: 주문 생성 완료
         OS->>+OR: 변경사항 반영
         OR-->>-OS: 반영 완료
+        OS-->>-OF: 주문 정보
+
+        opt 사용자 쿠폰이 적용된 경우
+            OF->>+CS: 쿠폰 사용 완료 처리(userCouponId)
+            CS->>+UC: 사용 완료 상태로 변경
+            UC-->>-CS: 변경 완료
+            CS-->>-OF: 처리 완료
+        end
     end
 
-    OS-->>-OC: 주문 완료
+    OF-->>-OC: 주문 완료
     OC-->>-User: 주문 완료 응답
 ```
 
 **해석**:
-- 단일 트랜잭션에서 재고 검증 → 재고 차감 → 주문 생성(COMPLETED)을 처리한다. 실패 시 전부 롤백된다.
+- 쿠폰이 적용되는 경우 여러 도메인(Order, Product, Coupon)이 엮이므로 `OrderFacade`가 흐름을 조합한다.
+- 단일 트랜잭션에서 재고 검증 → 재고 차감 → 쿠폰 검증 → 주문 생성(COMPLETED) → 쿠폰 사용 완료 처리를 수행한다. 실패 시 전부 롤백된다.
+- `CouponService`가 사용자 쿠폰 조회와 사용 완료 처리를 담당한다. `UserCoupon`이 본인 소유 확인, 사용 가능 상태 검증, 최소 주문 금액 검증, 할인 금액 계산을 담당한다.
 - `Product`가 재고 충분 여부 검증과 재고 차감을 담당한다. 재고 관련 비즈니스 로직이 도메인 객체에 있다.
 - `Order` 생성 시 `OrderItem`에 상품 스냅샷(상품명, 단가)을 보관한다. 이후 상품 정보가 변경되어도 주문 이력은 유지된다.
+- 주문 정보에는 쿠폰 적용 전 금액, 할인 금액, 최종 결제 금액이 포함된다. 정액 할인이 주문 금액을 초과하면 최종 결제 금액은 0원이다.
 
 ---
 
 ### 주문 취소
 
-주문 취소 시 실제 재고를 복원한다.
+주문 취소 시 재고를 복원하고, 적용된 사용자 쿠폰이 있으면 사용 가능 상태로 복원한다.
 
 ```mermaid
 sequenceDiagram
     actor User as 사용자
     participant OC as OrderController
+    participant OF as OrderFacade
     participant OS as OrderService
     participant PS as ProductService
+    participant CS as CouponService
     participant P as Product
+    participant UC as UserCoupon
     participant O as Order
     participant OR as OrderRepository
 
     User->>+OC: 주문 취소 요청 (orderId)
-    OC->>+OS: 주문 취소(userId, orderId)
+    OC->>+OF: 주문 취소(userId, orderId)
 
     rect rgb(255, 245, 238)
-        Note over OS, OR: 트랜잭션
+        Note over OF, OR: 트랜잭션
+        OF->>+OS: 주문 조회(orderId)
         OS->>+OR: 주문 조회
         OR-->>-OS: 주문 정보
+        OS-->>-OF: 주문 정보
 
         opt 주문 미존재 or 본인 아님
-            OS-->>OC: 예외
+            OF-->>OC: 예외
         end
 
+        OF->>+OS: 주문 취소 요청(order)
         OS->>+O: 주문 취소 요청
         O->>O: 취소 가능 상태 검증 (COMPLETED만 가능)
 
@@ -667,22 +724,35 @@ sequenceDiagram
 
         O->>O: 주문 상태 변경 (COMPLETED → CANCELED)
         O-->>-OS: 상태 변경 완료
+        OS-->>-OF: 취소 완료
 
         loop 주문 상품마다
-            OS->>+PS: 재고 복원 요청(상품, 주문수량)
+            OF->>+PS: 재고 복원 요청(상품, 주문수량)
             PS->>+P: 실제 재고 복원(주문수량)
             P->>P: 실제 재고 증가
             P-->>-PS: 복원 완료
-            PS-->>-OS: 복원 완료
+            PS-->>-OF: 복원 완료
         end
 
-        OS->>+OR: 변경사항 반영
-        OR-->>-OS: 반영 완료
+        opt 적용된 사용자 쿠폰이 있는 경우
+            OF->>+CS: 쿠폰 사용 가능 상태 복원(userCouponId)
+            CS->>+UC: 사용 가능 상태로 변경
+            UC-->>-CS: 변경 완료
+            CS-->>-OF: 복원 완료
+        end
+
+        OF->>+OR: 변경사항 반영
+        OR-->>-OF: 반영 완료
     end
 
-    OS-->>-OC: 취소 완료
+    OF-->>-OC: 취소 완료
     OC-->>-User: 취소 완료 응답
 ```
+
+**해석**:
+- 주문 취소 시 여러 도메인(Order, Product, Coupon)이 엮이므로 `OrderFacade`가 흐름을 조합한다.
+- 단일 트랜잭션에서 주문 상태 변경 → 재고 복원 → 쿠폰 상태 복원을 처리한다.
+- 적용된 사용자 쿠폰이 있는 경우에만 쿠폰 상태를 사용 가능으로 복원한다.
 
 ---
 
@@ -790,4 +860,283 @@ sequenceDiagram
 
     OS-->>-OC: 주문 상세 정보 (주문 상품 스냅샷 포함)
     OC-->>-Admin: 주문 상세 응답
+```
+
+---
+
+## 쿠폰
+
+쿠폰 도메인은 쿠폰(Coupon)과 사용자 쿠폰(UserCoupon) 두 개의 도메인으로 구성된다. UserCoupon은 Coupon의 하위 개념으로, CouponService가 두 도메인을 함께 관리한다.
+
+| 구분 | 담당 도메인 | 의존 대상 |
+|------|-----------|----------|
+| CouponService | 쿠폰, 사용자 쿠폰 | CouponRepository, UserCouponRepository |
+
+---
+
+### 쿠폰 발급 요청
+
+사용자가 쿠폰 발급을 요청한다. 쿠폰의 삭제 여부, 유효기간, 중복 발급 여부를 검증한 후 사용자 쿠폰을 생성한다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+    participant UCR as UserCouponRepository
+
+    User->>+CC: 쿠폰 발급 요청 (couponId)
+    CC->>+CS: 쿠폰 발급 요청(userId, couponId)
+
+    rect rgb(240, 248, 255)
+        Note over CS, UCR: 트랜잭션
+
+        CS->>+CR: 쿠폰 조회
+        CR-->>-CS: 쿠폰 정보
+
+        opt 쿠폰 미존재
+            CS-->>CC: 예외
+            CC-->>User: 404 Not Found
+        end
+
+        CS->>+C: 발급 가능 여부 검증
+        C->>C: 삭제 여부 확인
+        C->>C: 유효기간 확인
+        C-->>-CS: 검증 완료
+
+        opt 삭제된 쿠폰 or 유효기간 만료
+            CS-->>CC: 예외
+        end
+
+        CS->>+UCR: 중복 발급 확인(userId, couponId)
+        UCR-->>-CS: 존재 여부
+
+        opt 이미 발급받은 쿠폰
+            CS-->>CC: 예외
+            CC-->>User: 409 Conflict
+        end
+
+        CS->>+C: 사용자 쿠폰 생성(userId)
+        C-->>-CS: UserCoupon
+        CS->>+UCR: 사용자 쿠폰 저장
+        UCR-->>-CS: 저장 완료
+    end
+
+    CS-->>-CC: 발급 완료
+    CC-->>-User: 쿠폰 발급 응답
+```
+
+**해석**:
+- CouponService가 쿠폰 조회, 발급 가능 여부 검증, 중복 발급 확인, 사용자 쿠폰 생성을 모두 담당한다.
+- Coupon 엔티티가 자기 상태로 발급 가능 여부를 판단하고, `issue(userId)`로 UserCoupon을 생성한다.
+- 단일 트랜잭션에서 검증과 생성을 처리하여 데이터 일관성을 보장한다.
+
+---
+
+### 내 쿠폰 목록 조회
+
+사용자는 본인이 발급받은 쿠폰 목록을 조회할 수 있다. 사용 가능, 사용 완료, 만료 상태의 쿠폰을 모두 반환한다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant UCR as UserCouponRepository
+
+    User->>+CC: 내 쿠폰 목록 조회 요청
+    CC->>+CS: 내 쿠폰 목록 조회(userId)
+    CS->>+UCR: 사용자 쿠폰 목록 조회 (userId)
+    UCR-->>-CS: 사용자 쿠폰 목록
+    CS-->>-CC: 쿠폰 목록
+    CC-->>-User: 내 쿠폰 목록 응답
+```
+
+---
+
+### 쿠폰 생성 (관리자)
+
+관리자는 새로운 쿠폰을 생성할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 생성 요청
+    CC->>+CS: 쿠폰 생성(name, discountType, discountValue, minOrderAmount, expiredAt)
+    CS->>+C: 쿠폰 생성
+    C-->>-CS: 생성 완료
+    CS->>+CR: 쿠폰 저장
+    CR-->>-CS: 저장 완료
+    CS-->>-CC: 생성된 쿠폰 정보
+    CC-->>-Admin: 쿠폰 생성 응답
+```
+
+---
+
+### 쿠폰 목록 조회 (관리자)
+
+관리자는 등록된 쿠폰 목록을 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 목록 조회 요청
+    CC->>+CS: 쿠폰 목록 조회
+    CS->>+CR: 쿠폰 목록 조회
+    CR-->>-CS: 쿠폰 목록
+    CS-->>-CC: 쿠폰 목록
+    CC-->>-Admin: 쿠폰 목록 응답
+```
+
+---
+
+### 쿠폰 상세 조회 (관리자)
+
+관리자는 특정 쿠폰의 상세 정보를 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 상세 조회 요청 (couponId)
+    CC->>+CS: 쿠폰 상세 조회(couponId)
+    CS->>+CR: 쿠폰 조회
+    CR-->>-CS: 쿠폰 정보
+
+    opt 쿠폰 미존재
+        CS-->>CC: 예외
+        CC-->>Admin: 404 Not Found
+    end
+
+    CS-->>-CC: 쿠폰 상세 정보
+    CC-->>-Admin: 쿠폰 상세 응답
+```
+
+---
+
+### 쿠폰 수정 (관리자)
+
+관리자는 쿠폰 정보를 수정할 수 있다. 발급된 사용자 쿠폰이 있는 경우 수정할 수 없다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+    participant UCR as UserCouponRepository
+
+    Admin->>+CC: 쿠폰 수정 요청 (couponId)
+    CC->>+CS: 쿠폰 수정(couponId, command)
+
+    rect rgb(255, 245, 238)
+        Note over CS, UCR: 트랜잭션
+
+        CS->>+CR: 쿠폰 조회
+        CR-->>-CS: 쿠폰 정보
+
+        opt 쿠폰 미존재
+            CS-->>CC: 예외
+            CC-->>Admin: 404 Not Found
+        end
+
+        CS->>+UCR: 발급된 사용자 쿠폰 존재 여부 확인(couponId)
+        UCR-->>-CS: 존재 여부
+
+        opt 발급된 사용자 쿠폰 존재
+            CS-->>CC: 예외
+        end
+
+        CS->>+C: 쿠폰 정보 수정
+        C-->>-CS: 수정 완료
+        CS->>+CR: 변경사항 반영
+        CR-->>-CS: 반영 완료
+    end
+
+    CS-->>-CC: 수정된 쿠폰 정보
+    CC-->>-Admin: 쿠폰 수정 응답
+```
+
+**해석**:
+- CouponService가 쿠폰 조회, 발급 여부 확인, 수정을 모두 담당한다.
+- 발급된 사용자 쿠폰이 존재하면 수정을 차단하여 발급된 쿠폰의 일관성을 보장한다 (CPN-07).
+- 트랜잭션 내에서 조회와 수정을 처리하여 동시성 이슈를 방지한다.
+
+---
+
+### 쿠폰 삭제 (관리자)
+
+관리자는 쿠폰을 삭제할 수 있다. 쿠폰이 삭제되어도 이미 발급된 사용자 쿠폰에는 영향을 주지 않는다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant C as Coupon
+    participant CR as CouponRepository
+
+    Admin->>+CC: 쿠폰 삭제 요청 (couponId)
+    CC->>+CS: 쿠폰 삭제(couponId)
+    CS->>+CR: 쿠폰 조회
+    CR-->>-CS: 쿠폰 정보
+
+    opt 쿠폰 미존재
+        CS-->>CC: 예외
+        CC-->>Admin: 404 Not Found
+    end
+
+    CS->>+C: 쿠폰 삭제
+    C-->>-CS: 삭제 완료
+    CS->>+CR: 변경사항 반영
+    CR-->>-CS: 반영 완료
+    CS-->>-CC: 삭제 완료
+    CC-->>-Admin: 쿠폰 삭제 응답
+```
+
+---
+
+### 쿠폰 발급 내역 조회 (관리자)
+
+관리자는 특정 쿠폰의 발급 내역(사용자 쿠폰)을 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor Admin as 관리자
+    participant CC as CouponController
+    participant CS as CouponService
+    participant CR as CouponRepository
+    participant UCR as UserCouponRepository
+
+    Admin->>+CC: 쿠폰 발급 내역 조회 요청 (couponId)
+    CC->>+CS: 쿠폰 발급 내역 조회(couponId)
+
+    CS->>+CR: 쿠폰 조회
+    CR-->>-CS: 쿠폰 정보
+
+    opt 쿠폰 미존재
+        CS-->>CC: 예외
+        CC-->>Admin: 404 Not Found
+    end
+
+    CS->>+UCR: 해당 쿠폰 발급 내역 조회(couponId)
+    UCR-->>-CS: 사용자 쿠폰 목록
+
+    CS-->>-CC: 발급 내역
+    CC-->>-Admin: 쿠폰 발급 내역 응답
 ```

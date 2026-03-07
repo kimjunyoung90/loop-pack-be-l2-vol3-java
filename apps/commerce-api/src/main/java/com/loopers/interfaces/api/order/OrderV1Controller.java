@@ -31,6 +31,7 @@ public class OrderV1Controller implements OrderV1ApiSpec {
             @Valid @RequestBody OrderV1Dto.CreateOrderRequest request) {
         CreateOrderCommand command = new CreateOrderCommand(
                 authUser.id(),
+                request.userCouponId(),
                 request.orderItems().stream()
                         .map(item -> new CreateOrderCommand.CreateOrderItemCommand(
                                 item.productId(),

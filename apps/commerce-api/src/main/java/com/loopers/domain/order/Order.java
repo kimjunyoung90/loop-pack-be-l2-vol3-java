@@ -19,6 +19,9 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long userId;
 
+    @Column
+    private Long userCouponId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
@@ -27,19 +30,34 @@ public class Order extends BaseEntity {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @Column(nullable = false)
-    private int totalPrice;
+    private int totalAmount;
+
+    @Column(nullable = false)
+    private int discountAmount;
+
+    @Column(nullable = false)
+    private int finalAmount;
 
     @Builder
-    private Order(Long userId) {
+    private Order(Long userId, Long userCouponId) {
         this.userId = userId;
+        this.userCouponId = userCouponId;
         this.status = OrderStatus.COMPLETED;
-        this.totalPrice = 0;
+        this.totalAmount = 0;
+        this.discountAmount = 0;
+        this.finalAmount = 0;
     }
 
     public void addOrderItem(OrderItem orderItem) {
         orderItem.assignOrder(this);
         this.orderItems.add(orderItem);
-        this.totalPrice += orderItem.getTotalPrice();
+        this.totalAmount += orderItem.getTotalPrice();
+        this.finalAmount = this.totalAmount - this.discountAmount;
+    }
+
+    public void applyDiscount(int discountAmount) {
+        this.discountAmount = discountAmount;
+        this.finalAmount = Math.max(this.totalAmount - this.discountAmount, 0);
     }
 
     public void cancel() {
@@ -52,5 +70,9 @@ public class Order extends BaseEntity {
 
     public boolean isOwnedBy(Long userId) {
         return this.userId.equals(userId);
+    }
+
+    public boolean hasCoupon() {
+        return this.userCouponId != null;
     }
 }
