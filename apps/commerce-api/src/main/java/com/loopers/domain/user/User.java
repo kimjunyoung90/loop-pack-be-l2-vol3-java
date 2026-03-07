@@ -1,6 +1,8 @@
 package com.loopers.domain.user;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.AccessLevel;
@@ -47,13 +49,13 @@ public class User extends BaseEntity {
 
     public void changePassword(String password, String birthDate, PasswordEncoder passwordEncoder) {
         if (password.length() < 8 || password.length() > 16) {
-            throw new IllegalArgumentException();
+            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 8자 이상 16자 이하여야 합니다.");
         }
         if(!password.matches("^[a-zA-Z\\d\\p{Punct}]+$")) {
-            throw new IllegalArgumentException();
+            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 영문, 숫자, 특수문자만 사용할 수 있습니다.");
         }
         if(password.contains(birthDate)) {
-            throw new IllegalArgumentException("비밀번호는 생년월일을 포함할 수 없습니다.");
+            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 생년월일을 포함할 수 없습니다.");
         }
 
         this.password = passwordEncoder.encode(password);
@@ -61,7 +63,7 @@ public class User extends BaseEntity {
 
     public void updateEmail(String email) {
         if(!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
-            throw new IllegalArgumentException();
+            throw new CoreException(ErrorType.BAD_REQUEST, "올바른 이메일 형식이 아닙니다.");
         }
         this.email = email;
     }
@@ -70,7 +72,7 @@ public class User extends BaseEntity {
         try {
             LocalDate.parse(birthDate);
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException();
+            throw new CoreException(ErrorType.BAD_REQUEST, "올바른 생년월일 형식이 아닙니다.");
         }
         this.birthDate = birthDate;
     }

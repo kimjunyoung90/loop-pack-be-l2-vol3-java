@@ -1,5 +1,6 @@
 package com.loopers.domain.user;
 
+import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,23 +23,23 @@ class UserTest {
     }
 
     @Test
-    void 비밀번호가_7자이면_IllegalArgumentException_예외가_발생한다() {
+    void 비밀번호가_7자이면_예외가_발생한다() {
         String password = "1234567";
         User user = createValidUser();
 
         Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
-        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        assertThat(thrown).isInstanceOf(CoreException.class);
     }
 
     @Test
-    void 비밀번호가_17자이면_IllegalArgumentException_예외가_발생한다() {
+    void 비밀번호가_17자이면_예외가_발생한다() {
         String password = "12345678901234567";
         User user = createValidUser();
 
         Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
-        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        assertThat(thrown).isInstanceOf(CoreException.class);
     }
 
     @Test
@@ -62,26 +63,26 @@ class UserTest {
     }
 
     @Test
-    void 비밀번호에_한글이_포함되면_IllegalArgumentException이_발생한다() {
+    void 비밀번호에_한글이_포함되면_예외가_발생한다() {
         String password = "ㄱ12345561";
         User user = createValidUser();
 
         Throwable thrown = catchThrowable(() -> user.changePassword(password, "1990-01-01", passwordEncoder));
 
-        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        assertThat(thrown).isInstanceOf(CoreException.class);
     }
 
     @Test
-    void 비밀번호에_공백이_포함되면_IllegalArgumentException이_발생한다() {
+    void 비밀번호에_공백이_포함되면_예외가_발생한다() {
         String password = "1234 5561";
         User user = createValidUser();
 
         assertThatThrownBy(() -> user.changePassword(password, "1990-01-01", passwordEncoder))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
-    void 비밀번호에_생년월일이_포함되면_IllegalArgumentException_예외가_발생한다() {
+    void 비밀번호에_생년월일이_포함되면_예외가_발생한다() {
         //given
         String password = "1990-01-01!";
         String date = "1990-01-01";
@@ -91,7 +92,7 @@ class UserTest {
         Throwable thrown = catchThrowable(() -> user.changePassword(password, date, passwordEncoder));
 
         //then
-        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+        assertThat(thrown).isInstanceOf(CoreException.class);
     }
 
     @Test
@@ -115,7 +116,7 @@ class UserTest {
     }
 
     @Test
-    void 이메일에_AT이_누락되면_IllegalArgumentException_예외가_발생한다() {
+    void 이메일에_AT이_누락되면_예외가_발생한다() {
         //given
         String email = "testtest.com";
 
@@ -128,11 +129,11 @@ class UserTest {
                 .email(email)
                 .passwordEncoder(passwordEncoder)
                 .build())
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
-    void 이메일에_도메인이_누락되면_IllegalArgumentException_예외가_발생한다() {
+    void 이메일에_도메인이_누락되면_예외가_발생한다() {
         //given
         String email = "test@";
 
@@ -145,11 +146,11 @@ class UserTest {
                 .email(email)
                 .passwordEncoder(passwordEncoder)
                 .build())
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
-    void 생년월일이_기준_포맷에_맞지_않으면_IllegalArgumentException_예외가_발생한다() {
+    void 생년월일이_기준_포맷에_맞지_않으면_예외가_발생한다() {
         String birthDate = "19900427";
 
         assertThatThrownBy(() -> User.builder()
@@ -160,11 +161,11 @@ class UserTest {
                 .email("test@test.com")
                 .passwordEncoder(passwordEncoder)
                 .build())
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
-    void 생년월일이_유효한_날짜가_아니면_IllegalArgumentException_예외가_발생한다() {
+    void 생년월일이_유효한_날짜가_아니면_예외가_발생한다() {
         String birthDate = "19900231";
 
         assertThatThrownBy(() -> User.builder()
@@ -175,7 +176,7 @@ class UserTest {
                 .email("test@test.com")
                 .passwordEncoder(passwordEncoder)
                 .build())
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CoreException.class);
     }
 
     @Test
