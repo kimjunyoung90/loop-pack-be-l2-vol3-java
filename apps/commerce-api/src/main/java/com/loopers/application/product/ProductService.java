@@ -50,7 +50,7 @@ public class ProductService {
         Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
-        product.update(brandId, command.name(), command.price(), command.stock());
+        product.changeInfo(brandId, command.name(), command.price(), command.stock());
 
         return ProductInfo.from(product);
     }

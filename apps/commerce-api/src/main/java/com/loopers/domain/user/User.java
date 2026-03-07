@@ -38,8 +38,8 @@ public class User extends BaseEntity {
     private User(String loginId, String password, String name, String birthDate, String email, PasswordEncoder passwordEncoder) {
         this.loginId = loginId;
         this.name = name;
-        updateBirthDate(birthDate);
-        updateEmail(email);
+        changeBirthDate(birthDate);
+        changeEmail(email);
         changePassword(password, birthDate, passwordEncoder);
     }
 
@@ -61,14 +61,14 @@ public class User extends BaseEntity {
         this.password = passwordEncoder.encode(password);
     }
 
-    public void updateEmail(String email) {
+    public void changeEmail(String email) {
         if(!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
             throw new CoreException(ErrorType.BAD_REQUEST, "올바른 이메일 형식이 아닙니다.");
         }
         this.email = email;
     }
 
-    public void updateBirthDate(String birthDate) {
+    public void changeBirthDate(String birthDate) {
         try {
             LocalDate.parse(birthDate);
         } catch (DateTimeParseException e) {

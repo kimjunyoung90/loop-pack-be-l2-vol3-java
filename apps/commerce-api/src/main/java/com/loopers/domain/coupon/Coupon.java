@@ -46,7 +46,7 @@ public class Coupon extends BaseEntity {
         this.expiredAt = expiredAt;
     }
 
-    public void modify(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt) {
+    public void changeInfo(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt) {
         validate(name, discountType, discountValue, minOrderAmount, expiredAt);
         this.name = name;
         this.discountType = discountType;

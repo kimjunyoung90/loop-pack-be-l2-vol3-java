@@ -14,7 +14,7 @@ class BrandTest {
                 .build();
 
         // when
-        brand.update("아디다스");
+        brand.changeName("아디다스");
 
         // then
         assertThat(brand.getName()).isEqualTo("아디다스");

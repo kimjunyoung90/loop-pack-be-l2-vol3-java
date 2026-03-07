@@ -50,7 +50,7 @@ public class BrandService {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
-        brand.update(command.name());
+        brand.changeName(command.name());
 
         return BrandInfo.from(brand);
     }

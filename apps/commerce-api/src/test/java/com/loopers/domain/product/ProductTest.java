@@ -17,7 +17,7 @@ class ProductTest {
                 .build();
 
         // when
-        product.update(2L, "슬리퍼", 50000, 30);
+        product.changeInfo(2L, "슬리퍼", 50000, 30);
 
         // then
         assertThat(product.getBrandId()).isEqualTo(2L);

@@ -41,7 +41,7 @@ public class Product extends BaseEntity {
         this.stock = stock;
     }
 
-    public void update(Long brandId, String name, int price, int stock) {
+    public void changeInfo(Long brandId, String name, int price, int stock) {
         if (price <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "상품 가격은 0보다 커야 합니다.");
         }
