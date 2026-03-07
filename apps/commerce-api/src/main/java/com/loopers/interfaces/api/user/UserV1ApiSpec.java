@@ -4,7 +4,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.user.request.PasswordChangeRequest;
 import com.loopers.interfaces.api.user.request.UserCreateRequest;
 import com.loopers.interfaces.api.user.response.UserCreateResponse;
-import com.loopers.interfaces.api.user.response.MyInfoGetResponse;
+import com.loopers.interfaces.api.user.response.MyInfoDetailResponse;
 import com.loopers.support.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +22,7 @@ public interface UserV1ApiSpec {
         summary = "내 정보 조회",
         description = "로그인한 사용자의 정보를 조회합니다."
     )
-    ApiResponse<MyInfoGetResponse> getMyInfo(AuthUser authUser);
+    ApiResponse<MyInfoDetailResponse> getMyInfo(AuthUser authUser);
 
     @Operation(
         summary = "비밀번호 변경",

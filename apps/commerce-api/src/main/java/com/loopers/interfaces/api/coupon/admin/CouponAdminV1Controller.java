@@ -8,8 +8,8 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.coupon.admin.request.CouponCreateRequest;
 import com.loopers.interfaces.api.coupon.admin.request.CouponUpdateRequest;
 import com.loopers.interfaces.api.coupon.admin.response.CouponCreateResponse;
-import com.loopers.interfaces.api.coupon.admin.response.CouponGetResponse;
-import com.loopers.interfaces.api.coupon.admin.response.IssuedCouponGetResponse;
+import com.loopers.interfaces.api.coupon.admin.response.CouponDetailResponse;
+import com.loopers.interfaces.api.coupon.admin.response.IssuedCouponListResponse;
 import com.loopers.interfaces.api.coupon.admin.response.CouponUpdateResponse;
 import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
@@ -53,22 +53,22 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<CouponGetResponse>> getCoupons(
+    public ApiResponse<Page<CouponDetailResponse>> getCoupons(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<CouponGetResponse> coupons = couponService.getCoupons(PageRequest.of(page, size))
-                .map(CouponGetResponse::from);
+        Page<CouponDetailResponse> coupons = couponService.getCoupons(PageRequest.of(page, size))
+                .map(CouponDetailResponse::from);
         return ApiResponse.success(coupons);
     }
 
     @GetMapping("/{couponId}")
     @Override
-    public ApiResponse<CouponGetResponse> getCoupon(
+    public ApiResponse<CouponDetailResponse> getCoupon(
             @PathVariable Long couponId
     ) {
         CouponResult couponResult = couponService.getCoupon(couponId);
-        return ApiResponse.success(CouponGetResponse.from(couponResult));
+        return ApiResponse.success(CouponDetailResponse.from(couponResult));
     }
 
     @PutMapping("/{couponId}")
@@ -101,13 +101,13 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @GetMapping("/{couponId}/issues")
     @Override
-    public ApiResponse<Page<IssuedCouponGetResponse>> getIssuedCoupons(
+    public ApiResponse<Page<IssuedCouponListResponse>> getIssuedCoupons(
             @PathVariable Long couponId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<IssuedCouponGetResponse> issuedCoupons = couponService.getUserCouponsByCouponId(couponId, PageRequest.of(page, size))
-                .map(IssuedCouponGetResponse::from);
+        Page<IssuedCouponListResponse> issuedCoupons = couponService.getUserCouponsByCouponId(couponId, PageRequest.of(page, size))
+                .map(IssuedCouponListResponse::from);
         return ApiResponse.success(issuedCoupons);
     }
 }

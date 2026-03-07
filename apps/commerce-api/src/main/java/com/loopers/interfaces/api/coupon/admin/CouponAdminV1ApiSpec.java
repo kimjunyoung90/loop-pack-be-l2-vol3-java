@@ -4,8 +4,8 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.coupon.admin.request.CouponCreateRequest;
 import com.loopers.interfaces.api.coupon.admin.request.CouponUpdateRequest;
 import com.loopers.interfaces.api.coupon.admin.response.CouponCreateResponse;
-import com.loopers.interfaces.api.coupon.admin.response.CouponGetResponse;
-import com.loopers.interfaces.api.coupon.admin.response.IssuedCouponGetResponse;
+import com.loopers.interfaces.api.coupon.admin.response.CouponDetailResponse;
+import com.loopers.interfaces.api.coupon.admin.response.IssuedCouponListResponse;
 import com.loopers.interfaces.api.coupon.admin.response.CouponUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,13 +24,13 @@ public interface CouponAdminV1ApiSpec {
             summary = "쿠폰 목록 조회",
             description = "쿠폰 목록을 페이징하여 조회합니다."
     )
-    ApiResponse<Page<CouponGetResponse>> getCoupons(int page, int size);
+    ApiResponse<Page<CouponDetailResponse>> getCoupons(int page, int size);
 
     @Operation(
             summary = "쿠폰 상세 조회",
             description = "쿠폰 상세 정보를 조회합니다."
     )
-    ApiResponse<CouponGetResponse> getCoupon(Long couponId);
+    ApiResponse<CouponDetailResponse> getCoupon(Long couponId);
 
     @Operation(
             summary = "쿠폰 수정",
@@ -48,5 +48,5 @@ public interface CouponAdminV1ApiSpec {
             summary = "쿠폰 발급 내역 조회",
             description = "특정 쿠폰의 발급 내역을 페이징하여 조회합니다."
     )
-    ApiResponse<Page<IssuedCouponGetResponse>> getIssuedCoupons(Long couponId, int page, int size);
+    ApiResponse<Page<IssuedCouponListResponse>> getIssuedCoupons(Long couponId, int page, int size);
 }

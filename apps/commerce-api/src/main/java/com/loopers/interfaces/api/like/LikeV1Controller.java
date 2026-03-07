@@ -5,7 +5,7 @@ import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.like.LikeService;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.like.response.LikeCreateResponse;
-import com.loopers.interfaces.api.like.response.LikeGetResponse;
+import com.loopers.interfaces.api.like.response.LikeListResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +48,11 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @GetMapping("/products")
     @Override
-    public ApiResponse<Page<LikeGetResponse>> getLikes(
+    public ApiResponse<Page<LikeListResponse>> getLikes(
             @LoginUser AuthUser authUser,
             Pageable pageable
     ) {
         Page<LikeResult> likes = likeService.getLikes(authUser.id(), pageable);
-        return ApiResponse.success(likes.map(LikeGetResponse::from));
+        return ApiResponse.success(likes.map(LikeListResponse::from));
     }
 }

@@ -4,14 +4,14 @@ import com.loopers.application.brand.result.BrandResult;
 
 import java.time.ZonedDateTime;
 
-public record BrandGetResponse(
+public record BrandDetailResponse(
         Long id,
         String name,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static BrandGetResponse from(BrandResult brandResult) {
-        return new BrandGetResponse(
+    public static BrandDetailResponse from(BrandResult brandResult) {
+        return new BrandDetailResponse(
                 brandResult.id(),
                 brandResult.name(),
                 brandResult.createdAt(),

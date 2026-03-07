@@ -6,7 +6,7 @@ import com.loopers.domain.coupon.DiscountType;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
-public record IssuedCouponGetResponse(
+public record IssuedCouponListResponse(
         Long id,
         Long userId,
         Long couponId,
@@ -19,8 +19,8 @@ public record IssuedCouponGetResponse(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static IssuedCouponGetResponse from(UserCouponResult result) {
-        return new IssuedCouponGetResponse(
+    public static IssuedCouponListResponse from(UserCouponResult result) {
+        return new IssuedCouponListResponse(
                 result.id(),
                 result.userId(),
                 result.couponId(),

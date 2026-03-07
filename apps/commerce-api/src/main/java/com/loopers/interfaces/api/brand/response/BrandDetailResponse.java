@@ -2,12 +2,12 @@ package com.loopers.interfaces.api.brand.response;
 
 import com.loopers.application.brand.result.BrandResult;
 
-public record BrandGetResponse(
+public record BrandDetailResponse(
         Long id,
         String name
 ) {
-    public static BrandGetResponse from(BrandResult brandResult) {
-        return new BrandGetResponse(
+    public static BrandDetailResponse from(BrandResult brandResult) {
+        return new BrandDetailResponse(
                 brandResult.id(),
                 brandResult.name()
         );

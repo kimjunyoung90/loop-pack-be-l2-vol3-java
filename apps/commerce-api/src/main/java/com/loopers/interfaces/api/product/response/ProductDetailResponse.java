@@ -1,10 +1,10 @@
-package com.loopers.interfaces.api.product.admin.response;
+package com.loopers.interfaces.api.product.response;
 
 import com.loopers.application.product.result.ProductResult;
 
 import java.time.ZonedDateTime;
 
-public record ProductGetResponse(
+public record ProductDetailResponse(
         Long id,
         Long brandId,
         String name,
@@ -13,8 +13,8 @@ public record ProductGetResponse(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static ProductGetResponse from(ProductResult result) {
-        return new ProductGetResponse(
+    public static ProductDetailResponse from(ProductResult result) {
+        return new ProductDetailResponse(
                 result.id(),
                 result.brandId(),
                 result.name(),

@@ -4,7 +4,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.product.admin.request.ProductCreateRequest;
 import com.loopers.interfaces.api.product.admin.request.ProductUpdateRequest;
 import com.loopers.interfaces.api.product.admin.response.ProductCreateResponse;
-import com.loopers.interfaces.api.product.admin.response.ProductGetResponse;
+import com.loopers.interfaces.api.product.admin.response.ProductDetailResponse;
 import com.loopers.interfaces.api.product.admin.response.ProductUpdateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,13 +23,13 @@ public interface ProductAdminV1ApiSpec {
         summary = "상품 목록 조회",
         description = "상품 목록을 페이징하여 조회합니다."
     )
-    ApiResponse<Page<ProductGetResponse>> getProducts(int page, int size);
+    ApiResponse<Page<ProductDetailResponse>> getProducts(int page, int size);
 
     @Operation(
         summary = "상품 상세 조회",
         description = "상품 상세 정보를 조회합니다."
     )
-    ApiResponse<ProductGetResponse> getProduct(Long productId);
+    ApiResponse<ProductDetailResponse> getProduct(Long productId);
 
     @Operation(
         summary = "상품 수정",

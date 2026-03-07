@@ -3,7 +3,7 @@ package com.loopers.interfaces.api.coupon;
 import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.interfaces.api.ApiResponse;
-import com.loopers.interfaces.api.coupon.response.MyCouponGetResponse;
+import com.loopers.interfaces.api.coupon.response.MyCouponListResponse;
 import com.loopers.interfaces.api.coupon.response.CouponIssueResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
@@ -35,12 +35,12 @@ public class CouponV1Controller implements CouponV1ApiSpec {
 
     @GetMapping("/me")
     @Override
-    public ApiResponse<List<MyCouponGetResponse>> getMyCoupons(
+    public ApiResponse<List<MyCouponListResponse>> getMyCoupons(
             @LoginUser AuthUser authUser
     ) {
         List<UserCouponResult> results = couponService.getUserCoupons(authUser.id());
-        List<MyCouponGetResponse> responses = results.stream()
-                .map(MyCouponGetResponse::from)
+        List<MyCouponListResponse> responses = results.stream()
+                .map(MyCouponListResponse::from)
                 .toList();
         return ApiResponse.success(responses);
     }

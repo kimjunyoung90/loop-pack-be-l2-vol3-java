@@ -4,7 +4,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.order.request.OrderCreateRequest;
 import com.loopers.interfaces.api.order.response.OrderCancelResponse;
 import com.loopers.interfaces.api.order.response.OrderCreateResponse;
-import com.loopers.interfaces.api.order.response.OrderGetResponse;
+import com.loopers.interfaces.api.order.response.OrderDetailResponse;
 import com.loopers.support.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,12 +31,12 @@ public interface OrderV1ApiSpec {
         summary = "주문 상세 조회",
         description = "주문 상세 정보를 조회합니다. 본인의 주문만 조회할 수 있습니다."
     )
-    ApiResponse<OrderGetResponse> getOrder(AuthUser authUser, Long orderId);
+    ApiResponse<OrderDetailResponse> getOrder(AuthUser authUser, Long orderId);
 
     @Operation(
         summary = "주문 목록 조회",
         description = "본인의 주문 목록을 기간별로 조회합니다."
     )
-    ApiResponse<Page<OrderGetResponse>> getOrders(
+    ApiResponse<Page<OrderDetailResponse>> getOrders(
             AuthUser authUser, LocalDate startDate, LocalDate endDate, int page, int size);
 }

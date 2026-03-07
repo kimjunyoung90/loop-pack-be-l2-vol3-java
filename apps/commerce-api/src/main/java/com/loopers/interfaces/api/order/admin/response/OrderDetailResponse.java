@@ -5,7 +5,7 @@ import com.loopers.application.order.result.OrderResult;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public record OrderGetResponse(
+public record OrderDetailResponse(
         Long id,
         Long userId,
         Long userCouponId,
@@ -17,8 +17,8 @@ public record OrderGetResponse(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static OrderGetResponse from(OrderResult result) {
-        return new OrderGetResponse(
+    public static OrderDetailResponse from(OrderResult result) {
+        return new OrderDetailResponse(
                 result.id(),
                 result.userId(),
                 result.userCouponId(),

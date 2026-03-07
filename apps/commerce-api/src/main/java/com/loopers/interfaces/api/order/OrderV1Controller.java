@@ -9,7 +9,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.order.request.OrderCreateRequest;
 import com.loopers.interfaces.api.order.response.OrderCancelResponse;
 import com.loopers.interfaces.api.order.response.OrderCreateResponse;
-import com.loopers.interfaces.api.order.response.OrderGetResponse;
+import com.loopers.interfaces.api.order.response.OrderDetailResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
 import jakarta.validation.Valid;
@@ -60,24 +60,24 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
     @Override
     @GetMapping("/{orderId}")
-    public ApiResponse<OrderGetResponse> getOrder(
+    public ApiResponse<OrderDetailResponse> getOrder(
             @LoginUser AuthUser authUser,
             @PathVariable Long orderId) {
         OrderResult orderResult = orderService.getOrder(authUser.id(), orderId);
-        return ApiResponse.success(OrderGetResponse.from(orderResult));
+        return ApiResponse.success(OrderDetailResponse.from(orderResult));
     }
 
     @Override
     @GetMapping
-    public ApiResponse<Page<OrderGetResponse>> getOrders(
+    public ApiResponse<Page<OrderDetailResponse>> getOrders(
             @LoginUser AuthUser authUser,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Page<OrderGetResponse> orders = orderService.getOrders(
+        Page<OrderDetailResponse> orders = orderService.getOrders(
                         authUser.id(), startDate, endDate, PageRequest.of(page, size))
-                .map(OrderGetResponse::from);
+                .map(OrderDetailResponse::from);
         return ApiResponse.success(orders);
     }
 }

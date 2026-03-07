@@ -9,7 +9,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.brand.admin.request.BrandCreateRequest;
 import com.loopers.interfaces.api.brand.admin.request.BrandUpdateRequest;
 import com.loopers.interfaces.api.brand.admin.response.BrandCreateResponse;
-import com.loopers.interfaces.api.brand.admin.response.BrandGetResponse;
+import com.loopers.interfaces.api.brand.admin.response.BrandDetailResponse;
 import com.loopers.interfaces.api.brand.admin.response.BrandUpdateResponse;
 import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
@@ -38,22 +38,22 @@ public class BrandAdminV1Controller implements BrandAdminV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<BrandGetResponse>> getBrands(
+    public ApiResponse<Page<BrandDetailResponse>> getBrands(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<BrandGetResponse> brands = brandService.getBrands(PageRequest.of(page, size))
-                .map(BrandGetResponse::from);
+        Page<BrandDetailResponse> brands = brandService.getBrands(PageRequest.of(page, size))
+                .map(BrandDetailResponse::from);
         return ApiResponse.success(brands);
     }
 
     @GetMapping("/{brandId}")
     @Override
-    public ApiResponse<BrandGetResponse> getBrand(
+    public ApiResponse<BrandDetailResponse> getBrand(
             @PathVariable Long brandId
     ) {
         BrandResult brandResult = brandService.getBrand(brandId);
-        return ApiResponse.success(BrandGetResponse.from(brandResult));
+        return ApiResponse.success(BrandDetailResponse.from(brandResult));
     }
 
     @PutMapping("/{brandId}")

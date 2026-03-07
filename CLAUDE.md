@@ -37,7 +37,7 @@
 
 ## 4. 계층별 DTO
 - 각 계층은 자신만의 데이터 객체를 정의하고, 변환 책임은 상위 계층(호출하는 쪽)이 갖는다.
-- 매개변수가 3개를 초과하는 경우 DTO를 생성하여 전달한다.
+- 매개변수가 3개 이상인 경우 DTO를 생성하여 전달한다.
 - DTO는 record를 사용하여 불변성을 유지한다.
 
 | 계층           | 입력      | 출력       | 네이밍 패턴 | 예시 |
@@ -45,6 +45,16 @@
 | interface      | `Request` | `Response` | `{Domain}{Action}Request/Response` | `BrandCreateRequest`, `BrandCreateResponse` |
 | application    | `Command` | `Result`   | `{Domain}{Action}Command/Result` | `BrandCreateCommand`, `BrandCreateResult` |
 | infrastructure | `Dto`     | `Domain`   | - | - |
+
+### 조회 DTO 네이밍
+조회 관련 DTO는 행위(`Get`) 대신 용도를 드러내는 이름을 사용한다.
+
+| 구분 | Presentation (Client ↔ Ctrl) | Application (Ctrl ↔ Service) |
+|------|------------------------------|------------------------------|
+| 단건 상세 조회 | `{Domain}DetailResponse` | `{Domain}Result` |
+| 목록/검색 조회 | `{Domain}ListResponse` | `{Domain}Result` |
+
+- 단건과 목록이 동일한 필드를 사용하는 경우 `DetailResponse` 하나로 유지하고, 실제로 분화가 필요한 시점에 `ListResponse`로 분리한다.
 
 - 변환 메서드는 수신 객체에 `static from()` 또는 `toXxx()`로 정의한다.
 

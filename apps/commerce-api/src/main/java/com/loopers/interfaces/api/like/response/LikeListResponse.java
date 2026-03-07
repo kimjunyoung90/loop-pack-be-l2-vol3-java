@@ -4,14 +4,14 @@ import com.loopers.application.like.result.LikeResult;
 
 import java.time.ZonedDateTime;
 
-public record LikeGetResponse(
+public record LikeListResponse(
         Long id,
         Long userId,
         Long productId,
         ZonedDateTime createdAt
 ) {
-    public static LikeGetResponse from(LikeResult result) {
-        return new LikeGetResponse(
+    public static LikeListResponse from(LikeResult result) {
+        return new LikeListResponse(
                 result.id(),
                 result.userId(),
                 result.productId(),

@@ -9,7 +9,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.product.admin.request.ProductCreateRequest;
 import com.loopers.interfaces.api.product.admin.request.ProductUpdateRequest;
 import com.loopers.interfaces.api.product.admin.response.ProductCreateResponse;
-import com.loopers.interfaces.api.product.admin.response.ProductGetResponse;
+import com.loopers.interfaces.api.product.admin.response.ProductDetailResponse;
 import com.loopers.interfaces.api.product.admin.response.ProductUpdateResponse;
 import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
@@ -40,22 +40,22 @@ public class ProductAdminV1Controller implements ProductAdminV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<ProductGetResponse>> getProducts(
+    public ApiResponse<Page<ProductDetailResponse>> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<ProductGetResponse> products = productService.getProducts(PageRequest.of(page, size))
-                .map(ProductGetResponse::from);
+        Page<ProductDetailResponse> products = productService.getProducts(PageRequest.of(page, size))
+                .map(ProductDetailResponse::from);
         return ApiResponse.success(products);
     }
 
     @GetMapping("/{productId}")
     @Override
-    public ApiResponse<ProductGetResponse> getProduct(
+    public ApiResponse<ProductDetailResponse> getProduct(
             @PathVariable Long productId
     ) {
         ProductResult productResult = productService.getProduct(productId);
-        return ApiResponse.success(ProductGetResponse.from(productResult));
+        return ApiResponse.success(ProductDetailResponse.from(productResult));
     }
 
     @PutMapping("/{productId}")

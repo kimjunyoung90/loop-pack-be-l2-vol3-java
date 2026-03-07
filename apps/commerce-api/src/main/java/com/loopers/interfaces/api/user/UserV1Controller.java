@@ -7,7 +7,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.user.request.PasswordChangeRequest;
 import com.loopers.interfaces.api.user.request.UserCreateRequest;
 import com.loopers.interfaces.api.user.response.UserCreateResponse;
-import com.loopers.interfaces.api.user.response.MyInfoGetResponse;
+import com.loopers.interfaces.api.user.response.MyInfoDetailResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
 import jakarta.validation.Valid;
@@ -33,11 +33,11 @@ public class UserV1Controller implements UserV1ApiSpec {
 
     @GetMapping("/me")
     @Override
-    public ApiResponse<MyInfoGetResponse> getMyInfo(
+    public ApiResponse<MyInfoDetailResponse> getMyInfo(
             @LoginUser AuthUser authUser
     ) {
         UserResult userResult = userService.getMyInfo(authUser.loginId());
-        return ApiResponse.success(MyInfoGetResponse.from(userResult));
+        return ApiResponse.success(MyInfoDetailResponse.from(userResult));
     }
 
     @PatchMapping("/password")
