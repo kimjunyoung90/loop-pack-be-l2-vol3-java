@@ -94,7 +94,7 @@ class CouponServiceTest {
     @Test
     void 존재하지_않는_사용자_쿠폰_사용_시_예외가_발생한다() {
         // given
-        given(userCouponRepository.findByIdWithLock(1L)).willReturn(Optional.empty());
+        given(userCouponRepository.findByIdWithLockAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.useCoupon(1L, 1L, 50000))
@@ -105,7 +105,7 @@ class CouponServiceTest {
     @Test
     void 존재하지_않는_사용자_쿠폰_복원_시_예외가_발생한다() {
         // given
-        given(userCouponRepository.findById(1L)).willReturn(Optional.empty());
+        given(userCouponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.restoreCoupon(1L))

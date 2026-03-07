@@ -79,7 +79,7 @@ public class CouponService {
 
 	@Transactional
 	public int useCoupon(Long userCouponId, Long userId, int totalAmount) {
-		UserCoupon userCoupon = userCouponRepository.findByIdWithLock(userCouponId)
+		UserCoupon userCoupon = userCouponRepository.findByIdWithLockAndDeletedAtIsNull(userCouponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
 		userCoupon.validateUsable(userId, totalAmount);
 		userCoupon.use();
@@ -88,7 +88,7 @@ public class CouponService {
 
 	@Transactional
 	public void restoreCoupon(Long userCouponId) {
-		UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
+		UserCoupon userCoupon = userCouponRepository.findByIdAndDeletedAtIsNull(userCouponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
 		userCoupon.restore();
 	}

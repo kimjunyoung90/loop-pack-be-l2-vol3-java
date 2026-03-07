@@ -22,13 +22,13 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     }
 
     @Override
-    public Optional<UserCoupon> findById(Long id) {
-        return userCouponJpaRepository.findById(id);
+    public Optional<UserCoupon> findByIdAndDeletedAtIsNull(Long id) {
+        return userCouponJpaRepository.findByIdAndDeletedAtIsNull(id);
     }
 
     @Override
-    public Optional<UserCoupon> findByIdWithLock(Long id) {
-        return userCouponJpaRepository.findByIdWithLock(id);
+    public Optional<UserCoupon> findByIdWithLockAndDeletedAtIsNull(Long id) {
+        return userCouponJpaRepository.findByIdWithLockAndDeletedAtIsNull(id);
     }
 
     @Override

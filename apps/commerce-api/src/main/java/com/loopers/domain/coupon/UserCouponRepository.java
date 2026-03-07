@@ -10,9 +10,9 @@ public interface UserCouponRepository {
 
     UserCoupon save(UserCoupon userCoupon);
 
-    Optional<UserCoupon> findById(Long id);
+    Optional<UserCoupon> findByIdAndDeletedAtIsNull(Long id);
 
-    Optional<UserCoupon> findByIdWithLock(Long id);
+    Optional<UserCoupon> findByIdWithLockAndDeletedAtIsNull(Long id);
 
     List<UserCoupon> findAllByUserIdAndDeletedAtIsNull(Long userId);
 
