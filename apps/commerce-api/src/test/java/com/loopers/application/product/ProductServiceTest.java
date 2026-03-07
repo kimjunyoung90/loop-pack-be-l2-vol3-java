@@ -27,7 +27,7 @@ class ProductServiceTest {
     @Test
     void 존재하지_않는_상품_조회_시_예외가_발생한다() {
         // given
-        given(productRepository.findById(1L)).willReturn(Optional.empty());
+        given(productRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> productService.getProduct(1L))
@@ -38,7 +38,7 @@ class ProductServiceTest {
     @Test
     void 존재하지_않는_상품_수정_시_예외가_발생한다() {
         // given
-        given(productRepository.findById(1L)).willReturn(Optional.empty());
+        given(productRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
         UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
 
         // when & then
@@ -50,7 +50,7 @@ class ProductServiceTest {
     @Test
     void 존재하지_않는_상품_삭제_시_예외가_발생한다() {
         // given
-        given(productRepository.findById(1L)).willReturn(Optional.empty());
+        given(productRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> productService.deleteProduct(1L))

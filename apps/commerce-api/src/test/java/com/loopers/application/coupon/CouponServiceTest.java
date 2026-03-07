@@ -34,7 +34,7 @@ class CouponServiceTest {
     @Test
     void 쿠폰_조회_시_쿠폰이_존재하지_않으면_NOT_FOUND_예외가_발생한다() {
         // given
-        given(couponRepository.findById(1L)).willReturn(Optional.empty());
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.getCoupon(1L))
@@ -44,7 +44,7 @@ class CouponServiceTest {
     @Test
     void 존재하지_않는_쿠폰_수정_시_NOT_FOUND_예외가_발생한다() {
         // given
-        given(couponRepository.findById(1L)).willReturn(Optional.empty());
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
         UpdateCouponCommand command = new UpdateCouponCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
 
         // when & then
@@ -55,7 +55,7 @@ class CouponServiceTest {
     @Test
     void 존재하지_않는_쿠폰_삭제_시_NOT_FOUND_예외가_발생한다() {
         // given
-        given(couponRepository.findById(1L)).willReturn(Optional.empty());
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.deleteCoupon(1L))
@@ -65,7 +65,7 @@ class CouponServiceTest {
     @Test
     void 존재하지_않는_쿠폰_발급_시_예외가_발생한다() {
         // given
-        given(couponRepository.findById(1L)).willReturn(Optional.empty());
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.issueCoupon(1L, 1L))
@@ -82,7 +82,7 @@ class CouponServiceTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build();
-        given(couponRepository.findById(1L)).willReturn(Optional.of(coupon));
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(coupon));
         given(userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(1L, 1L)).willReturn(true);
 
         // when & then

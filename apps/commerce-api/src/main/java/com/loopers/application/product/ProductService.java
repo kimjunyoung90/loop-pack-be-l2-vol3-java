@@ -33,13 +33,13 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductInfo> getProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
+        return productRepository.findAllByDeletedAtIsNull(pageable)
                 .map(ProductInfo::from);
     }
 
     @Transactional(readOnly = true)
     public ProductInfo getProduct(Long productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         return ProductInfo.from(product);
@@ -47,7 +47,7 @@ public class ProductService {
 
     @Transactional
     public ProductInfo updateProduct(Long productId, Long brandId, UpdateProductCommand command) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         product.update(brandId, command.name(), command.price(), command.stock());
@@ -65,7 +65,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<Product> findProductsByBrandId(Long brandId) {
-        return productRepository.findAllByBrandId(brandId);
+        return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId);
     }
 
     @Transactional
@@ -78,7 +78,7 @@ public class ProductService {
     public ProductInfo deductStock(Long productId, int quantity) {
         int updatedCount = productRepository.deductStock(productId, quantity);
 
-		Product product = productRepository.findById(productId)
+		Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
 		if (updatedCount == 0) {
@@ -98,7 +98,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Product findProduct(Long productId) {
-        return productRepository.findById(productId)
+        return productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
     }
 

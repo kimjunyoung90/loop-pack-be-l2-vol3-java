@@ -22,11 +22,16 @@ public class CouponRepositoryImpl implements CouponRepository {
 
     @Override
     public Optional<Coupon> findById(Long id) {
+        return couponJpaRepository.findById(id);
+    }
+
+    @Override
+    public Optional<Coupon> findByIdAndDeletedAtIsNull(Long id) {
         return couponJpaRepository.findByIdAndDeletedAtIsNull(id);
     }
 
     @Override
-    public Page<Coupon> findAll(Pageable pageable) {
+    public Page<Coupon> findAllByDeletedAtIsNull(Pageable pageable) {
         return couponJpaRepository.findAllByDeletedAtIsNull(pageable);
     }
 }

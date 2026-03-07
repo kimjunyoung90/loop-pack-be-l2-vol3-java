@@ -7,11 +7,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository {
-    Page<Product> findAll(Pageable pageable);
+    Page<Product> findAllByDeletedAtIsNull(Pageable pageable);
 
     List<Product> findAllByBrandId(Long brandId);
 
+    List<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId);
+
     Optional<Product> findById(Long productId);
+
+    Optional<Product> findByIdAndDeletedAtIsNull(Long productId);
 
     int deductStock(Long productId, int quantity);
 

@@ -27,13 +27,13 @@ public class BrandService {
 
     @Transactional(readOnly = true)
     public Brand findBrand(Long brandId) {
-        return brandRepository.findById(brandId)
+        return brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
     }
 
     @Transactional(readOnly = true)
     public BrandInfo getBrand(Long brandId) {
-        Brand brand = brandRepository.findById(brandId)
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
         return BrandInfo.from(brand);
@@ -41,13 +41,13 @@ public class BrandService {
 
     @Transactional(readOnly = true)
     public Page<BrandInfo> getBrands(Pageable pageable) {
-        return brandRepository.findAll(pageable)
+        return brandRepository.findAllByDeletedAtIsNull(pageable)
                 .map(BrandInfo::from);
     }
 
     @Transactional
     public BrandInfo updateBrand(Long brandId, UpdateBrandCommand command) {
-        Brand brand = brandRepository.findById(brandId)
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
         brand.update(command.name());

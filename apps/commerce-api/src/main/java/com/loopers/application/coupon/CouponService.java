@@ -36,7 +36,7 @@ public class CouponService {
 
 	@Transactional(readOnly = true)
 	public CouponInfo getCoupon(Long couponId) {
-		Coupon coupon = couponRepository.findById(couponId)
+		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
 		return CouponInfo.from(coupon);
@@ -44,13 +44,13 @@ public class CouponService {
 
 	@Transactional(readOnly = true)
 	public Page<CouponInfo> getCoupons(Pageable pageable) {
-		return couponRepository.findAll(pageable)
+		return couponRepository.findAllByDeletedAtIsNull(pageable)
 				.map(CouponInfo::from);
 	}
 
 	@Transactional
 	public CouponInfo updateCoupon(Long couponId, UpdateCouponCommand command) {
-		Coupon coupon = couponRepository.findById(couponId)
+		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
 		coupon.modify(
@@ -66,7 +66,7 @@ public class CouponService {
 
 	@Transactional
 	public UserCouponInfo issueCoupon(Long userId, Long couponId) {
-		Coupon coupon = couponRepository.findById(couponId)
+		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
 		if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
