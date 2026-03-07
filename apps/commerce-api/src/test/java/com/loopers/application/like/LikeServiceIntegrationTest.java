@@ -34,20 +34,20 @@ class LikeServiceIntegrationTest {
     @Autowired
     private ProductService productService;
 
-    private ProductResult createProduct() {
-        BrandResult brand = brandService.createBrand(new BrandCreateCommand("나이키"));
-        return productService.createProduct(brand.id(),
+    private ProductResult registerProduct() {
+        BrandResult brand = brandService.registerBrand(new BrandCreateCommand("나이키"));
+        return productService.registerProduct(brand.id(),
                 new ProductCreateCommand(brand.id(), "운동화", 50000, 10));
     }
 
     @Test
     void 좋아요_등록_조회_취소_전체_흐름을_검증한다() {
         // given
-        ProductResult product = createProduct();
+        ProductResult product = registerProduct();
         Long userId = 1L;
 
         // 등록
-        LikeResult created = likeService.createLike(userId, product.id());
+        LikeResult created = likeService.like(userId, product.id());
         assertThat(created.id()).isNotNull();
         assertThat(created.userId()).isEqualTo(userId);
         assertThat(created.productId()).isEqualTo(product.id());
@@ -58,7 +58,7 @@ class LikeServiceIntegrationTest {
         assertThat(likes.getContent().getFirst().productId()).isEqualTo(product.id());
 
         // 취소
-        likeService.deleteLike(userId, product.id());
+        likeService.unlike(userId, product.id());
 
         // 취소 후 목록 조회
         Page<LikeResult> afterDelete = likeService.getLikes(userId, PageRequest.of(0, 20));
@@ -78,19 +78,19 @@ class LikeServiceIntegrationTest {
     @Test
     void 이미_좋아요한_상품에_다시_좋아요하면_예외가_발생한다() {
         // given
-        ProductResult product = createProduct();
+        ProductResult product = registerProduct();
         Long userId = 1L;
-        likeService.createLike(userId, product.id());
+        likeService.like(userId, product.id());
 
         // when & then
-        assertThatThrownBy(() -> likeService.createLike(userId, product.id()))
+        assertThatThrownBy(() -> likeService.like(userId, product.id()))
                 .isInstanceOf(CoreException.class);
     }
 
     @Test
     void 좋아요하지_않은_상품의_좋아요를_취소하면_예외가_발생한다() {
         // when & then
-        assertThatThrownBy(() -> likeService.deleteLike(1L, 999L))
+        assertThatThrownBy(() -> likeService.unlike(1L, 999L))
                 .isInstanceOf(CoreException.class);
     }
 }

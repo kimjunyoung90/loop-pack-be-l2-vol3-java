@@ -20,7 +20,7 @@ public class BrandService {
     private final BrandRepository brandRepository;
 
     @Transactional
-    public BrandResult createBrand(BrandCreateCommand command) {
+    public BrandResult registerBrand(BrandCreateCommand command) {
         Brand brand = Brand.builder()
                 .name(command.name())
                 .build();
@@ -48,7 +48,7 @@ public class BrandService {
     }
 
     @Transactional
-    public BrandResult updateBrand(Long brandId, BrandUpdateCommand command) {
+    public BrandResult modifyBrand(Long brandId, BrandUpdateCommand command) {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 

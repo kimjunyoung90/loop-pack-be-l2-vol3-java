@@ -17,7 +17,7 @@ public interface ProductAdminV1ApiSpec {
         summary = "상품 등록",
         description = "새로운 상품을 등록합니다."
     )
-    ApiResponse<ProductCreateResponse> createProduct(ProductCreateRequest request);
+    ApiResponse<ProductCreateResponse> registerProduct(ProductCreateRequest request);
 
     @Operation(
         summary = "상품 목록 조회",
@@ -35,7 +35,7 @@ public interface ProductAdminV1ApiSpec {
         summary = "상품 수정",
         description = "상품 정보를 수정합니다."
     )
-    ApiResponse<ProductUpdateResponse> updateProduct(Long productId, ProductUpdateRequest request);
+    ApiResponse<ProductUpdateResponse> modifyProduct(Long productId, ProductUpdateRequest request);
 
     @Operation(
         summary = "상품 삭제",

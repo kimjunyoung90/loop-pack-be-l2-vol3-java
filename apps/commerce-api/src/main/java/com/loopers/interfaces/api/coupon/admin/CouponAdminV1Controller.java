@@ -73,11 +73,11 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @PutMapping("/{couponId}")
     @Override
-    public ApiResponse<CouponUpdateResponse> updateCoupon(
+    public ApiResponse<CouponUpdateResponse> modifyCoupon(
             @PathVariable Long couponId,
             @Valid @RequestBody CouponUpdateRequest request
     ) {
-        CouponResult couponResult = couponService.updateCoupon(
+        CouponResult couponResult = couponService.modifyCoupon(
                 couponId,
                 new CouponUpdateCommand(
                         request.name(),

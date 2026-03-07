@@ -20,19 +20,19 @@ public class ProductFacade {
     private final LikeService likeService;
 
     @Transactional
-    public ProductResult createProduct(ProductCreateCommand command) {
+    public ProductResult registerProduct(ProductCreateCommand command) {
         if (!brandService.existsBrandById(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }
-        return productService.createProduct(command.brandId(), command);
+        return productService.registerProduct(command.brandId(), command);
     }
 
     @Transactional
-    public ProductResult updateProduct(Long productId, ProductUpdateCommand command) {
+    public ProductResult modifyProduct(Long productId, ProductUpdateCommand command) {
         if (!brandService.existsBrandById(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }
-        return productService.updateProduct(productId, command.brandId(), command);
+        return productService.modifyProduct(productId, command.brandId(), command);
     }
 
     @Transactional

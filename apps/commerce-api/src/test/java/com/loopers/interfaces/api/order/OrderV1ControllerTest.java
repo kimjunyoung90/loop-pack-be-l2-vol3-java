@@ -70,7 +70,7 @@ class OrderV1ControllerTest {
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
         given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
-        given(orderFacade.createOrder(any())).willReturn(orderResult);
+        given(orderFacade.placeOrder(any())).willReturn(orderResult);
 
         Map<String, Object> request = Map.of(
                 "orderItems", List.of(Map.of("productId", 1, "quantity", 2))

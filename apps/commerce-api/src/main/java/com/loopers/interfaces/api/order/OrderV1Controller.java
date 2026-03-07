@@ -30,7 +30,7 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
     @Override
     @PostMapping
-    public ApiResponse<OrderCreateResponse> createOrder(
+    public ApiResponse<OrderCreateResponse> placeOrder(
             @LoginUser AuthUser authUser,
             @Valid @RequestBody OrderCreateRequest request) {
         OrderCreateCommand command = new OrderCreateCommand(
@@ -44,7 +44,7 @@ public class OrderV1Controller implements OrderV1ApiSpec {
                         .toList()
         );
 
-        OrderResult orderResult = orderFacade.createOrder(command);
+        OrderResult orderResult = orderFacade.placeOrder(command);
         return ApiResponse.success(OrderCreateResponse.from(orderResult));
     }
 

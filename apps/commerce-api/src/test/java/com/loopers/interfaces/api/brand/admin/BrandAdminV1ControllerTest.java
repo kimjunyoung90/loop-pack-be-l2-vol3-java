@@ -56,7 +56,7 @@ class BrandAdminV1ControllerTest {
     void 브랜드_등록_시_200_OK와_생성된_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        given(brandService.createBrand(any())).willReturn(new BrandResult(1L, "나이키", now, now));
+        given(brandService.registerBrand(any())).willReturn(new BrandResult(1L, "나이키", now, now));
 
         BrandCreateRequest request = new BrandCreateRequest("나이키");
 
@@ -140,7 +140,7 @@ class BrandAdminV1ControllerTest {
     void 브랜드_수정_시_200_OK와_수정된_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        given(brandService.updateBrand(eq(1L), any())).willReturn(new BrandResult(1L, "아디다스", now, now));
+        given(brandService.modifyBrand(eq(1L), any())).willReturn(new BrandResult(1L, "아디다스", now, now));
 
         BrandUpdateRequest request = new BrandUpdateRequest("아디다스");
 

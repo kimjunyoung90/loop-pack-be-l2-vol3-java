@@ -28,21 +28,21 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @PostMapping("/products/{productId}")
     @Override
-    public ApiResponse<LikeCreateResponse> createLike(
+    public ApiResponse<LikeCreateResponse> like(
             @LoginUser AuthUser authUser,
             @PathVariable Long productId
     ) {
-        LikeResult likeResult = likeFacade.createLike(authUser.id(), productId);
+        LikeResult likeResult = likeFacade.like(authUser.id(), productId);
         return ApiResponse.success(LikeCreateResponse.from(likeResult));
     }
 
     @DeleteMapping("/products/{productId}")
     @Override
-    public ApiResponse<Void> deleteLike(
+    public ApiResponse<Void> unlike(
             @LoginUser AuthUser authUser,
             @PathVariable Long productId
     ) {
-        likeService.deleteLike(authUser.id(), productId);
+        likeService.unlike(authUser.id(), productId);
         return ApiResponse.success(null);
     }
 

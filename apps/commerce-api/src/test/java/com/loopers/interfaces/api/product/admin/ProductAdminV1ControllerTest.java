@@ -56,7 +56,7 @@ class ProductAdminV1ControllerTest {
     void 상품_등록_시_200_OK와_생성된_상품_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        given(productFacade.createProduct(any())).willReturn(
+        given(productFacade.registerProduct(any())).willReturn(
                 new ProductResult(1L, 1L, "운동화", 100000, 50, now, now)
         );
 
@@ -151,7 +151,7 @@ class ProductAdminV1ControllerTest {
     void 상품_수정_시_200_OK와_수정된_상품_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        given(productFacade.updateProduct(eq(1L), any())).willReturn(
+        given(productFacade.modifyProduct(eq(1L), any())).willReturn(
                 new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now)
         );
 

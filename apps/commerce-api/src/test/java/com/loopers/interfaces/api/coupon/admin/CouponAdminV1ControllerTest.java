@@ -171,7 +171,7 @@ class CouponAdminV1ControllerTest {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
         CouponResult couponResult = new CouponResult(1L, "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, null, null);
-        given(couponService.updateCoupon(any(), any())).willReturn(couponResult);
+        given(couponService.modifyCoupon(any(), any())).willReturn(couponResult);
 
         CouponUpdateRequest request = new CouponUpdateRequest(
                 "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt

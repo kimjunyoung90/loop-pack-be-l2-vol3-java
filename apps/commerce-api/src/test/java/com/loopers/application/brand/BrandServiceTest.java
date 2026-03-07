@@ -43,7 +43,7 @@ class BrandServiceTest {
         BrandUpdateCommand command = new BrandUpdateCommand("아디다스");
 
         // when & then
-        assertThatThrownBy(() -> brandService.updateBrand(1L, command))
+        assertThatThrownBy(() -> brandService.modifyBrand(1L, command))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
     }

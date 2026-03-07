@@ -16,7 +16,7 @@ public interface LikeV1ApiSpec {
             summary = "좋아요 등록",
             description = "상품에 좋아요를 등록합니다."
     )
-    ApiResponse<LikeCreateResponse> createLike(
+    ApiResponse<LikeCreateResponse> like(
             AuthUser authUser,
             Long productId
     );
@@ -25,7 +25,7 @@ public interface LikeV1ApiSpec {
             summary = "좋아요 취소",
             description = "상품의 좋아요를 취소합니다."
     )
-    ApiResponse<Void> deleteLike(
+    ApiResponse<Void> unlike(
             AuthUser authUser,
             Long productId
     );

@@ -53,7 +53,7 @@ public class CouponService {
 	}
 
 	@Transactional
-	public CouponResult updateCoupon(Long couponId, CouponUpdateCommand command) {
+	public CouponResult modifyCoupon(Long couponId, CouponUpdateCommand command) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 

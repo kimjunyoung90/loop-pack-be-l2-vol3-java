@@ -59,16 +59,16 @@ class OrderFacadeIntegrationTest {
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
-        ProductResult productResult1 = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
-        ProductResult productResult2 = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", 30000, 5));
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
+        ProductResult productResult1 = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
+        ProductResult productResult2 = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", 30000, 5));
 
         // 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
                 new OrderCreateCommand.OrderItem(productResult1.id(), 2),
                 new OrderCreateCommand.OrderItem(productResult2.id(), 1)
         ));
-        OrderResult result = orderFacade.createOrder(command);
+        OrderResult result = orderFacade.placeOrder(command);
 
         // 주문 정보 검증
         assertThat(result.id()).isNotNull();
@@ -90,8 +90,8 @@ class OrderFacadeIntegrationTest {
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록 (재고 2개)
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
-        ProductResult productResult = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 2));
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
+        ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 2));
 
         // 재고 초과 주문
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
@@ -99,7 +99,7 @@ class OrderFacadeIntegrationTest {
         ));
 
         // 주문 실패 검증
-        assertThatThrownBy(() -> orderFacade.createOrder(command))
+        assertThatThrownBy(() -> orderFacade.placeOrder(command))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -110,14 +110,14 @@ class OrderFacadeIntegrationTest {
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
-        ProductResult productResult = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
+        ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
 
         // 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
                 new OrderCreateCommand.OrderItem(productResult.id(), 2)
         ));
-        OrderResult orderResult = orderFacade.createOrder(command);
+        OrderResult orderResult = orderFacade.placeOrder(command);
 
         // 재고 차감 확인
         Product deductedProduct = productService.findProduct(productResult.id());
@@ -141,11 +141,11 @@ class OrderFacadeIntegrationTest {
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
         int productPrice = 50000;
         int orderQuantity = 2;
         int initialStock = 10;
-        ProductResult productResult = productService.createProduct(brandResult.id(),
+        ProductResult productResult = productService.registerProduct(brandResult.id(),
                 new ProductCreateCommand(brandResult.id(), "운동화", productPrice, initialStock));
 
         // 쿠폰 생성 + 발급
@@ -159,7 +159,7 @@ class OrderFacadeIntegrationTest {
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
                 new OrderCreateCommand.OrderItem(productResult.id(), orderQuantity)
         ));
-        OrderResult result = orderFacade.createOrder(command);
+        OrderResult result = orderFacade.placeOrder(command);
 
         // 할인 금액 및 최종 결제 금액 검증
         assertThat(result.totalAmount()).isEqualTo(expectedTotalAmount);
@@ -184,10 +184,10 @@ class OrderFacadeIntegrationTest {
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
         int initialStock = 10;
         int orderQuantity = 2;
-        ProductResult productResult = productService.createProduct(brandResult.id(),
+        ProductResult productResult = productService.registerProduct(brandResult.id(),
                 new ProductCreateCommand(brandResult.id(), "운동화", 50000, initialStock));
 
         // 쿠폰 생성 + 발급
@@ -199,7 +199,7 @@ class OrderFacadeIntegrationTest {
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
                 new OrderCreateCommand.OrderItem(productResult.id(), orderQuantity)
         ));
-        OrderResult orderResult = orderFacade.createOrder(command);
+        OrderResult orderResult = orderFacade.placeOrder(command);
 
         // 쿠폰 사용 상태 확인
         UserCouponResult couponBeforeCancel = couponService.getUserCoupons(userResult.id()).stream()

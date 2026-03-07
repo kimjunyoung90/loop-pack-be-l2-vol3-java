@@ -14,8 +14,8 @@ public class LikeFacade {
     private final ProductService productService;
 
     @Transactional
-    public LikeResult createLike(Long userId, Long productId) {
+    public LikeResult like(Long userId, Long productId) {
         productService.findProduct(productId);
-        return likeService.createLike(userId, productId);
+        return likeService.like(userId, productId);
     }
 }

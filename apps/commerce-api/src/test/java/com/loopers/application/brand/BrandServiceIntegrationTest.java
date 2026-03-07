@@ -32,7 +32,7 @@ class BrandServiceIntegrationTest {
     void 브랜드_등록_조회_수정_삭제_전체_흐름을_검증한다() {
         // 등록
         BrandCreateCommand createCommand = new BrandCreateCommand("나이키");
-        BrandResult created = brandService.createBrand(createCommand);
+        BrandResult created = brandService.registerBrand(createCommand);
         assertThat(created.name()).isEqualTo("나이키");
         assertThat(created.id()).isNotNull();
 
@@ -42,7 +42,7 @@ class BrandServiceIntegrationTest {
 
         // 수정
         BrandUpdateCommand updateCommand = new BrandUpdateCommand("아디다스");
-        BrandResult updated = brandService.updateBrand(created.id(), updateCommand);
+        BrandResult updated = brandService.modifyBrand(created.id(), updateCommand);
         assertThat(updated.name()).isEqualTo("아디다스");
 
         // 삭제
@@ -56,8 +56,8 @@ class BrandServiceIntegrationTest {
     @Test
     void 삭제된_브랜드는_목록에서_제외된다() {
         // given
-        BrandResult brand1 = brandService.createBrand(new BrandCreateCommand("나이키"));
-        BrandResult brand2 = brandService.createBrand(new BrandCreateCommand("아디다스"));
+        BrandResult brand1 = brandService.registerBrand(new BrandCreateCommand("나이키"));
+        BrandResult brand2 = brandService.registerBrand(new BrandCreateCommand("아디다스"));
         brandService.deleteBrand(brand1.id());
 
         // when

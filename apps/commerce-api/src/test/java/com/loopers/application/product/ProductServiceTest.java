@@ -43,7 +43,7 @@ class ProductServiceTest {
         ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", 50000, 30);
 
         // when & then
-        assertThatThrownBy(() -> productService.updateProduct(1L, 2L, command))
+        assertThatThrownBy(() -> productService.modifyProduct(1L, 2L, command))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
     }

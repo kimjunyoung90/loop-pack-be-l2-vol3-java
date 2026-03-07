@@ -23,7 +23,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderResult createOrder(Long userId, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
+    public OrderResult placeOrder(Long userId, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
         Order order = Order.builder()
                 .userId(userId)
                 .userCouponId(userCouponId)

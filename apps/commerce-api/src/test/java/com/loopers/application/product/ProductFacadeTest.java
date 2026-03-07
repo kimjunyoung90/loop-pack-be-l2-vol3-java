@@ -37,10 +37,10 @@ class ProductFacadeTest {
         ZonedDateTime now = ZonedDateTime.now();
         ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
         given(brandService.existsBrandById(1L)).willReturn(true);
-        given(productService.createProduct(eq(1L), eq(command))).willReturn(expectedResult);
+        given(productService.registerProduct(eq(1L), eq(command))).willReturn(expectedResult);
 
         // when
-        ProductResult result = productFacade.createProduct(command);
+        ProductResult result = productFacade.registerProduct(command);
 
         // then
         assertThat(result.name()).isEqualTo("운동화");
@@ -54,7 +54,7 @@ class ProductFacadeTest {
         given(brandService.existsBrandById(999L)).willReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> productFacade.createProduct(command))
+        assertThatThrownBy(() -> productFacade.registerProduct(command))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -65,10 +65,10 @@ class ProductFacadeTest {
         ZonedDateTime now = ZonedDateTime.now();
         ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now);
         given(brandService.existsBrandById(2L)).willReturn(true);
-        given(productService.updateProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedResult);
+        given(productService.modifyProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedResult);
 
         // when
-        ProductResult result = productFacade.updateProduct(1L, command);
+        ProductResult result = productFacade.modifyProduct(1L, command);
 
         // then
         assertThat(result.name()).isEqualTo("슬리퍼");
@@ -82,7 +82,7 @@ class ProductFacadeTest {
         given(brandService.existsBrandById(999L)).willReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> productFacade.updateProduct(1L, command))
+        assertThatThrownBy(() -> productFacade.modifyProduct(1L, command))
                 .isInstanceOf(CoreException.class);
     }
 }

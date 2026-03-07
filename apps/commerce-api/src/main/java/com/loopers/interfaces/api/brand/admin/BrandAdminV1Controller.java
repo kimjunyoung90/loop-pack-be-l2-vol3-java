@@ -29,10 +29,10 @@ public class BrandAdminV1Controller implements BrandAdminV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<BrandCreateResponse> createBrand(
+    public ApiResponse<BrandCreateResponse> registerBrand(
             @Valid @RequestBody BrandCreateRequest request
     ) {
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand(request.name()));
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand(request.name()));
         return ApiResponse.success(BrandCreateResponse.from(brandResult));
     }
 
@@ -58,11 +58,11 @@ public class BrandAdminV1Controller implements BrandAdminV1ApiSpec {
 
     @PutMapping("/{brandId}")
     @Override
-    public ApiResponse<BrandUpdateResponse> updateBrand(
+    public ApiResponse<BrandUpdateResponse> modifyBrand(
             @PathVariable Long brandId,
             @Valid @RequestBody BrandUpdateRequest request
     ) {
-        BrandResult brandResult = brandService.updateBrand(brandId, new BrandUpdateCommand(request.name()));
+        BrandResult brandResult = brandService.modifyBrand(brandId, new BrandUpdateCommand(request.name()));
         return ApiResponse.success(BrandUpdateResponse.from(brandResult));
     }
 

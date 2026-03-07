@@ -24,7 +24,7 @@ public class OrderFacade {
     private final CouponService couponService;
 
     @Transactional
-    public OrderResult createOrder(OrderCreateCommand command) {
+    public OrderResult placeOrder(OrderCreateCommand command) {
         // 1. 주문 상품의 재고를 차감한다. (productId 오름차순 정렬로 데드락 방지)
         List<OrderCreateCommand.OrderItem> sortedItems = command.orderItems().stream()
                 .sorted(Comparator.comparing(OrderCreateCommand.OrderItem::productId))
@@ -44,7 +44,7 @@ public class OrderFacade {
         }
 
         // 3. 주문을 생성한다.
-        return orderService.createOrder(command.userId(), command.userCouponId(), orderItemCommands, discountAmount);
+        return orderService.placeOrder(command.userId(), command.userCouponId(), orderItemCommands, discountAmount);
     }
 
     @Transactional

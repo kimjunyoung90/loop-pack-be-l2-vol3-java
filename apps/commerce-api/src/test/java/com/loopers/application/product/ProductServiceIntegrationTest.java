@@ -33,11 +33,11 @@ class ProductServiceIntegrationTest {
     @Test
     void 상품_등록_조회_수정_삭제_전체_흐름을_검증한다() {
         // 브랜드 등록
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
 
         // 상품 등록
         ProductCreateCommand createCommand = new ProductCreateCommand(brandResult.id(), "운동화", 100000, 50);
-        ProductResult created = productService.createProduct(brandResult.id(), createCommand);
+        ProductResult created = productService.registerProduct(brandResult.id(), createCommand);
         assertThat(created.name()).isEqualTo("운동화");
         assertThat(created.price()).isEqualTo(100000);
         assertThat(created.stock()).isEqualTo(50);
@@ -48,9 +48,9 @@ class ProductServiceIntegrationTest {
         assertThat(found.name()).isEqualTo("운동화");
 
         // 상품 수정
-        BrandResult brandResult2 = brandService.createBrand(new BrandCreateCommand("아디다스"));
+        BrandResult brandResult2 = brandService.registerBrand(new BrandCreateCommand("아디다스"));
         ProductUpdateCommand updateCommand = new ProductUpdateCommand(brandResult2.id(), "슬리퍼", 50000, 30);
-        ProductResult updated = productService.updateProduct(created.id(), brandResult2.id(), updateCommand);
+        ProductResult updated = productService.modifyProduct(created.id(), brandResult2.id(), updateCommand);
         assertThat(updated.brandId()).isEqualTo(brandResult2.id());
         assertThat(updated.name()).isEqualTo("슬리퍼");
         assertThat(updated.price()).isEqualTo(50000);
@@ -67,10 +67,10 @@ class ProductServiceIntegrationTest {
     @Test
     void 삭제된_상품은_목록에서_제외된다() {
         // given
-        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
-        ProductResult product1 = productService.createProduct(
+        BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
+        ProductResult product1 = productService.registerProduct(
                 brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 100000, 50));
-        ProductResult product2 = productService.createProduct(
+        ProductResult product2 = productService.registerProduct(
                 brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", 50000, 30));
         productService.deleteProduct(product1.id());
 

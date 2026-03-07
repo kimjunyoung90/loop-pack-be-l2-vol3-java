@@ -39,7 +39,7 @@ class LikeServiceTest {
                 .willReturn(Optional.of(existingLike));
 
         // when & then
-        assertThatThrownBy(() -> likeService.createLike(userId, productId))
+        assertThatThrownBy(() -> likeService.like(userId, productId))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.CONFLICT));
     }
@@ -54,7 +54,7 @@ class LikeServiceTest {
                 .willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> likeService.deleteLike(userId, productId))
+        assertThatThrownBy(() -> likeService.unlike(userId, productId))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
     }

@@ -17,7 +17,7 @@ public interface BrandAdminV1ApiSpec {
         summary = "브랜드 등록",
         description = "새로운 브랜드를 등록합니다."
     )
-    ApiResponse<BrandCreateResponse> createBrand(BrandCreateRequest request);
+    ApiResponse<BrandCreateResponse> registerBrand(BrandCreateRequest request);
 
     @Operation(
         summary = "브랜드 목록 조회",
@@ -35,7 +35,7 @@ public interface BrandAdminV1ApiSpec {
         summary = "브랜드 수정",
         description = "브랜드 정보를 수정합니다."
     )
-    ApiResponse<BrandUpdateResponse> updateBrand(Long brandId, BrandUpdateRequest request);
+    ApiResponse<BrandUpdateResponse> modifyBrand(Long brandId, BrandUpdateRequest request);
 
     @Operation(
         summary = "브랜드 삭제",

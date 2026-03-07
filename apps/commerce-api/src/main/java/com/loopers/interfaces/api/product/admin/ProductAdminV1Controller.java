@@ -29,10 +29,10 @@ public class ProductAdminV1Controller implements ProductAdminV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<ProductCreateResponse> createProduct(
+    public ApiResponse<ProductCreateResponse> registerProduct(
             @Valid @RequestBody ProductCreateRequest request
     ) {
-        ProductResult productResult = productFacade.createProduct(
+        ProductResult productResult = productFacade.registerProduct(
                 new ProductCreateCommand(request.brandId(), request.name(), request.price(), request.stock())
         );
         return ApiResponse.success(ProductCreateResponse.from(productResult));
@@ -60,11 +60,11 @@ public class ProductAdminV1Controller implements ProductAdminV1ApiSpec {
 
     @PutMapping("/{productId}")
     @Override
-    public ApiResponse<ProductUpdateResponse> updateProduct(
+    public ApiResponse<ProductUpdateResponse> modifyProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductUpdateRequest request
     ) {
-        ProductResult productResult = productFacade.updateProduct(
+        ProductResult productResult = productFacade.modifyProduct(
                 productId,
                 new ProductUpdateCommand(request.brandId(), request.name(), request.price(), request.stock())
         );

@@ -131,6 +131,7 @@ API DTO와 Application DTO가 올바르게 분리되고 변환되는지 검토�
 | 규칙 | 설명 |
 |---|---|
 | **네이밍** | `docs/design/glossary.md`의 유비쿼터스 언어(영문명)를 기준으로 클래스, 메서드, 변수명을 결정한다. 리뷰 시 반드시 Glossary를 읽고 용어 일치 여부를 검토한다. 클래스 네이밍 패턴: Controller `{Domain}V1Controller`, Service `{Domain}Service`, Repository 인터페이스 `{Domain}Repository`, Repository 구현체 `{Domain}RepositoryImpl`, JPA `{Domain}JpaRepository` |
+| **Service 메서드 네이밍** | 조회는 `get~`으로 통일하고, 변경 행위는 glossary의 유비쿼터스 언어 기반 동사를 사용한다. CRUD 동사(`create`, `update`)가 아닌 비즈니스 동사(`register`, `modify`, `placeOrder` 등)를 사용하는지 확인한다. glossary에 정의되지 않은 행위가 있다면 glossary 추가를 권고한다. |
 | **ApiSpec** | Controller는 `{Domain}V1ApiSpec` 인터페이스를 구현한다 (Swagger 문서화). |
 | **ApiResponse 래핑** | 모든 Controller 응답은 `ApiResponse<T>`로 래핑한다. |
 | **에러 처리** | `CoreException` + `ErrorType` 조합으로 에러를 발생시킨다. |

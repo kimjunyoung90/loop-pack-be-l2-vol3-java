@@ -51,7 +51,7 @@ class CouponServiceIntegrationTest {
         CouponUpdateCommand updateCommand = new CouponUpdateCommand(
                 "수정 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt
         );
-        CouponResult updated = couponService.updateCoupon(created.id(), updateCommand);
+        CouponResult updated = couponService.modifyCoupon(created.id(), updateCommand);
         assertThat(updated.name()).isEqualTo("수정 쿠폰");
         assertThat(updated.discountType()).isEqualTo(DiscountType.RATE);
         assertThat(updated.discountValue()).isEqualTo(10);

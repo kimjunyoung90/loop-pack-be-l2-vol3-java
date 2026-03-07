@@ -59,10 +59,10 @@ class OrderFacadeTest {
         OrderResult expectedResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
                 new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
-        given(orderService.createOrder(eq(1L), any(), anyList(), eq(0))).willReturn(expectedResult);
+        given(orderService.placeOrder(eq(1L), any(), anyList(), eq(0))).willReturn(expectedResult);
 
         // when
-        OrderResult result = orderFacade.createOrder(command);
+        OrderResult result = orderFacade.placeOrder(command);
 
         // then
         assertThat(result.totalAmount()).isEqualTo(100000);
@@ -79,7 +79,7 @@ class OrderFacadeTest {
                 .given(productService).deductStock(999L, 2);
 
         // when & then
-        assertThatThrownBy(() -> orderFacade.createOrder(command))
+        assertThatThrownBy(() -> orderFacade.placeOrder(command))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -93,7 +93,7 @@ class OrderFacadeTest {
                 .given(productService).deductStock(1L, 5);
 
         // when & then
-        assertThatThrownBy(() -> orderFacade.createOrder(command))
+        assertThatThrownBy(() -> orderFacade.placeOrder(command))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -154,10 +154,10 @@ class OrderFacadeTest {
         OrderResult expectedResult = new OrderResult(1L, 1L, 10L, "COMPLETED", 100000, 5000, 95000, List.of(
                 new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
-        given(orderService.createOrder(eq(1L), eq(10L), anyList(), eq(5000))).willReturn(expectedResult);
+        given(orderService.placeOrder(eq(1L), eq(10L), anyList(), eq(5000))).willReturn(expectedResult);
 
         // when
-        OrderResult result = orderFacade.createOrder(command);
+        OrderResult result = orderFacade.placeOrder(command);
 
         // then
         assertThat(result.discountAmount()).isEqualTo(5000);
@@ -179,11 +179,11 @@ class OrderFacadeTest {
                 .given(couponService).useCoupon(10L, 1L, 100000);
 
         // when & then
-        assertThatThrownBy(() -> orderFacade.createOrder(command))
+        assertThatThrownBy(() -> orderFacade.placeOrder(command))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.FORBIDDEN));
 
-        verify(orderService, never()).createOrder(any(), any(), anyList(), anyInt());
+        verify(orderService, never()).placeOrder(any(), any(), anyList(), anyInt());
     }
 
     // --- 쿠폰 적용 주문 취소 테스트 ---

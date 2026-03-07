@@ -49,7 +49,7 @@ class CouponServiceTest {
         CouponUpdateCommand command = new CouponUpdateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
 
         // when & then
-        assertThatThrownBy(() -> couponService.updateCoupon(1L, command))
+        assertThatThrownBy(() -> couponService.modifyCoupon(1L, command))
                 .isInstanceOf(CoreException.class);
     }
 

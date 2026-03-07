@@ -36,7 +36,7 @@ public interface CouponAdminV1ApiSpec {
             summary = "쿠폰 수정",
             description = "쿠폰 정보를 수정합니다."
     )
-    ApiResponse<CouponUpdateResponse> updateCoupon(Long couponId, CouponUpdateRequest request);
+    ApiResponse<CouponUpdateResponse> modifyCoupon(Long couponId, CouponUpdateRequest request);
 
     @Operation(
             summary = "쿠폰 삭제",

@@ -23,7 +23,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public ProductResult createProduct(Long brandId, ProductCreateCommand command) {
+    public ProductResult registerProduct(Long brandId, ProductCreateCommand command) {
         Product product = Product.builder()
                 .brandId(brandId)
                 .name(command.name())
@@ -49,7 +49,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResult updateProduct(Long productId, Long brandId, ProductUpdateCommand command) {
+    public ProductResult modifyProduct(Long productId, Long brandId, ProductUpdateCommand command) {
         Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 

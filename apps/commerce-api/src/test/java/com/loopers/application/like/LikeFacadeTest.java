@@ -45,10 +45,10 @@ class LikeFacadeTest {
         LikeResult expectedResult = new LikeResult(1L, userId, productId, now);
 
         given(productService.findProduct(productId)).willReturn(product);
-        given(likeService.createLike(userId, productId)).willReturn(expectedResult);
+        given(likeService.like(userId, productId)).willReturn(expectedResult);
 
         // when
-        LikeResult result = likeFacade.createLike(userId, productId);
+        LikeResult result = likeFacade.like(userId, productId);
 
         // then
         assertThat(result.userId()).isEqualTo(userId);
@@ -64,7 +64,7 @@ class LikeFacadeTest {
                 .given(productService).findProduct(productId);
 
         // when & then
-        assertThatThrownBy(() -> likeFacade.createLike(userId, productId))
+        assertThatThrownBy(() -> likeFacade.like(userId, productId))
                 .isInstanceOf(CoreException.class);
     }
 }

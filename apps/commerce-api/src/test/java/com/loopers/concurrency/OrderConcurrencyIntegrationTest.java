@@ -57,9 +57,9 @@ class OrderConcurrencyIntegrationTest {
     @Test
     void 동시에_같은_상품을_주문하면_재고가_정확히_차감된다() throws InterruptedException {
         // given
-        BrandResult brand = brandService.createBrand(new BrandCreateCommand("나이키"));
+        BrandResult brand = brandService.registerBrand(new BrandCreateCommand("나이키"));
         int initialStock = 100;
-        ProductResult product = productService.createProduct(brand.id(),
+        ProductResult product = productService.registerProduct(brand.id(),
                 new ProductCreateCommand(brand.id(), "운동화", 50000, initialStock));
 
         int threadCount = 100;
@@ -80,7 +80,7 @@ class OrderConcurrencyIntegrationTest {
                     OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
                             new OrderCreateCommand.OrderItem(product.id(), quantityPerOrder)
                     ));
-                    orderFacade.createOrder(command);
+                    orderFacade.placeOrder(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -110,12 +110,12 @@ class OrderConcurrencyIntegrationTest {
     @Test
     void 여러_상품_주문_시_하나라도_재고가_부족하면_주문이_실패하고_모든_재고가_롤백된다() throws InterruptedException {
         // given
-        BrandResult brand = brandService.createBrand(new BrandCreateCommand("아디다스"));
+        BrandResult brand = brandService.registerBrand(new BrandCreateCommand("아디다스"));
         int productAStock = 100;
         int productBStock = 5;
-        ProductResult productA = productService.createProduct(brand.id(),
+        ProductResult productA = productService.registerProduct(brand.id(),
                 new ProductCreateCommand(brand.id(), "운동화", 50000, productAStock));
-        ProductResult productB = productService.createProduct(brand.id(),
+        ProductResult productB = productService.registerProduct(brand.id(),
                 new ProductCreateCommand(brand.id(), "슬리퍼", 30000, productBStock));
 
         int threadCount = 10;
@@ -136,7 +136,7 @@ class OrderConcurrencyIntegrationTest {
                             new OrderCreateCommand.OrderItem(productA.id(), 1),
                             new OrderCreateCommand.OrderItem(productB.id(), 1)
                     ));
-                    orderFacade.createOrder(command);
+                    orderFacade.placeOrder(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
