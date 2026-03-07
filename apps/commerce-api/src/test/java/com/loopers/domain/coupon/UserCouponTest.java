@@ -43,7 +43,7 @@ class UserCouponTest {
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
 
         // when
-        userCoupon.use();
+        userCoupon.use(1L, 50000);
 
         // then
         assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.USED);
@@ -53,10 +53,10 @@ class UserCouponTest {
     void 이미_사용된_쿠폰을_다시_사용하면_예외가_발생한다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
-        userCoupon.use();
+        userCoupon.use(1L, 50000);
 
         // when & then
-        assertThatThrownBy(userCoupon::use)
+        assertThatThrownBy(() -> userCoupon.use(1L, 50000))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
@@ -67,7 +67,7 @@ class UserCouponTest {
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().minusDays(1));
 
         // when & then
-        assertThatThrownBy(userCoupon::use)
+        assertThatThrownBy(() -> userCoupon.use(1L, 50000))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
         assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.EXPIRED);
@@ -77,7 +77,7 @@ class UserCouponTest {
     void USED_상태의_쿠폰을_복원하면_AVAILABLE_상태가_된다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
-        userCoupon.use();
+        userCoupon.use(1L, 50000);
 
         // when
         userCoupon.restore();
@@ -117,7 +117,7 @@ class UserCouponTest {
     void USED_상태이면_사용_불가능하다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
-        userCoupon.use();
+        userCoupon.use(1L, 50000);
 
         // when & then
         assertThat(userCoupon.isAvailable()).isFalse();
@@ -132,63 +132,39 @@ class UserCouponTest {
         assertThat(userCoupon.isAvailable()).isFalse();
     }
 
-    // --- 쿠폰 사용 가능 여부 검증 테스트 ---
+    // --- 쿠폰 사용 검증 테스트 ---
 
     @Test
-    void 본인_소유가_아닌_쿠폰의_사용_가능_여부_검증_시_FORBIDDEN이_발생한다() {
+    void 본인_소유가_아닌_쿠폰을_사용하면_FORBIDDEN이_발생한다() {
         // given
         Long couponOwnerUserId = 1L;
         Long otherUserId = 999L;
         UserCoupon userCoupon = createUserCoupon(couponOwnerUserId, LocalDate.now().plusDays(7));
 
         // when & then
-        assertThatThrownBy(() -> userCoupon.validateUsable(otherUserId, 50000))
+        assertThatThrownBy(() -> userCoupon.use(otherUserId, 50000))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.FORBIDDEN));
     }
 
     @Test
-    void 이미_사용된_쿠폰의_사용_가능_여부_검증_시_BAD_REQUEST가_발생한다() {
-        // given
-        UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
-        userCoupon.use();
-
-        // when & then
-        assertThatThrownBy(() -> userCoupon.validateUsable(1L, 50000))
-                .isInstanceOf(CoreException.class)
-                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
-    }
-
-    @Test
-    void 만료된_쿠폰의_사용_가능_여부_검증_시_상태가_EXPIRED로_변경되고_BAD_REQUEST가_발생한다() {
-        // given
-        UserCoupon userCoupon = createUserCoupon(LocalDate.now().minusDays(1));
-
-        // when & then
-        assertThatThrownBy(() -> userCoupon.validateUsable(1L, 50000))
-                .isInstanceOf(CoreException.class)
-                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
-        assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.EXPIRED);
-    }
-
-    @Test
-    void 주문_금액이_최소_주문_금액_미만이면_사용_가능_여부_검증_시_BAD_REQUEST가_발생한다() {
+    void 주문_금액이_최소_주문_금액_미만이면_사용_시_BAD_REQUEST가_발생한다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7)); // minOrderAmount = 10000
 
         // when & then
-        assertThatThrownBy(() -> userCoupon.validateUsable(1L, 5000))
+        assertThatThrownBy(() -> userCoupon.use(1L, 5000))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
-    void 유효한_쿠폰의_사용_가능_여부_검증_시_예외가_발생하지_않는다() {
+    void 유효한_쿠폰을_사용하면_예외가_발생하지_않는다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7)); // minOrderAmount = 10000
 
         // when & then
-        assertThatCode(() -> userCoupon.validateUsable(1L, 50000))
+        assertThatCode(() -> userCoupon.use(1L, 50000))
                 .doesNotThrowAnyException();
     }
 

@@ -32,17 +32,17 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private int quantity;
 
-    @Column(nullable = false)
-    private int totalPrice;
-
     @Builder
     private OrderItem(Long productId, String productName, int productPrice, int quantity) {
         this.productId = productId;
         this.productName = productName;
         this.productPrice = productPrice;
         this.quantity = quantity;
-        this.totalPrice = productPrice * quantity;
         guard();
+    }
+
+    public int getTotalPrice() {
+        return productPrice * quantity;
     }
 
     @Override

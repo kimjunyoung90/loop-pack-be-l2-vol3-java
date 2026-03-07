@@ -8,6 +8,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CouponTest {
@@ -236,7 +237,7 @@ class CouponTest {
     }
 
     @Test
-    void 유효기간이_남아있는_쿠폰은_발급_유효성_검증_시_예외가_발생하지_않는다() {
+    void 유효기간이_남아있는_쿠폰은_발급_시_예외가_발생하지_않는다() {
         // given
         Coupon coupon = Coupon.builder()
                 .name("쿠폰")
@@ -244,13 +245,14 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
 
         // when & then (예외 없음)
-        coupon.validateIssuable();
+        assertThatCode(() -> coupon.issue(1L)).doesNotThrowAnyException();
     }
 
     @Test
-    void 유효기간이_지난_쿠폰은_발급_유효성_검증_시_예외가_발생한다() {
+    void 유효기간이_지난_쿠폰은_발급_시_예외가_발생한다() {
         // given
         Coupon coupon = Coupon.builder()
                 .name("쿠폰")
@@ -258,16 +260,17 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
         ReflectionTestUtils.setField(coupon, "expiredAt", LocalDate.now().minusDays(1));
 
         // when & then
-        assertThatThrownBy(() -> coupon.validateIssuable())
+        assertThatThrownBy(() -> coupon.issue(1L))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
-    void 삭제된_쿠폰은_발급_유효성_검증_시_예외가_발생한다() {
+    void 삭제된_쿠폰은_발급_시_예외가_발생한다() {
         // given
         Coupon coupon = Coupon.builder()
                 .name("쿠폰")
@@ -275,10 +278,11 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
         coupon.delete();
 
         // when & then
-        assertThatThrownBy(coupon::validateIssuable)
+        assertThatThrownBy(() -> coupon.issue(1L))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
     }

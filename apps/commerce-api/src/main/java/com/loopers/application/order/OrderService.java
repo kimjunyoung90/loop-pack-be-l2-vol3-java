@@ -49,15 +49,7 @@ public class OrderService {
         Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
 
-        if (!order.isOwnedBy(userId)) {
-            throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다.");
-        }
-
-        if (order.isCancelled()) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다.");
-        }
-
-        order.cancel();
+        order.cancel(userId);
 
         return OrderResult.from(order);
     }

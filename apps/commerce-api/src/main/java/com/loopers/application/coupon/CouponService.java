@@ -26,7 +26,7 @@ public class CouponService {
 	private final UserCouponRepository userCouponRepository;
 
 	@Transactional
-	public CouponResult createCoupon(CouponCreateCommand command) {
+	public CouponResult registerCoupon(CouponCreateCommand command) {
 		Coupon coupon = Coupon.builder()
 				.name(command.name())
 				.discountType(command.discountType())
@@ -85,8 +85,7 @@ public class CouponService {
 	public int useCoupon(Long userCouponId, Long userId, int totalAmount) {
 		UserCoupon userCoupon = userCouponRepository.findByIdWithLockAndDeletedAtIsNull(userCouponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
-		userCoupon.validateUsable(userId, totalAmount);
-		userCoupon.use();
+		userCoupon.use(userId, totalAmount);
 		return userCoupon.calculateDiscount(totalAmount);
 	}
 

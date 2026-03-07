@@ -36,10 +36,10 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<CouponCreateResponse> createCoupon(
+    public ApiResponse<CouponCreateResponse> registerCoupon(
             @Valid @RequestBody CouponCreateRequest request
     ) {
-        CouponResult couponResult = couponService.createCoupon(
+        CouponResult couponResult = couponService.registerCoupon(
                 new CouponCreateCommand(
                         request.name(),
                         request.discountType(),

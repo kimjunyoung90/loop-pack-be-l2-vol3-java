@@ -30,7 +30,7 @@ class UserCouponServiceIntegrationTest {
     @Test
     void 사용자_쿠폰_생성_시_쿠폰_정보가_DB에_저장된다() {
         // given
-        CouponResult couponResult = couponService.createCoupon(
+        CouponResult couponResult = couponService.registerCoupon(
                 new CouponCreateCommand("테스트 쿠폰", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7))
         );
 
@@ -53,10 +53,10 @@ class UserCouponServiceIntegrationTest {
     @Test
     void 쿠폰_목록_조회_시_해당_사용자의_쿠폰만_조회된다() {
         // given
-        CouponResult coupon1 = couponService.createCoupon(
+        CouponResult coupon1 = couponService.registerCoupon(
                 new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7))
         );
-        CouponResult coupon2 = couponService.createCoupon(
+        CouponResult coupon2 = couponService.registerCoupon(
                 new CouponCreateCommand("쿠폰2", DiscountType.FIXED, 2000, 10000, LocalDate.now().plusDays(7))
         );
         couponService.issueCoupon(1L, coupon1.id());
@@ -73,10 +73,10 @@ class UserCouponServiceIntegrationTest {
     @Test
     void 쿠폰별_발급_내역_조회_시_해당_쿠폰의_발급_내역만_페이징_조회된다() {
         // given
-        CouponResult coupon1 = couponService.createCoupon(
+        CouponResult coupon1 = couponService.registerCoupon(
                 new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7))
         );
-        CouponResult coupon2 = couponService.createCoupon(
+        CouponResult coupon2 = couponService.registerCoupon(
                 new CouponCreateCommand("쿠폰2", DiscountType.FIXED, 2000, 10000, LocalDate.now().plusDays(7))
         );
         couponService.issueCoupon(1L, coupon1.id());
@@ -94,7 +94,7 @@ class UserCouponServiceIntegrationTest {
     @Test
     void 쿠폰_사용_시_상태가_USED로_변경되고_할인_금액을_반환한다() {
         // given
-        CouponResult coupon = couponService.createCoupon(
+        CouponResult coupon = couponService.registerCoupon(
                 new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7))
         );
         UserCouponResult issued = couponService.issueCoupon(1L, coupon.id());
@@ -111,7 +111,7 @@ class UserCouponServiceIntegrationTest {
     @Test
     void 쿠폰_사용_후_복원하면_상태가_AVAILABLE로_변경된다() {
         // given
-        CouponResult coupon = couponService.createCoupon(
+        CouponResult coupon = couponService.registerCoupon(
                 new CouponCreateCommand("복원 테스트 쿠폰", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7))
         );
         UserCouponResult issued = couponService.issueCoupon(1L, coupon.id());

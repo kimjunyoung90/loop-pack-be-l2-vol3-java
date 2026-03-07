@@ -55,7 +55,7 @@ class CouponAdminV1ControllerTest {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
         CouponResult couponResult = new CouponResult(1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, null, null);
-        given(couponService.createCoupon(any())).willReturn(couponResult);
+        given(couponService.registerCoupon(any())).willReturn(couponResult);
 
         CouponCreateRequest request = new CouponCreateRequest(
                 "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt

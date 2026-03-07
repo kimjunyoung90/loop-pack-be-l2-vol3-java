@@ -34,7 +34,7 @@ class CouponServiceIntegrationTest {
         CouponCreateCommand createCommand = new CouponCreateCommand(
                 "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt
         );
-        CouponResult created = couponService.createCoupon(createCommand);
+        CouponResult created = couponService.registerCoupon(createCommand);
         assertThat(created.id()).isNotNull();
         assertThat(created.name()).isEqualTo("신규 쿠폰");
         assertThat(created.discountType()).isEqualTo(DiscountType.FIXED);
@@ -69,10 +69,10 @@ class CouponServiceIntegrationTest {
     @Test
     void 삭제된_쿠폰은_목록에서_제외된다() {
         // given
-        CouponResult coupon1 = couponService.createCoupon(
+        CouponResult coupon1 = couponService.registerCoupon(
                 new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
         );
-        couponService.createCoupon(
+        couponService.registerCoupon(
                 new CouponCreateCommand("쿠폰2", DiscountType.RATE, 10, 5000, LocalDate.now().plusDays(14))
         );
         couponService.deleteCoupon(coupon1.id());
@@ -88,7 +88,7 @@ class CouponServiceIntegrationTest {
     @Test
     void 삭제된_쿠폰_상세_조회_시_예외가_발생한다() {
         // given
-        CouponResult created = couponService.createCoupon(
+        CouponResult created = couponService.registerCoupon(
                 new CouponCreateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
         );
         couponService.deleteCoupon(created.id());

@@ -37,7 +37,7 @@ class CouponConcurrencyIntegrationTest {
     void 동시에_같은_쿠폰을_사용하면_하나만_성공하고_나머지는_실패한다() throws InterruptedException {
         // given
         Long userId = 99999L;
-        CouponResult coupon = couponService.createCoupon(
+        CouponResult coupon = couponService.registerCoupon(
                 new CouponCreateCommand("동시성 테스트 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7))
         );
         UserCouponResult issued = couponService.issueCoupon(userId, coupon.id());

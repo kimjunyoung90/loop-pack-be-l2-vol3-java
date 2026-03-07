@@ -150,7 +150,7 @@ class OrderFacadeIntegrationTest {
 
         // 쿠폰 생성 + 발급
         int discountValue = 5000;
-        CouponResult couponResult = couponService.createCoupon(
+        CouponResult couponResult = couponService.registerCoupon(
                 new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, discountValue, null, LocalDate.now().plusDays(7)));
         UserCouponResult userCouponResult = couponService.issueCoupon(userResult.id(), couponResult.id());
 
@@ -191,7 +191,7 @@ class OrderFacadeIntegrationTest {
                 new ProductCreateCommand(brandResult.id(), "운동화", 50000, initialStock));
 
         // 쿠폰 생성 + 발급
-        CouponResult couponResult = couponService.createCoupon(
+        CouponResult couponResult = couponService.registerCoupon(
                 new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, 5000, null, LocalDate.now().plusDays(7)));
         UserCouponResult userCouponResult = couponService.issueCoupon(userResult.id(), couponResult.id());
 

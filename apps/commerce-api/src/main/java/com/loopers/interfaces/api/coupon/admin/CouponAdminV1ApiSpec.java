@@ -18,7 +18,7 @@ public interface CouponAdminV1ApiSpec {
             summary = "쿠폰 등록",
             description = "새로운 쿠폰을 등록합니다."
     )
-    ApiResponse<CouponCreateResponse> createCoupon(CouponCreateRequest request);
+    ApiResponse<CouponCreateResponse> registerCoupon(CouponCreateRequest request);
 
     @Operation(
             summary = "쿠폰 목록 조회",

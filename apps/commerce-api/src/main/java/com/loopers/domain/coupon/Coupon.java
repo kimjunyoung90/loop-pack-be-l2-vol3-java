@@ -44,6 +44,9 @@ public class Coupon extends BaseEntity {
         this.minOrderAmount = minOrderAmount;
         this.expiredAt = expiredAt;
         guard();
+        if (expiredAt != null && expiredAt.isBefore(LocalDate.now())) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 현재 시점 이후여야 합니다.");
+        }
     }
 
     public void changeInfo(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt) {
@@ -53,9 +56,10 @@ public class Coupon extends BaseEntity {
         this.minOrderAmount = minOrderAmount;
         this.expiredAt = expiredAt;
         guard();
+        if (expiredAt != null && expiredAt.isBefore(LocalDate.now())) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 현재 시점 이후여야 합니다.");
+        }
     }
-
-    // --- 데이터 유효성 검증 ---
 
     @Override
     protected void guard() {
@@ -74,12 +78,10 @@ public class Coupon extends BaseEntity {
         if (minOrderAmount != null && minOrderAmount <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "최소 주문 금액은 0보다 커야 합니다.");
         }
-        if (expiredAt == null || expiredAt.isBefore(LocalDate.now())) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 현재 시점 이후여야 합니다.");
+        if (expiredAt == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 필수입니다.");
         }
     }
-
-    // --- 비즈니스 규칙 ---
 
     public UserCoupon issue(Long userId) {
         if (getId() == null) {
@@ -87,6 +89,12 @@ public class Coupon extends BaseEntity {
         }
         if (userId == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "사용자 ID는 필수입니다.");
+        }
+        if (getDeletedAt() != null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "삭제된 쿠폰은 발급할 수 없습니다.");
+        }
+        if (expiredAt.isBefore(LocalDate.now())) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "만료된 쿠폰은 발급할 수 없습니다.");
         }
         return UserCoupon.builder()
                 .userId(userId)
@@ -97,14 +105,5 @@ public class Coupon extends BaseEntity {
                 .minOrderAmount(this.minOrderAmount)
                 .expiredAt(this.expiredAt)
                 .build();
-    }
-
-    public void validateIssuable() {
-        if (getDeletedAt() != null) {
-            throw new CoreException(ErrorType.NOT_FOUND, "삭제된 쿠폰은 발급할 수 없습니다.");
-        }
-        if (expiredAt.isBefore(LocalDate.now())) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "만료된 쿠폰은 발급할 수 없습니다.");
-        }
     }
 }
