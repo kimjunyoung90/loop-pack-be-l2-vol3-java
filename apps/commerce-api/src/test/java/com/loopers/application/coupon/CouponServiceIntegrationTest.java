@@ -1,5 +1,8 @@
 package com.loopers.application.coupon;
 
+import com.loopers.application.coupon.command.CreateCouponCommand;
+import com.loopers.application.coupon.command.UpdateCouponCommand;
+import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
@@ -31,7 +34,7 @@ class CouponServiceIntegrationTest {
         CreateCouponCommand createCommand = new CreateCouponCommand(
                 "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt
         );
-        CouponInfo created = couponService.createCoupon(createCommand);
+        CouponResult created = couponService.createCoupon(createCommand);
         assertThat(created.id()).isNotNull();
         assertThat(created.name()).isEqualTo("신규 쿠폰");
         assertThat(created.discountType()).isEqualTo(DiscountType.FIXED);
@@ -40,7 +43,7 @@ class CouponServiceIntegrationTest {
         assertThat(created.expiredAt()).isEqualTo(expiredAt);
 
         // 조회
-        CouponInfo found = couponService.getCoupon(created.id());
+        CouponResult found = couponService.getCoupon(created.id());
         assertThat(found.name()).isEqualTo("신규 쿠폰");
 
         // 수정
@@ -48,7 +51,7 @@ class CouponServiceIntegrationTest {
         UpdateCouponCommand updateCommand = new UpdateCouponCommand(
                 "수정 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt
         );
-        CouponInfo updated = couponService.updateCoupon(created.id(), updateCommand);
+        CouponResult updated = couponService.updateCoupon(created.id(), updateCommand);
         assertThat(updated.name()).isEqualTo("수정 쿠폰");
         assertThat(updated.discountType()).isEqualTo(DiscountType.RATE);
         assertThat(updated.discountValue()).isEqualTo(10);
@@ -66,7 +69,7 @@ class CouponServiceIntegrationTest {
     @Test
     void 삭제된_쿠폰은_목록에서_제외된다() {
         // given
-        CouponInfo coupon1 = couponService.createCoupon(
+        CouponResult coupon1 = couponService.createCoupon(
                 new CreateCouponCommand("쿠폰1", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
         );
         couponService.createCoupon(
@@ -75,7 +78,7 @@ class CouponServiceIntegrationTest {
         couponService.deleteCoupon(coupon1.id());
 
         // when
-        Page<CouponInfo> coupons = couponService.getCoupons(PageRequest.of(0, 20));
+        Page<CouponResult> coupons = couponService.getCoupons(PageRequest.of(0, 20));
 
         // then
         assertThat(coupons.getContent()).hasSize(1);
@@ -85,7 +88,7 @@ class CouponServiceIntegrationTest {
     @Test
     void 삭제된_쿠폰_상세_조회_시_예외가_발생한다() {
         // given
-        CouponInfo created = couponService.createCoupon(
+        CouponResult created = couponService.createCoupon(
                 new CreateCouponCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
         );
         couponService.deleteCoupon(created.id());

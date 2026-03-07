@@ -1,5 +1,8 @@
 package com.loopers.application.brand;
 
+import com.loopers.application.brand.command.CreateBrandCommand;
+import com.loopers.application.brand.command.UpdateBrandCommand;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.domain.brand.BrandRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
@@ -29,17 +32,17 @@ class BrandServiceIntegrationTest {
     void 브랜드_등록_조회_수정_삭제_전체_흐름을_검증한다() {
         // 등록
         CreateBrandCommand createCommand = new CreateBrandCommand("나이키");
-        BrandInfo created = brandService.createBrand(createCommand);
+        BrandResult created = brandService.createBrand(createCommand);
         assertThat(created.name()).isEqualTo("나이키");
         assertThat(created.id()).isNotNull();
 
         // 조회
-        BrandInfo found = brandService.getBrand(created.id());
+        BrandResult found = brandService.getBrand(created.id());
         assertThat(found.name()).isEqualTo("나이키");
 
         // 수정
         UpdateBrandCommand updateCommand = new UpdateBrandCommand("아디다스");
-        BrandInfo updated = brandService.updateBrand(created.id(), updateCommand);
+        BrandResult updated = brandService.updateBrand(created.id(), updateCommand);
         assertThat(updated.name()).isEqualTo("아디다스");
 
         // 삭제
@@ -53,12 +56,12 @@ class BrandServiceIntegrationTest {
     @Test
     void 삭제된_브랜드는_목록에서_제외된다() {
         // given
-        BrandInfo brand1 = brandService.createBrand(new CreateBrandCommand("나이키"));
-        BrandInfo brand2 = brandService.createBrand(new CreateBrandCommand("아디다스"));
+        BrandResult brand1 = brandService.createBrand(new CreateBrandCommand("나이키"));
+        BrandResult brand2 = brandService.createBrand(new CreateBrandCommand("아디다스"));
         brandService.deleteBrand(brand1.id());
 
         // when
-        Page<BrandInfo> brands = brandService.getBrands(PageRequest.of(0, 20));
+        Page<BrandResult> brands = brandService.getBrands(PageRequest.of(0, 20));
 
         // then
         assertThat(brands.getContent()).hasSize(1);

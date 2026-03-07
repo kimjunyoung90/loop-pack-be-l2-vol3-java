@@ -1,5 +1,7 @@
 package com.loopers.application.user;
 
+import com.loopers.application.user.command.CreateUserCommand;
+import com.loopers.application.user.result.UserResult;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.domain.user.User;
 import com.loopers.support.error.CoreException;
@@ -55,10 +57,10 @@ public class UserServiceIntegrationTest {
         );
 
         //when
-        UserInfo userInfo = userService.createUser(command);
+        UserResult userResult = userService.createUser(command);
 
         //then
-        User foundUser = userRepository.findByLoginId(userInfo.loginId()).orElseThrow();
+        User foundUser = userRepository.findByLoginId(userResult.loginId()).orElseThrow();
         assertThat(foundUser.getLoginId()).isEqualTo(command.loginId());
         assertThat(foundUser.getName()).isEqualTo(command.name());
         assertThat(foundUser.getEmail()).isEqualTo(command.email());

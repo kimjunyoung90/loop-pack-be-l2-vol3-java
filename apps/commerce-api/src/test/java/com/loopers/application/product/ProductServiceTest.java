@@ -1,5 +1,6 @@
 package com.loopers.application.product;
 
+import com.loopers.application.product.command.UpdateProductCommand;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;

@@ -1,5 +1,8 @@
 package com.loopers.application.brand;
 
+import com.loopers.application.brand.command.CreateBrandCommand;
+import com.loopers.application.brand.command.UpdateBrandCommand;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.brand.BrandRepository;
 import com.loopers.support.error.CoreException;
@@ -17,12 +20,12 @@ public class BrandService {
     private final BrandRepository brandRepository;
 
     @Transactional
-    public BrandInfo createBrand(CreateBrandCommand command) {
+    public BrandResult createBrand(CreateBrandCommand command) {
         Brand brand = Brand.builder()
                 .name(command.name())
                 .build();
 
-        return BrandInfo.from(brandRepository.save(brand));
+        return BrandResult.from(brandRepository.save(brand));
     }
 
     @Transactional(readOnly = true)
@@ -32,27 +35,27 @@ public class BrandService {
     }
 
     @Transactional(readOnly = true)
-    public BrandInfo getBrand(Long brandId) {
+    public BrandResult getBrand(Long brandId) {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
-        return BrandInfo.from(brand);
+        return BrandResult.from(brand);
     }
 
     @Transactional(readOnly = true)
-    public Page<BrandInfo> getBrands(Pageable pageable) {
+    public Page<BrandResult> getBrands(Pageable pageable) {
         return brandRepository.findAllByDeletedAtIsNull(pageable)
-                .map(BrandInfo::from);
+                .map(BrandResult::from);
     }
 
     @Transactional
-    public BrandInfo updateBrand(Long brandId, UpdateBrandCommand command) {
+    public BrandResult updateBrand(Long brandId, UpdateBrandCommand command) {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
         brand.changeName(command.name());
 
-        return BrandInfo.from(brand);
+        return BrandResult.from(brand);
     }
 
     @Transactional

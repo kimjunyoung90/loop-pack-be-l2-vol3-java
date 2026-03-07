@@ -1,5 +1,9 @@
 package com.loopers.application.coupon;
 
+import com.loopers.application.coupon.command.CreateCouponCommand;
+import com.loopers.application.coupon.command.UpdateCouponCommand;
+import com.loopers.application.coupon.result.CouponResult;
+import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.UserCoupon;
@@ -22,7 +26,7 @@ public class CouponService {
 	private final UserCouponRepository userCouponRepository;
 
 	@Transactional
-	public CouponInfo createCoupon(CreateCouponCommand command) {
+	public CouponResult createCoupon(CreateCouponCommand command) {
 		Coupon coupon = Coupon.builder()
 				.name(command.name())
 				.discountType(command.discountType())
@@ -31,25 +35,25 @@ public class CouponService {
 				.expiredAt(command.expiredAt())
 				.build();
 
-		return CouponInfo.from(couponRepository.save(coupon));
+		return CouponResult.from(couponRepository.save(coupon));
 	}
 
 	@Transactional(readOnly = true)
-	public CouponInfo getCoupon(Long couponId) {
+	public CouponResult getCoupon(Long couponId) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
-		return CouponInfo.from(coupon);
+		return CouponResult.from(coupon);
 	}
 
 	@Transactional(readOnly = true)
-	public Page<CouponInfo> getCoupons(Pageable pageable) {
+	public Page<CouponResult> getCoupons(Pageable pageable) {
 		return couponRepository.findAllByDeletedAtIsNull(pageable)
-				.map(CouponInfo::from);
+				.map(CouponResult::from);
 	}
 
 	@Transactional
-	public CouponInfo updateCoupon(Long couponId, UpdateCouponCommand command) {
+	public CouponResult updateCoupon(Long couponId, UpdateCouponCommand command) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
@@ -61,11 +65,11 @@ public class CouponService {
 				command.expiredAt()
 		);
 
-		return CouponInfo.from(coupon);
+		return CouponResult.from(coupon);
 	}
 
 	@Transactional
-	public UserCouponInfo issueCoupon(Long userId, Long couponId) {
+	public UserCouponResult issueCoupon(Long userId, Long couponId) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
@@ -74,7 +78,7 @@ public class CouponService {
 		}
 
 		UserCoupon userCoupon = coupon.issue(userId);
-		return UserCouponInfo.from(userCouponRepository.save(userCoupon));
+		return UserCouponResult.from(userCouponRepository.save(userCoupon));
 	}
 
 	@Transactional
@@ -94,16 +98,16 @@ public class CouponService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<UserCouponInfo> getUserCoupons(Long userId) {
+	public List<UserCouponResult> getUserCoupons(Long userId) {
 		return userCouponRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()
-				.map(UserCouponInfo::from)
+				.map(UserCouponResult::from)
 				.toList();
 	}
 
 	@Transactional(readOnly = true)
-	public Page<UserCouponInfo> getUserCouponsByCouponId(Long couponId, Pageable pageable) {
+	public Page<UserCouponResult> getUserCouponsByCouponId(Long couponId, Pageable pageable) {
 		return userCouponRepository.findAllByCouponIdAndDeletedAtIsNull(couponId, pageable)
-				.map(UserCouponInfo::from);
+				.map(UserCouponResult::from);
 	}
 
 	@Transactional

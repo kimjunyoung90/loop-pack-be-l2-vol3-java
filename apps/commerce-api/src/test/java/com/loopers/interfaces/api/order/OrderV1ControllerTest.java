@@ -1,8 +1,9 @@
 package com.loopers.interfaces.api.order;
 
 import com.loopers.application.order.OrderFacade;
-import com.loopers.application.order.OrderInfo;
 import com.loopers.application.order.OrderService;
+import com.loopers.application.order.result.OrderItemResult;
+import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
@@ -61,15 +62,15 @@ class OrderV1ControllerTest {
     void 주문을_생성하면_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
+                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
         given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
-        given(orderFacade.createOrder(any())).willReturn(orderInfo);
+        given(orderFacade.createOrder(any())).willReturn(orderResult);
 
         Map<String, Object> request = Map.of(
                 "orderItems", List.of(Map.of("productId", 1, "quantity", 2))
@@ -127,15 +128,15 @@ class OrderV1ControllerTest {
     void 주문을_취소하면_200_OK와_취소된_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
-                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
+                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
         given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
-        given(orderFacade.cancelOrder(1L, 1L)).willReturn(orderInfo);
+        given(orderFacade.cancelOrder(1L, 1L)).willReturn(orderResult);
 
         // when & then
         mockMvc.perform(patch("/api/v1/orders/1/cancel")
@@ -158,11 +159,11 @@ class OrderV1ControllerTest {
     void 주문_목록을_조회하면_200_OK와_주문_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
+                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
-        Page<OrderInfo> orderPage = new PageImpl<>(List.of(orderInfo), PageRequest.of(0, 20), 1);
+        Page<OrderResult> orderPage = new PageImpl<>(List.of(orderResult), PageRequest.of(0, 20), 1);
 
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
@@ -196,15 +197,15 @@ class OrderV1ControllerTest {
     void 주문_상세를_조회하면_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
+                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
 
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
         given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
-        given(orderService.getOrder(1L, 1L)).willReturn(orderInfo);
+        given(orderService.getOrder(1L, 1L)).willReturn(orderResult);
 
         // when & then
         mockMvc.perform(get("/api/v1/orders/1")

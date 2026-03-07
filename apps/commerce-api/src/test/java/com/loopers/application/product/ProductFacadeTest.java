@@ -1,6 +1,9 @@
 package com.loopers.application.product;
 
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.product.command.CreateProductCommand;
+import com.loopers.application.product.command.UpdateProductCommand;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.domain.brand.Brand;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -31,17 +34,17 @@ class ProductFacadeTest {
     private ProductFacade productFacade;
 
     @Test
-    void 존재하는_브랜드로_상품을_생성하면_브랜드_검증_후_ProductInfo를_반환한다() {
+    void 존재하는_브랜드로_상품을_생성하면_브랜드_검증_후_ProductResult를_반환한다() {
         // given
         Brand brand = Brand.builder().name("나이키").build();
         CreateProductCommand command = new CreateProductCommand(1L, "운동화", 100000, 50);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductInfo expectedInfo = new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now);
+        ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
         given(brandService.findBrand(1L)).willReturn(brand);
-        given(productService.createProduct(eq(1L), eq(command))).willReturn(expectedInfo);
+        given(productService.createProduct(eq(1L), eq(command))).willReturn(expectedResult);
 
         // when
-        ProductInfo result = productFacade.createProduct(command);
+        ProductResult result = productFacade.createProduct(command);
 
         // then
         assertThat(result.name()).isEqualTo("운동화");
@@ -61,17 +64,17 @@ class ProductFacadeTest {
     }
 
     @Test
-    void 존재하는_브랜드로_상품을_수정하면_브랜드_검증_후_ProductInfo를_반환한다() {
+    void 존재하는_브랜드로_상품을_수정하면_브랜드_검증_후_ProductResult를_반환한다() {
         // given
         Brand brand = Brand.builder().name("아디다스").build();
         UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductInfo expectedInfo = new ProductInfo(1L, 2L, "슬리퍼", 50000, 30, now, now);
+        ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now);
         given(brandService.findBrand(2L)).willReturn(brand);
-        given(productService.updateProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedInfo);
+        given(productService.updateProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedResult);
 
         // when
-        ProductInfo result = productFacade.updateProduct(1L, command);
+        ProductResult result = productFacade.updateProduct(1L, command);
 
         // then
         assertThat(result.name()).isEqualTo("슬리퍼");

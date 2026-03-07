@@ -1,5 +1,6 @@
 package com.loopers.application.user;
 
+import com.loopers.application.user.result.UserResult;
 import com.loopers.domain.user.User;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.support.error.CoreException;
@@ -58,11 +59,11 @@ class UserServiceTest {
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.of(user));
 
         // when
-        UserInfo userInfo = userService.getMyInfo(loginId);
+        UserResult userResult = userService.getMyInfo(loginId);
 
         // then
-        assertThat(userInfo).hasNoNullFieldsOrPropertiesExcept("id");
-        assertThat(userInfo.getClass().getDeclaredFields())
+        assertThat(userResult).hasNoNullFieldsOrPropertiesExcept("id");
+        assertThat(userResult.getClass().getDeclaredFields())
                 .extracting("name")
                 .doesNotContain("password");
     }

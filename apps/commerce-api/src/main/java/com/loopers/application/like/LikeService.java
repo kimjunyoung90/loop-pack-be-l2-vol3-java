@@ -1,5 +1,6 @@
 package com.loopers.application.like;
 
+import com.loopers.application.like.result.LikeResult;
 import com.loopers.domain.like.ProductLike;
 import com.loopers.domain.like.ProductLikeRepository;
 import com.loopers.support.error.CoreException;
@@ -17,7 +18,7 @@ public class LikeService {
     private final ProductLikeRepository productLikeRepository;
 
     @Transactional
-    public LikeInfo createLike(Long userId, Long productId) {
+    public LikeResult createLike(Long userId, Long productId) {
         productLikeRepository.findByUserIdAndProductId(userId, productId)
                 .ifPresent(like -> {
                     throw new CoreException(ErrorType.CONFLICT, "이미 좋아요한 상품입니다.");
@@ -27,13 +28,13 @@ public class LikeService {
                 .userId(userId)
                 .productId(productId)
                 .build();
-        return LikeInfo.from(productLikeRepository.save(productLike));
+        return LikeResult.from(productLikeRepository.save(productLike));
     }
 
     @Transactional(readOnly = true)
-    public Page<LikeInfo> getLikes(Long userId, Pageable pageable) {
+    public Page<LikeResult> getLikes(Long userId, Pageable pageable) {
         return productLikeRepository.findAllByUserId(userId, pageable)
-                .map(LikeInfo::from);
+                .map(LikeResult::from);
     }
 
     @Transactional

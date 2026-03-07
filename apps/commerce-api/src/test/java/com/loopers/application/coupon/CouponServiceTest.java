@@ -1,5 +1,6 @@
 package com.loopers.application.coupon;
 
+import com.loopers.application.coupon.command.UpdateCouponCommand;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.DiscountType;

@@ -1,11 +1,13 @@
 package com.loopers.interfaces.api.coupon.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.application.coupon.CouponInfo;
 import com.loopers.application.coupon.CouponService;
-import com.loopers.application.coupon.UserCouponInfo;
+import com.loopers.application.coupon.result.CouponResult;
+import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.coupon.DiscountType;
+import com.loopers.interfaces.api.coupon.admin.request.CreateCouponRequest;
+import com.loopers.interfaces.api.coupon.admin.request.UpdateCouponRequest;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import org.junit.jupiter.api.Test;
@@ -52,10 +54,10 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_생성_시_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponInfo couponInfo = new CouponInfo(1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, null, null);
-        given(couponService.createCoupon(any())).willReturn(couponInfo);
+        CouponResult couponResult = new CouponResult(1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, null, null);
+        given(couponService.createCoupon(any())).willReturn(couponResult);
 
-        CouponAdminV1Dto.CreateCouponRequest request = new CouponAdminV1Dto.CreateCouponRequest(
+        CreateCouponRequest request = new CreateCouponRequest(
                 "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt
         );
 
@@ -75,7 +77,7 @@ class CouponAdminV1ControllerTest {
     @Test
     void 쿠폰_생성_시_쿠폰명이_비어있으면_400을_반환한다() throws Exception {
         // given
-        CouponAdminV1Dto.CreateCouponRequest request = new CouponAdminV1Dto.CreateCouponRequest(
+        CreateCouponRequest request = new CreateCouponRequest(
                 "", DiscountType.FIXED, 3000, null, LocalDate.now().plusDays(7)
         );
 
@@ -136,8 +138,8 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_목록_조회_시_페이징된_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponInfo couponInfo = new CouponInfo(1L, "쿠폰", DiscountType.FIXED, 1000, null, expiredAt, null, null);
-        given(couponService.getCoupons(any())).willReturn(new PageImpl<>(List.of(couponInfo)));
+        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.FIXED, 1000, null, expiredAt, null, null);
+        given(couponService.getCoupons(any())).willReturn(new PageImpl<>(List.of(couponResult)));
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/coupons")
@@ -151,8 +153,8 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_상세_조회_시_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponInfo couponInfo = new CouponInfo(1L, "쿠폰", DiscountType.RATE, 10, 5000, expiredAt, null, null);
-        given(couponService.getCoupon(1L)).willReturn(couponInfo);
+        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.RATE, 10, 5000, expiredAt, null, null);
+        given(couponService.getCoupon(1L)).willReturn(couponResult);
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/coupons/1")
@@ -168,10 +170,10 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_수정_시_수정된_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponInfo couponInfo = new CouponInfo(1L, "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, null, null);
-        given(couponService.updateCoupon(any(), any())).willReturn(couponInfo);
+        CouponResult couponResult = new CouponResult(1L, "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, null, null);
+        given(couponService.updateCoupon(any(), any())).willReturn(couponResult);
 
-        CouponAdminV1Dto.UpdateCouponRequest request = new CouponAdminV1Dto.UpdateCouponRequest(
+        UpdateCouponRequest request = new UpdateCouponRequest(
                 "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt
         );
 
@@ -196,7 +198,7 @@ class CouponAdminV1ControllerTest {
     @Test
     void 쿠폰_수정_시_쿠폰명이_비어있으면_400을_반환한다() throws Exception {
         // given
-        CouponAdminV1Dto.UpdateCouponRequest request = new CouponAdminV1Dto.UpdateCouponRequest(
+        UpdateCouponRequest request = new UpdateCouponRequest(
                 "", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7)
         );
 
@@ -257,11 +259,11 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_발급_내역_조회_시_페이징된_발급_내역을_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        UserCouponInfo info = new UserCouponInfo(
+        UserCouponResult result = new UserCouponResult(
                 1L, 1L, 1L, "테스트 쿠폰", DiscountType.FIXED, 1000, null,
                 "AVAILABLE", expiredAt, null, null
         );
-        given(couponService.getUserCouponsByCouponId(any(), any())).willReturn(new PageImpl<>(List.of(info)));
+        given(couponService.getUserCouponsByCouponId(any(), any())).willReturn(new PageImpl<>(List.of(result)));
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/coupons/1/issues")

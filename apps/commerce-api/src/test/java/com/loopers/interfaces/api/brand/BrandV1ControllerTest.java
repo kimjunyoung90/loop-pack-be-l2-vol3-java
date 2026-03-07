@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.brand;
 
-import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
@@ -40,7 +40,7 @@ class BrandV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(brandService.getBrand(1L)).willReturn(
-                new BrandInfo(1L, "나이키", now, now)
+                new BrandResult(1L, "나이키", now, now)
         );
 
         // when & then

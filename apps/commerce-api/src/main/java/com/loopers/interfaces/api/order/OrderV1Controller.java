@@ -1,10 +1,15 @@
 package com.loopers.interfaces.api.order;
 
-import com.loopers.application.order.CreateOrderCommand;
 import com.loopers.application.order.OrderFacade;
-import com.loopers.application.order.OrderInfo;
 import com.loopers.application.order.OrderService;
+import com.loopers.application.order.command.CreateOrderCommand;
+import com.loopers.application.order.command.CreateOrderItemCommand;
+import com.loopers.application.order.result.OrderResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.order.request.CreateOrderRequest;
+import com.loopers.interfaces.api.order.response.CancelOrderResponse;
+import com.loopers.interfaces.api.order.response.CreateOrderResponse;
+import com.loopers.interfaces.api.order.response.GetOrderResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
 import jakarta.validation.Valid;
@@ -26,53 +31,53 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
     @Override
     @PostMapping
-    public ApiResponse<OrderV1Dto.CreateOrderResponse> createOrder(
+    public ApiResponse<CreateOrderResponse> createOrder(
             @LoginUser AuthUser authUser,
-            @Valid @RequestBody OrderV1Dto.CreateOrderRequest request) {
+            @Valid @RequestBody CreateOrderRequest request) {
         CreateOrderCommand command = new CreateOrderCommand(
                 authUser.id(),
                 request.userCouponId(),
                 request.orderItems().stream()
-                        .map(item -> new CreateOrderCommand.CreateOrderItemCommand(
+                        .map(item -> new CreateOrderItemCommand(
                                 item.productId(),
                                 item.quantity()
                         ))
                         .toList()
         );
 
-        OrderInfo orderInfo = orderFacade.createOrder(command);
-        return ApiResponse.success(OrderV1Dto.CreateOrderResponse.from(orderInfo));
+        OrderResult orderResult = orderFacade.createOrder(command);
+        return ApiResponse.success(CreateOrderResponse.from(orderResult));
     }
 
     @Override
     @PatchMapping("/{orderId}/cancel")
-    public ApiResponse<OrderV1Dto.CancelOrderResponse> cancelOrder(
+    public ApiResponse<CancelOrderResponse> cancelOrder(
             @LoginUser AuthUser authUser,
             @PathVariable Long orderId) {
-        OrderInfo orderInfo = orderFacade.cancelOrder(authUser.id(), orderId);
-        return ApiResponse.success(OrderV1Dto.CancelOrderResponse.from(orderInfo));
+        OrderResult orderResult = orderFacade.cancelOrder(authUser.id(), orderId);
+        return ApiResponse.success(CancelOrderResponse.from(orderResult));
     }
 
     @Override
     @GetMapping("/{orderId}")
-    public ApiResponse<OrderV1Dto.GetOrderResponse> getOrder(
+    public ApiResponse<GetOrderResponse> getOrder(
             @LoginUser AuthUser authUser,
             @PathVariable Long orderId) {
-        OrderInfo orderInfo = orderService.getOrder(authUser.id(), orderId);
-        return ApiResponse.success(OrderV1Dto.GetOrderResponse.from(orderInfo));
+        OrderResult orderResult = orderService.getOrder(authUser.id(), orderId);
+        return ApiResponse.success(GetOrderResponse.from(orderResult));
     }
 
     @Override
     @GetMapping
-    public ApiResponse<Page<OrderV1Dto.GetOrderResponse>> getOrders(
+    public ApiResponse<Page<GetOrderResponse>> getOrders(
             @LoginUser AuthUser authUser,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Page<OrderV1Dto.GetOrderResponse> orders = orderService.getOrders(
+        Page<GetOrderResponse> orders = orderService.getOrders(
                         authUser.id(), startDate, endDate, PageRequest.of(page, size))
-                .map(OrderV1Dto.GetOrderResponse::from);
+                .map(GetOrderResponse::from);
         return ApiResponse.success(orders);
     }
 }

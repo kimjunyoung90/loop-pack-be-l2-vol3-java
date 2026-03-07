@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.like;
 
 import com.loopers.application.like.LikeFacade;
-import com.loopers.application.like.LikeInfo;
+import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.like.LikeService;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;
@@ -59,13 +59,13 @@ class LikeV1ControllerTest {
     void 좋아요를_등록하면_200_OK와_좋아요_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        LikeInfo likeInfo = new LikeInfo(1L, 1L, 1L, now);
+        LikeResult likeResult = new LikeResult(1L, 1L, 1L, now);
 
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
         given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
-        given(likeFacade.createLike(eq(1L), eq(1L))).willReturn(likeInfo);
+        given(likeFacade.createLike(eq(1L), eq(1L))).willReturn(likeResult);
 
         // when & then
         mockMvc.perform(post("/api/v1/likes/products/1")
@@ -162,8 +162,8 @@ class LikeV1ControllerTest {
     void 좋아요한_상품_목록을_조회하면_200_OK와_페이징된_좋아요_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        LikeInfo likeInfo = new LikeInfo(1L, 1L, 1L, now);
-        Page<LikeInfo> likePage = new PageImpl<>(List.of(likeInfo), PageRequest.of(0, 20), 1);
+        LikeResult likeResult = new LikeResult(1L, 1L, 1L, now);
+        Page<LikeResult> likePage = new PageImpl<>(List.of(likeResult), PageRequest.of(0, 20), 1);
 
         User mockUser = mock(User.class);
         given(mockUser.getId()).willReturn(1L);

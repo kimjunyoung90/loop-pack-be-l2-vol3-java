@@ -1,11 +1,12 @@
 package com.loopers.application.like;
 
 import com.loopers.application.brand.BrandService;
-import com.loopers.application.brand.CreateBrandCommand;
-import com.loopers.application.brand.BrandInfo;
-import com.loopers.application.product.CreateProductCommand;
+import com.loopers.application.brand.command.CreateBrandCommand;
+import com.loopers.application.brand.result.BrandResult;
+import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.product.ProductInfo;
+import com.loopers.application.product.command.CreateProductCommand;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
@@ -33,8 +34,8 @@ class LikeServiceIntegrationTest {
     @Autowired
     private ProductService productService;
 
-    private ProductInfo createProduct() {
-        BrandInfo brand = brandService.createBrand(new CreateBrandCommand("나이키"));
+    private ProductResult createProduct() {
+        BrandResult brand = brandService.createBrand(new CreateBrandCommand("나이키"));
         return productService.createProduct(brand.id(),
                 new CreateProductCommand(brand.id(), "운동화", 50000, 10));
     }
@@ -42,17 +43,17 @@ class LikeServiceIntegrationTest {
     @Test
     void 좋아요_등록_조회_취소_전체_흐름을_검증한다() {
         // given
-        ProductInfo product = createProduct();
+        ProductResult product = createProduct();
         Long userId = 1L;
 
         // 등록
-        LikeInfo created = likeService.createLike(userId, product.id());
+        LikeResult created = likeService.createLike(userId, product.id());
         assertThat(created.id()).isNotNull();
         assertThat(created.userId()).isEqualTo(userId);
         assertThat(created.productId()).isEqualTo(product.id());
 
         // 목록 조회
-        Page<LikeInfo> likes = likeService.getLikes(userId, PageRequest.of(0, 20));
+        Page<LikeResult> likes = likeService.getLikes(userId, PageRequest.of(0, 20));
         assertThat(likes.getContent()).hasSize(1);
         assertThat(likes.getContent().getFirst().productId()).isEqualTo(product.id());
 
@@ -60,14 +61,14 @@ class LikeServiceIntegrationTest {
         likeService.deleteLike(userId, product.id());
 
         // 취소 후 목록 조회
-        Page<LikeInfo> afterDelete = likeService.getLikes(userId, PageRequest.of(0, 20));
+        Page<LikeResult> afterDelete = likeService.getLikes(userId, PageRequest.of(0, 20));
         assertThat(afterDelete.getContent()).isEmpty();
     }
 
     @Test
     void 좋아요가_없으면_빈_Page를_반환한다() {
         // when
-        Page<LikeInfo> likes = likeService.getLikes(999L, PageRequest.of(0, 20));
+        Page<LikeResult> likes = likeService.getLikes(999L, PageRequest.of(0, 20));
 
         // then
         assertThat(likes.getContent()).isEmpty();
@@ -77,7 +78,7 @@ class LikeServiceIntegrationTest {
     @Test
     void 이미_좋아요한_상품에_다시_좋아요하면_예외가_발생한다() {
         // given
-        ProductInfo product = createProduct();
+        ProductResult product = createProduct();
         Long userId = 1L;
         likeService.createLike(userId, product.id());
 

@@ -1,5 +1,7 @@
 package com.loopers.application.user;
 
+import com.loopers.application.user.command.CreateUserCommand;
+import com.loopers.application.user.result.UserResult;
 import com.loopers.domain.user.User;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -17,7 +19,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserInfo createUser(CreateUserCommand command) {
+    public UserResult createUser(CreateUserCommand command) {
 
         if(userRepository.existsByLoginId(command.loginId())){
             throw new CoreException(ErrorType.CONFLICT, "이미 사용 중인 로그인 ID입니다.");
@@ -32,15 +34,15 @@ public class UserService {
                 .passwordEncoder(passwordEncoder)
                 .build();
 
-        return UserInfo.from(userRepository.save(user));
+        return UserResult.from(userRepository.save(user));
     }
 
     @Transactional(readOnly = true)
-    public UserInfo getMyInfo(String loginId) {
+    public UserResult getMyInfo(String loginId) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
-        return UserInfo.fromWithMaskedName(user);
+        return UserResult.fromWithMaskedName(user);
     }
 
     @Transactional

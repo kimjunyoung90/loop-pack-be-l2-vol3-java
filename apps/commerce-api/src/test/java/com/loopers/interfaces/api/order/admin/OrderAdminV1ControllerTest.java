@@ -1,7 +1,8 @@
 package com.loopers.interfaces.api.order.admin;
 
-import com.loopers.application.order.OrderInfo;
 import com.loopers.application.order.OrderService;
+import com.loopers.application.order.result.OrderItemResult;
+import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
@@ -42,10 +43,10 @@ class OrderAdminV1ControllerTest {
     void 주문_상세_조회_시_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderInfo.OrderItemInfo(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
+                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
         ), now, now);
-        given(orderService.getOrder(1L)).willReturn(orderInfo);
+        given(orderService.getOrder(1L)).willReturn(orderResult);
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/orders/1")

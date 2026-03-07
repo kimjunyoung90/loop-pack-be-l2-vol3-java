@@ -1,9 +1,13 @@
 package com.loopers.interfaces.api.user;
 
-import com.loopers.application.user.CreateUserCommand;
-import com.loopers.application.user.UserInfo;
+import com.loopers.application.user.command.CreateUserCommand;
+import com.loopers.application.user.result.UserResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.user.request.ChangePasswordRequest;
+import com.loopers.interfaces.api.user.request.CreateUserRequest;
+import com.loopers.interfaces.api.user.response.CreateUserResponse;
+import com.loopers.interfaces.api.user.response.GetMyInfoResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
 import jakarta.validation.Valid;
@@ -19,28 +23,28 @@ public class UserV1Controller implements UserV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<UserV1Dto.CreateUserResponse> createUser(@Valid @RequestBody UserV1Dto.CreateUserRequest request) {
+    public ApiResponse<CreateUserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         CreateUserCommand command = new CreateUserCommand(
                 request.loginId(), request.password(), request.name(), request.birthDate(), request.email()
         );
-        UserInfo userInfo = userService.createUser(command);
-        return ApiResponse.success(UserV1Dto.CreateUserResponse.from(userInfo));
+        UserResult userResult = userService.createUser(command);
+        return ApiResponse.success(CreateUserResponse.from(userResult));
     }
 
     @GetMapping("/me")
     @Override
-    public ApiResponse<UserV1Dto.GetMyInfoResponse> getMyInfo(
+    public ApiResponse<GetMyInfoResponse> getMyInfo(
             @LoginUser AuthUser authUser
     ) {
-        UserInfo userInfo = userService.getMyInfo(authUser.loginId());
-        return ApiResponse.success(UserV1Dto.GetMyInfoResponse.from(userInfo));
+        UserResult userResult = userService.getMyInfo(authUser.loginId());
+        return ApiResponse.success(GetMyInfoResponse.from(userResult));
     }
 
     @PatchMapping("/password")
     @Override
     public ApiResponse<Object> changePassword(
             @LoginUser AuthUser authUser,
-            @Valid @RequestBody UserV1Dto.ChangePasswordRequest request
+            @Valid @RequestBody ChangePasswordRequest request
     ) {
         userService.changePassword(authUser.loginId(), request.newPassword());
         return ApiResponse.success();

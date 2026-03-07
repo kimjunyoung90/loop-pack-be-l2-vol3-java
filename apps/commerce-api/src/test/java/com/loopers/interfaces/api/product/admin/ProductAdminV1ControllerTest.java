@@ -2,11 +2,13 @@ package com.loopers.interfaces.api.product.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.product.ProductFacade;
-import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
+import com.loopers.interfaces.api.product.admin.request.CreateProductRequest;
+import com.loopers.interfaces.api.product.admin.request.UpdateProductRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -55,11 +57,11 @@ class ProductAdminV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productFacade.createProduct(any())).willReturn(
-                new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now)
+                new ProductResult(1L, 1L, "운동화", 100000, 50, now, now)
         );
 
-        ProductAdminV1Dto.CreateProductRequest request =
-                new ProductAdminV1Dto.CreateProductRequest(1L, "운동화", 100000, 50);
+        CreateProductRequest request =
+                new CreateProductRequest(1L, "운동화", 100000, 50);
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/products")
@@ -75,8 +77,8 @@ class ProductAdminV1ControllerTest {
     @Test
     void 관리자_헤더가_없으면_상품_등록시_403을_반환한다() throws Exception {
         // given
-        ProductAdminV1Dto.CreateProductRequest request =
-                new ProductAdminV1Dto.CreateProductRequest(1L, "운동화", 100000, 50);
+        CreateProductRequest request =
+                new CreateProductRequest(1L, "운동화", 100000, 50);
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/products")
@@ -88,8 +90,8 @@ class ProductAdminV1ControllerTest {
     @Test
     void 관리자_헤더_값이_잘못되면_상품_등록시_403을_반환한다() throws Exception {
         // given
-        ProductAdminV1Dto.CreateProductRequest request =
-                new ProductAdminV1Dto.CreateProductRequest(1L, "운동화", 100000, 50);
+        CreateProductRequest request =
+                new CreateProductRequest(1L, "운동화", 100000, 50);
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/products")
@@ -103,9 +105,9 @@ class ProductAdminV1ControllerTest {
     void 상품_목록_조회_시_200_OK와_페이징된_상품_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        ProductInfo productInfo = new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now);
+        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
         given(productService.getProducts(any())).willReturn(
-                new PageImpl<>(List.of(productInfo), PageRequest.of(0, 20), 1)
+                new PageImpl<>(List.of(productResult), PageRequest.of(0, 20), 1)
         );
 
         // when & then
@@ -128,7 +130,7 @@ class ProductAdminV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.getProduct(1L)).willReturn(
-                new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now)
+                new ProductResult(1L, 1L, "운동화", 100000, 50, now, now)
         );
 
         // when & then
@@ -150,11 +152,11 @@ class ProductAdminV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productFacade.updateProduct(eq(1L), any())).willReturn(
-                new ProductInfo(1L, 2L, "슬리퍼", 50000, 30, now, now)
+                new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now)
         );
 
-        ProductAdminV1Dto.UpdateProductRequest request =
-                new ProductAdminV1Dto.UpdateProductRequest(2L, "슬리퍼", 50000, 30);
+        UpdateProductRequest request =
+                new UpdateProductRequest(2L, "슬리퍼", 50000, 30);
 
         // when & then
         mockMvc.perform(put("/api-admin/v1/products/1")
@@ -169,8 +171,8 @@ class ProductAdminV1ControllerTest {
     @Test
     void 관리자_헤더가_없으면_상품_수정시_403을_반환한다() throws Exception {
         // given
-        ProductAdminV1Dto.UpdateProductRequest request =
-                new ProductAdminV1Dto.UpdateProductRequest(2L, "슬리퍼", 50000, 30);
+        UpdateProductRequest request =
+                new UpdateProductRequest(2L, "슬리퍼", 50000, 30);
 
         // when & then
         mockMvc.perform(put("/api-admin/v1/products/1")
