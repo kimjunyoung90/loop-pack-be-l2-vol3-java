@@ -23,7 +23,10 @@ public class LikeService {
                     throw new CoreException(ErrorType.CONFLICT, "이미 좋아요한 상품입니다.");
                 });
 
-        ProductLike productLike = new ProductLike(userId, productId);
+        ProductLike productLike = ProductLike.builder()
+                .userId(userId)
+                .productId(productId)
+                .build();
         return LikeInfo.from(productLikeRepository.save(productLike));
     }
 

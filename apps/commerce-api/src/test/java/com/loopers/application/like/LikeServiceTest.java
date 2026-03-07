@@ -30,7 +30,10 @@ class LikeServiceTest {
         // given
         Long userId = 1L;
         Long productId = 1L;
-        ProductLike existingLike = new ProductLike(userId, productId);
+        ProductLike existingLike = ProductLike.builder()
+                .userId(userId)
+                .productId(productId)
+                .build();
 
         given(productLikeRepository.findByUserIdAndProductId(userId, productId))
                 .willReturn(Optional.of(existingLike));
