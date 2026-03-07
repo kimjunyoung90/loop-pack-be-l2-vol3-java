@@ -29,9 +29,8 @@ public class BrandService {
     }
 
     @Transactional(readOnly = true)
-    public Brand findBrand(Long brandId) {
-        return brandRepository.findByIdAndDeletedAtIsNull(brandId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
+    public boolean existsBrandById(Long brandId) {
+        return brandRepository.existsByIdAndDeletedAtIsNull(brandId);
     }
 
     @Transactional(readOnly = true)

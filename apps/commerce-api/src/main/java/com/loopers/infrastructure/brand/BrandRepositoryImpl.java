@@ -34,4 +34,9 @@ public class BrandRepositoryImpl implements BrandRepository {
     public Page<Brand> findAllByDeletedAtIsNull(Pageable pageable) {
         return brandJpaRepository.findAllByDeletedAtIsNull(pageable);
     }
+
+    @Override
+    public boolean existsByIdAndDeletedAtIsNull(Long id) {
+        return brandJpaRepository.existsByIdAndDeletedAtIsNull(id);
+    }
 }

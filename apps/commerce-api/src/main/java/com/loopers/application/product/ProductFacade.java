@@ -5,6 +5,8 @@ import com.loopers.application.like.LikeService;
 import com.loopers.application.product.command.CreateProductCommand;
 import com.loopers.application.product.command.UpdateProductCommand;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +21,17 @@ public class ProductFacade {
 
     @Transactional
     public ProductResult createProduct(CreateProductCommand command) {
-        brandService.findBrand(command.brandId());
+        if (!brandService.existsBrandById(command.brandId())) {
+            throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
+        }
         return productService.createProduct(command.brandId(), command);
     }
 
     @Transactional
     public ProductResult updateProduct(Long productId, UpdateProductCommand command) {
-        brandService.findBrand(command.brandId());
+        if (!brandService.existsBrandById(command.brandId())) {
+            throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
+        }
         return productService.updateProduct(productId, command.brandId(), command);
     }
 

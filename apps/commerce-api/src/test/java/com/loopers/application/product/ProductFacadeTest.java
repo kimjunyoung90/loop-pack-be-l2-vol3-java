@@ -4,9 +4,7 @@ import com.loopers.application.brand.BrandService;
 import com.loopers.application.product.command.CreateProductCommand;
 import com.loopers.application.product.command.UpdateProductCommand;
 import com.loopers.application.product.result.ProductResult;
-import com.loopers.domain.brand.Brand;
 import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
 
 @ExtendWith(MockitoExtension.class)
 class ProductFacadeTest {
@@ -36,11 +33,10 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_생성하면_브랜드_검증_후_ProductResult를_반환한다() {
         // given
-        Brand brand = Brand.builder().name("나이키").build();
         CreateProductCommand command = new CreateProductCommand(1L, "운동화", 100000, 50);
         ZonedDateTime now = ZonedDateTime.now();
         ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
-        given(brandService.findBrand(1L)).willReturn(brand);
+        given(brandService.existsBrandById(1L)).willReturn(true);
         given(productService.createProduct(eq(1L), eq(command))).willReturn(expectedResult);
 
         // when
@@ -55,8 +51,7 @@ class ProductFacadeTest {
     void 존재하지_않는_브랜드로_상품을_생성하면_예외가_발생한다() {
         // given
         CreateProductCommand command = new CreateProductCommand(999L, "운동화", 100000, 50);
-        willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))
-                .given(brandService).findBrand(999L);
+        given(brandService.existsBrandById(999L)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> productFacade.createProduct(command))
@@ -66,11 +61,10 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_수정하면_브랜드_검증_후_ProductResult를_반환한다() {
         // given
-        Brand brand = Brand.builder().name("아디다스").build();
         UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
         ZonedDateTime now = ZonedDateTime.now();
         ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now);
-        given(brandService.findBrand(2L)).willReturn(brand);
+        given(brandService.existsBrandById(2L)).willReturn(true);
         given(productService.updateProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedResult);
 
         // when
@@ -85,8 +79,7 @@ class ProductFacadeTest {
     void 존재하지_않는_브랜드로_상품을_수정하면_예외가_발생한다() {
         // given
         UpdateProductCommand command = new UpdateProductCommand(999L, "슬리퍼", 50000, 30);
-        willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))
-                .given(brandService).findBrand(999L);
+        given(brandService.existsBrandById(999L)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> productFacade.updateProduct(1L, command))
