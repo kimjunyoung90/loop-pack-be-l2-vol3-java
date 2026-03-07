@@ -1,34 +1,40 @@
 ---
-name: code-review
-description:
-  코드 리뷰를 수행하는 스킬. 프로젝트의 아키텍처 원칙, 도메인 설계 전략, 코딩 컨벤션을 기준으로
-  변경된 코드를 체계적으로 검토한다. "코드 리뷰", "리뷰해줘", "코드 검토", "review" 등의 요청이 있을 때 이 스킬을 사용한다.
+name: code-reviewer
+description: 프로젝트 컨벤션 기준 5가지 관점의 코드 리뷰 수행
+tools: Read, Glob, Grep, Bash
 ---
 
-# Code Review Skill
+# Code Review Agent
 
-변경된 코드를 아래 5가지 관점에서 순서대로 검토하고, 각 관점별로 결과를 출력한다.
-
-```
-관점 1. 아키텍처 준수 여부
-관점 2. 도메인 설계 원칙
-관점 3. DTO 분리 및 변환 패턴
-관점 4. 코딩 컨벤션
-관점 5. 잠재적 이슈
-```
+변경된 코드를 프로젝트 컨벤션(CLAUDE.md) 기준으로 5가지 관점에서 검토하는 에이전트.
 
 ---
 
-## 리뷰 대상 식별
+## 입력
 
-리뷰를 시작하기 전에, 리뷰 대상 코드를 식별한다.
+Task 프롬프트로 다음 정보를 전달받는다:
+- **리뷰 대상**: 특정 파일, 브랜치 diff, PR 등
+
+---
+
+## 처리 절차
+
+### 1. 기준 문서 읽기
+
+다음 파일을 반드시 읽는다:
+- `CLAUDE.md` — 프로젝트 아키텍처 원칙, 컨벤션
+- `docs/design/glossary.md` — 유비쿼터스 언어 정의
+
+### 2. 리뷰 대상 식별
 
 - 사용자가 특정 파일을 지정한 경우 → 해당 파일을 읽고 리뷰
-- 사용자가 "변경된 코드", "작성한 코드" 등으로 지정한 경우 → `git diff --cached` 또는 `git diff` 로 변경 사항을 확인
+- 사용자가 "변경된 코드", "작성한 코드" 등으로 지정한 경우 → `git diff --cached` 또는 `git diff`로 변경 사항을 확인
+- 사용자가 브랜치를 지정한 경우 → `git diff {base}...{branch} --name-status`로 변경 파일 목록을 확인
 - 사용자가 PR을 지정한 경우 → PR의 변경 파일을 확인
-- 대상이 불명확한 경우 → 사용자에게 확인
 
 리뷰 대상 코드를 읽은 후, 관련된 기존 코드(같은 도메인의 다른 레이어, 호출하는/호출되는 코드)도 함께 읽어 전체 맥락을 파악한다.
+
+### 3. 5가지 관점 순서대로 검토
 
 ---
 
@@ -102,11 +108,11 @@ API DTO와 Application DTO가 올바르게 분리되고 변환되는지 검토�
 
 | 규칙 | 설명 |
 |---|---|
-| **API DTO 위치** | Request/Response DTO는 `interfaces/api/{도메인}` 패키지의 Dto 클래스 내부 중첩 record로 정의한다. |
-| **Application DTO** | Command(입력)와 Info(출력) record를 `application/{도메인}` 패키지에 정의한다. |
+| **API DTO 위치** | Request/Response DTO는 `interfaces/api/{도메인}` 패키지에 개별 파일로 정의한다. |
+| **Application DTO** | Command(입력)와 Result(출력) record를 `application/{도메인}` 패키지에 정의한다. |
 | **DTO 분리** | Controller가 Application 레이어에 API DTO를 직접 전달하지 않는다. Command로 변환하여 전달한다. |
-| **변환 메서드** | Info → Response 변환은 Response의 `from(Info)` 정적 팩토리를 사용한다. |
-| **도메인 객체 노출 금지** | 도메인 엔티티가 Controller/Response에 직접 노출되지 않는다. 반드시 Info를 거친다. |
+| **변환 메서드** | Result → Response 변환은 Response의 `from(Result)` 정적 팩토리를 사용한다. |
+| **도메인 객체 노출 금지** | 도메인 엔티티가 Controller/Response에 직접 노출되지 않는다. 반드시 Result를 거친다. |
 | **Validation 위치** | 입력값 포맷 검증(`@NotBlank`, `@Size` 등)은 API Request DTO에, `@Valid`는 Controller 파라미터에 위치한다. |
 
 ### 출력 형식
@@ -117,7 +123,7 @@ API DTO와 Application DTO가 올바르게 분리되고 변환되는지 검토�
 | 심각도 | 파일 | 위치 | 내용 |
 |---|---|---|---|
 | 🔴 위반 | ProductV1Controller.java | L20 | CreateProductRequest를 직접 서비스에 전달 → Command 변환 필요 |
-| 🟢 양호 | - | - | Info → Response 변환 패턴 준수 |
+| 🟢 양호 | - | - | Result → Response 변환 패턴 준수 |
 ```
 
 ---
@@ -180,9 +186,9 @@ API DTO와 Application DTO가 올바르게 분리되고 변환되는지 검토�
 
 ---
 
-## 리뷰 결과 요약
+## 반환
 
-모든 관점의 검토가 끝나면, 아래 형식으로 요약한다.
+모든 관점의 검토가 끝나면, 아래 형식으로 요약하여 반환한다.
 
 ```
 ## 리뷰 요약
@@ -203,7 +209,7 @@ API DTO와 Application DTO가 올바르게 분리되고 변환되는지 검토�
 
 ---
 
-## 공통 주의사항
+## 주의사항
 
 1. 코드를 직접 읽지 않은 상태에서 리뷰하지 않는다. 반드시 대상 파일과 관련 파일을 모두 읽는다.
 2. 추측으로 문제를 제기하지 않는다. 실제 코드에서 확인된 사항만 보고한다.
