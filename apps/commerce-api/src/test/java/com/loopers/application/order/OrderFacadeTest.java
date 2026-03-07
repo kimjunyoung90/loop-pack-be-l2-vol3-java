@@ -1,8 +1,8 @@
 package com.loopers.application.order;
 
 import com.loopers.application.coupon.CouponService;
-import com.loopers.application.order.command.CreateOrderCommand;
-import com.loopers.application.order.command.CreateOrderItemCommand;
+import com.loopers.application.order.command.OrderCreateCommand;
+import com.loopers.application.order.command.OrderItemCreateCommand;
 import com.loopers.application.order.result.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.product.ProductService;
@@ -50,8 +50,8 @@ class OrderFacadeTest {
         // given
         ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
 
-        CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
-                new CreateOrderItemCommand(1L, 2)
+        OrderCreateCommand command = new OrderCreateCommand(1L, null, List.of(
+                new OrderItemCreateCommand(1L, 2)
         ));
 
         given(productService.deductStock(1L, 2)).willReturn(productResult);
@@ -73,8 +73,8 @@ class OrderFacadeTest {
     @Test
     void 존재하지_않는_상품으로_주문하면_예외가_발생한다() {
         // given
-        CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
-                new CreateOrderItemCommand(999L, 2)
+        OrderCreateCommand command = new OrderCreateCommand(1L, null, List.of(
+                new OrderItemCreateCommand(999L, 2)
         ));
         willThrow(new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."))
                 .given(productService).deductStock(999L, 2);
@@ -87,8 +87,8 @@ class OrderFacadeTest {
     @Test
     void 재고가_부족한_상품이_포함되면_예외가_발생한다() {
         // given
-        CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
-                new CreateOrderItemCommand(1L, 5)
+        OrderCreateCommand command = new OrderCreateCommand(1L, null, List.of(
+                new OrderItemCreateCommand(1L, 5)
         ));
         willThrow(new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다."))
                 .given(productService).deductStock(1L, 5);
@@ -144,8 +144,8 @@ class OrderFacadeTest {
         // given
         ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
 
-        CreateOrderCommand command = new CreateOrderCommand(1L, 10L, List.of(
-                new CreateOrderItemCommand(1L, 2)
+        OrderCreateCommand command = new OrderCreateCommand(1L, 10L, List.of(
+                new OrderItemCreateCommand(1L, 2)
         ));
 
         given(productService.deductStock(1L, 2)).willReturn(productResult);
@@ -171,8 +171,8 @@ class OrderFacadeTest {
         // given
         ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
 
-        CreateOrderCommand command = new CreateOrderCommand(1L, 10L, List.of(
-                new CreateOrderItemCommand(1L, 2)
+        OrderCreateCommand command = new OrderCreateCommand(1L, 10L, List.of(
+                new OrderItemCreateCommand(1L, 2)
         ));
 
         given(productService.deductStock(1L, 2)).willReturn(productResult);

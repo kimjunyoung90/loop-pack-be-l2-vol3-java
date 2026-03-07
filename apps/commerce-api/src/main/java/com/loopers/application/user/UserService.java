@@ -1,6 +1,6 @@
 package com.loopers.application.user;
 
-import com.loopers.application.user.command.CreateUserCommand;
+import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
 import com.loopers.domain.user.User;
 import com.loopers.support.error.CoreException;
@@ -19,7 +19,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserResult createUser(CreateUserCommand command) {
+    public UserResult createUser(UserCreateCommand command) {
 
         if(userRepository.existsByLoginId(command.loginId())){
             throw new CoreException(ErrorType.CONFLICT, "이미 사용 중인 로그인 ID입니다.");

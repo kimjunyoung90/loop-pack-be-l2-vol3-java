@@ -6,8 +6,8 @@ import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.coupon.DiscountType;
-import com.loopers.interfaces.api.coupon.admin.request.CreateCouponRequest;
-import com.loopers.interfaces.api.coupon.admin.request.UpdateCouponRequest;
+import com.loopers.interfaces.api.coupon.admin.request.CouponCreateRequest;
+import com.loopers.interfaces.api.coupon.admin.request.CouponUpdateRequest;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ class CouponAdminV1ControllerTest {
         CouponResult couponResult = new CouponResult(1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, null, null);
         given(couponService.createCoupon(any())).willReturn(couponResult);
 
-        CreateCouponRequest request = new CreateCouponRequest(
+        CouponCreateRequest request = new CouponCreateRequest(
                 "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt
         );
 
@@ -77,7 +77,7 @@ class CouponAdminV1ControllerTest {
     @Test
     void 쿠폰_생성_시_쿠폰명이_비어있으면_400을_반환한다() throws Exception {
         // given
-        CreateCouponRequest request = new CreateCouponRequest(
+        CouponCreateRequest request = new CouponCreateRequest(
                 "", DiscountType.FIXED, 3000, null, LocalDate.now().plusDays(7)
         );
 
@@ -173,7 +173,7 @@ class CouponAdminV1ControllerTest {
         CouponResult couponResult = new CouponResult(1L, "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, null, null);
         given(couponService.updateCoupon(any(), any())).willReturn(couponResult);
 
-        UpdateCouponRequest request = new UpdateCouponRequest(
+        CouponUpdateRequest request = new CouponUpdateRequest(
                 "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt
         );
 
@@ -198,7 +198,7 @@ class CouponAdminV1ControllerTest {
     @Test
     void 쿠폰_수정_시_쿠폰명이_비어있으면_400을_반환한다() throws Exception {
         // given
-        UpdateCouponRequest request = new UpdateCouponRequest(
+        CouponUpdateRequest request = new CouponUpdateRequest(
                 "", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7)
         );
 

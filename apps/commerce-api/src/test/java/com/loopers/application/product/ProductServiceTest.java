@@ -1,6 +1,6 @@
 package com.loopers.application.product;
 
-import com.loopers.application.product.command.UpdateProductCommand;
+import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -40,7 +40,7 @@ class ProductServiceTest {
     void 존재하지_않는_상품_수정_시_예외가_발생한다() {
         // given
         given(productRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
-        UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
+        ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", 50000, 30);
 
         // when & then
         assertThatThrownBy(() -> productService.updateProduct(1L, 2L, command))

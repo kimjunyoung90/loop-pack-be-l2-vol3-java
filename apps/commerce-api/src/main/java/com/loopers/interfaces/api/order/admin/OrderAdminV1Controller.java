@@ -3,7 +3,7 @@ package com.loopers.interfaces.api.order.admin;
 import com.loopers.application.order.OrderService;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.interfaces.api.ApiResponse;
-import com.loopers.interfaces.api.order.admin.response.GetOrderResponse;
+import com.loopers.interfaces.api.order.admin.response.OrderGetResponse;
 import com.loopers.support.auth.AdminOnly;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +21,9 @@ public class OrderAdminV1Controller implements OrderAdminV1ApiSpec {
 
     @GetMapping("/{orderId}")
     @Override
-    public ApiResponse<GetOrderResponse> getOrder(
+    public ApiResponse<OrderGetResponse> getOrder(
             @PathVariable Long orderId) {
         OrderResult orderResult = orderService.getOrder(orderId);
-        return ApiResponse.success(GetOrderResponse.from(orderResult));
+        return ApiResponse.success(OrderGetResponse.from(orderResult));
     }
 }

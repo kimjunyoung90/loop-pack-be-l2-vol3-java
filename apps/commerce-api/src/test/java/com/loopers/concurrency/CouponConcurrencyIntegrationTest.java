@@ -1,7 +1,7 @@
 package com.loopers.concurrency;
 
 import com.loopers.application.coupon.CouponService;
-import com.loopers.application.coupon.command.CreateCouponCommand;
+import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.domain.coupon.DiscountType;
@@ -38,7 +38,7 @@ class CouponConcurrencyIntegrationTest {
         // given
         Long userId = 99999L;
         CouponResult coupon = couponService.createCoupon(
-                new CreateCouponCommand("동시성 테스트 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7))
+                new CouponCreateCommand("동시성 테스트 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7))
         );
         UserCouponResult issued = couponService.issueCoupon(userId, coupon.id());
 

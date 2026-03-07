@@ -3,8 +3,8 @@ package com.loopers.interfaces.api.coupon;
 import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.interfaces.api.ApiResponse;
-import com.loopers.interfaces.api.coupon.response.GetMyCouponResponse;
-import com.loopers.interfaces.api.coupon.response.IssueCouponResponse;
+import com.loopers.interfaces.api.coupon.response.MyCouponGetResponse;
+import com.loopers.interfaces.api.coupon.response.CouponIssueResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
 import lombok.RequiredArgsConstructor;
@@ -25,22 +25,22 @@ public class CouponV1Controller implements CouponV1ApiSpec {
 
     @PostMapping("/{couponId}/issues")
     @Override
-    public ApiResponse<IssueCouponResponse> issueCoupon(
+    public ApiResponse<CouponIssueResponse> issueCoupon(
             @LoginUser AuthUser authUser,
             @PathVariable Long couponId
     ) {
         UserCouponResult result = couponService.issueCoupon(authUser.id(), couponId);
-        return ApiResponse.success(IssueCouponResponse.from(result));
+        return ApiResponse.success(CouponIssueResponse.from(result));
     }
 
     @GetMapping("/me")
     @Override
-    public ApiResponse<List<GetMyCouponResponse>> getMyCoupons(
+    public ApiResponse<List<MyCouponGetResponse>> getMyCoupons(
             @LoginUser AuthUser authUser
     ) {
         List<UserCouponResult> results = couponService.getUserCoupons(authUser.id());
-        List<GetMyCouponResponse> responses = results.stream()
-                .map(GetMyCouponResponse::from)
+        List<MyCouponGetResponse> responses = results.stream()
+                .map(MyCouponGetResponse::from)
                 .toList();
         return ApiResponse.success(responses);
     }

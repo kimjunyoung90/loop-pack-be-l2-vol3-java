@@ -1,7 +1,7 @@
 package com.loopers.application.coupon;
 
-import com.loopers.application.coupon.command.CreateCouponCommand;
-import com.loopers.application.coupon.command.UpdateCouponCommand;
+import com.loopers.application.coupon.command.CouponCreateCommand;
+import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.domain.coupon.Coupon;
@@ -26,7 +26,7 @@ public class CouponService {
 	private final UserCouponRepository userCouponRepository;
 
 	@Transactional
-	public CouponResult createCoupon(CreateCouponCommand command) {
+	public CouponResult createCoupon(CouponCreateCommand command) {
 		Coupon coupon = Coupon.builder()
 				.name(command.name())
 				.discountType(command.discountType())
@@ -53,7 +53,7 @@ public class CouponService {
 	}
 
 	@Transactional
-	public CouponResult updateCoupon(Long couponId, UpdateCouponCommand command) {
+	public CouponResult updateCoupon(Long couponId, CouponUpdateCommand command) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 

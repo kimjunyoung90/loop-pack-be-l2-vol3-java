@@ -1,7 +1,7 @@
 package com.loopers.application.coupon;
 
-import com.loopers.application.coupon.command.CreateCouponCommand;
-import com.loopers.application.coupon.command.UpdateCouponCommand;
+import com.loopers.application.coupon.command.CouponCreateCommand;
+import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.support.error.CoreException;
@@ -31,7 +31,7 @@ class CouponServiceIntegrationTest {
     void 쿠폰_생성_조회_수정_삭제_전체_흐름을_검증한다() {
         // 생성
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CreateCouponCommand createCommand = new CreateCouponCommand(
+        CouponCreateCommand createCommand = new CouponCreateCommand(
                 "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt
         );
         CouponResult created = couponService.createCoupon(createCommand);
@@ -48,7 +48,7 @@ class CouponServiceIntegrationTest {
 
         // 수정
         LocalDate newExpiredAt = LocalDate.now().plusDays(60);
-        UpdateCouponCommand updateCommand = new UpdateCouponCommand(
+        CouponUpdateCommand updateCommand = new CouponUpdateCommand(
                 "수정 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt
         );
         CouponResult updated = couponService.updateCoupon(created.id(), updateCommand);
@@ -70,10 +70,10 @@ class CouponServiceIntegrationTest {
     void 삭제된_쿠폰은_목록에서_제외된다() {
         // given
         CouponResult coupon1 = couponService.createCoupon(
-                new CreateCouponCommand("쿠폰1", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
+                new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
         );
         couponService.createCoupon(
-                new CreateCouponCommand("쿠폰2", DiscountType.RATE, 10, 5000, LocalDate.now().plusDays(14))
+                new CouponCreateCommand("쿠폰2", DiscountType.RATE, 10, 5000, LocalDate.now().plusDays(14))
         );
         couponService.deleteCoupon(coupon1.id());
 
@@ -89,7 +89,7 @@ class CouponServiceIntegrationTest {
     void 삭제된_쿠폰_상세_조회_시_예외가_발생한다() {
         // given
         CouponResult created = couponService.createCoupon(
-                new CreateCouponCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
+                new CouponCreateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
         );
         couponService.deleteCoupon(created.id());
 

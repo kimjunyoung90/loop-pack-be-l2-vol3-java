@@ -40,17 +40,13 @@
 - 매개변수가 3개를 초과하는 경우 DTO를 생성하여 전달한다.
 - DTO는 record를 사용하여 불변성을 유지한다.
 
-| 계층           | 입력      | 출력       |
-|----------------|-----------|------------|
-| interface      | `Request` | `Response` |
-| application    | `Command` | `Result`   |
-| infrastructure | `Dto`     | `Domain`   |
+| 계층           | 입력      | 출력       | 네이밍 패턴 | 예시 |
+|----------------|-----------|------------|-------------|------|
+| interface      | `Request` | `Response` | `{Domain}{Action}Request/Response` | `BrandCreateRequest`, `BrandCreateResponse` |
+| application    | `Command` | `Result`   | `{Domain}{Action}Command/Result` | `BrandCreateCommand`, `BrandCreateResult` |
+| infrastructure | `Dto`     | `Domain`   | - | - |
 
 - 변환 메서드는 수신 객체에 `static from()` 또는 `toXxx()`로 정의한다.
-
-- **Interface DTO**: Request/Response
-- **Application DTO**: Command/Result
-- **변환**: DTO 내부 `static from()` 메서드 사용
 
 ## 5. 도메인 설계 원칙
 - 엔티티 객체는 자기 자신이 유효한 상태임을 보장해야 한다.
@@ -130,9 +126,9 @@ public class Product extends BaseEntity {
 ### Service 메서드
 | 접두어 | 용도 | 반환 타입 | 예시 |
 |--------|------|-----------|------|
-| `get~` | 단건/목록 조회 | application DTO | `getBrand(Long): BrandInfo` |
-| `create~` | 생성 | application DTO | `createProduct(Brand, Command): ProductInfo` |
-| `update~` | 수정 | application DTO | `updateProduct(Long, Brand, Command): ProductInfo` |
+| `get~` | 단건/목록 조회 | application DTO | `getBrand(Long): BrandGetResult` |
+| `create~` | 생성 | application DTO | `createProduct(Brand, ProductCreateCommand): ProductCreateResult` |
+| `update~` | 수정 | application DTO | `updateProduct(Long, Brand, ProductUpdateCommand): ProductUpdateResult` |
 | `delete~` | 삭제 | void | `deleteProduct(Long): void` |
 
 ### Repository 인터페이스

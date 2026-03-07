@@ -1,20 +1,20 @@
 package com.loopers.application.order;
 
 import com.loopers.application.brand.BrandService;
-import com.loopers.application.brand.command.CreateBrandCommand;
+import com.loopers.application.brand.command.BrandCreateCommand;
 import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.coupon.CouponService;
-import com.loopers.application.coupon.command.CreateCouponCommand;
+import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
-import com.loopers.application.order.command.CreateOrderCommand;
-import com.loopers.application.order.command.CreateOrderItemCommand;
+import com.loopers.application.order.command.OrderCreateCommand;
+import com.loopers.application.order.command.OrderItemCreateCommand;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.product.command.CreateProductCommand;
+import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.user.UserService;
-import com.loopers.application.user.command.CreateUserCommand;
+import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.domain.product.Product;
@@ -57,17 +57,17 @@ class OrderFacadeIntegrationTest {
     void 주문_생성_전체_흐름을_검증한다() {
         // 사용자 등록
         UserResult userResult = userService.createUser(
-                new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
+                new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new CreateBrandCommand("나이키"));
-        ProductResult productResult1 = productService.createProduct(brandResult.id(), new CreateProductCommand(brandResult.id(), "운동화", 50000, 10));
-        ProductResult productResult2 = productService.createProduct(brandResult.id(), new CreateProductCommand(brandResult.id(), "슬리퍼", 30000, 5));
+        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
+        ProductResult productResult1 = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
+        ProductResult productResult2 = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", 30000, 5));
 
         // 주문 생성
-        CreateOrderCommand command = new CreateOrderCommand(userResult.id(), null, List.of(
-                new CreateOrderItemCommand(productResult1.id(), 2),
-                new CreateOrderItemCommand(productResult2.id(), 1)
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
+                new OrderItemCreateCommand(productResult1.id(), 2),
+                new OrderItemCreateCommand(productResult2.id(), 1)
         ));
         OrderResult result = orderFacade.createOrder(command);
 
@@ -88,15 +88,15 @@ class OrderFacadeIntegrationTest {
     void 재고가_부족하면_주문_전체가_실패하고_재고가_변경되지_않는다() {
         // 사용자 등록
         UserResult userResult = userService.createUser(
-                new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
+                new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록 (재고 2개)
-        BrandResult brandResult = brandService.createBrand(new CreateBrandCommand("나이키"));
-        ProductResult productResult = productService.createProduct(brandResult.id(), new CreateProductCommand(brandResult.id(), "운동화", 50000, 2));
+        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
+        ProductResult productResult = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 2));
 
         // 재고 초과 주문
-        CreateOrderCommand command = new CreateOrderCommand(userResult.id(), null, List.of(
-                new CreateOrderItemCommand(productResult.id(), 5)
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
+                new OrderItemCreateCommand(productResult.id(), 5)
         ));
 
         // 주문 실패 검증
@@ -108,15 +108,15 @@ class OrderFacadeIntegrationTest {
     void 주문_취소_시_상태가_CANCELLED로_변경되고_재고가_복원된다() {
         // 사용자 등록
         UserResult userResult = userService.createUser(
-                new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
+                new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new CreateBrandCommand("나이키"));
-        ProductResult productResult = productService.createProduct(brandResult.id(), new CreateProductCommand(brandResult.id(), "운동화", 50000, 10));
+        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
+        ProductResult productResult = productService.createProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
 
         // 주문 생성
-        CreateOrderCommand command = new CreateOrderCommand(userResult.id(), null, List.of(
-                new CreateOrderItemCommand(productResult.id(), 2)
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
+                new OrderItemCreateCommand(productResult.id(), 2)
         ));
         OrderResult orderResult = orderFacade.createOrder(command);
 
@@ -139,26 +139,26 @@ class OrderFacadeIntegrationTest {
     void 쿠폰을_적용하여_주문하면_할인이_반영되고_쿠폰이_사용_처리된다() {
         // 사용자 등록
         UserResult userResult = userService.createUser(
-                new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
+                new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new CreateBrandCommand("나이키"));
+        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
         int productPrice = 50000;
         int orderQuantity = 2;
         int initialStock = 10;
         ProductResult productResult = productService.createProduct(brandResult.id(),
-                new CreateProductCommand(brandResult.id(), "운동화", productPrice, initialStock));
+                new ProductCreateCommand(brandResult.id(), "운동화", productPrice, initialStock));
 
         // 쿠폰 생성 + 발급
         int discountValue = 5000;
         CouponResult couponResult = couponService.createCoupon(
-                new CreateCouponCommand("정액 할인 쿠폰", DiscountType.FIXED, discountValue, null, LocalDate.now().plusDays(7)));
+                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, discountValue, null, LocalDate.now().plusDays(7)));
         UserCouponResult userCouponResult = couponService.issueCoupon(userResult.id(), couponResult.id());
 
         // 쿠폰 적용 주문 생성
         int expectedTotalAmount = productPrice * orderQuantity;
-        CreateOrderCommand command = new CreateOrderCommand(userResult.id(), userCouponResult.id(), List.of(
-                new CreateOrderItemCommand(productResult.id(), orderQuantity)
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
+                new OrderItemCreateCommand(productResult.id(), orderQuantity)
         ));
         OrderResult result = orderFacade.createOrder(command);
 
@@ -182,23 +182,23 @@ class OrderFacadeIntegrationTest {
     void 쿠폰이_적용된_주문을_취소하면_쿠폰이_복원되고_재고가_복원된다() {
         // 사용자 등록
         UserResult userResult = userService.createUser(
-                new CreateUserCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
+                new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
-        BrandResult brandResult = brandService.createBrand(new CreateBrandCommand("나이키"));
+        BrandResult brandResult = brandService.createBrand(new BrandCreateCommand("나이키"));
         int initialStock = 10;
         int orderQuantity = 2;
         ProductResult productResult = productService.createProduct(brandResult.id(),
-                new CreateProductCommand(brandResult.id(), "운동화", 50000, initialStock));
+                new ProductCreateCommand(brandResult.id(), "운동화", 50000, initialStock));
 
         // 쿠폰 생성 + 발급
         CouponResult couponResult = couponService.createCoupon(
-                new CreateCouponCommand("정액 할인 쿠폰", DiscountType.FIXED, 5000, null, LocalDate.now().plusDays(7)));
+                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, 5000, null, LocalDate.now().plusDays(7)));
         UserCouponResult userCouponResult = couponService.issueCoupon(userResult.id(), couponResult.id());
 
         // 쿠폰 적용 주문 생성
-        CreateOrderCommand command = new CreateOrderCommand(userResult.id(), userCouponResult.id(), List.of(
-                new CreateOrderItemCommand(productResult.id(), orderQuantity)
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
+                new OrderItemCreateCommand(productResult.id(), orderQuantity)
         ));
         OrderResult orderResult = orderFacade.createOrder(command);
 

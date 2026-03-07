@@ -1,11 +1,11 @@
 package com.loopers.application.like;
 
 import com.loopers.application.brand.BrandService;
-import com.loopers.application.brand.command.CreateBrandCommand;
+import com.loopers.application.brand.command.BrandCreateCommand;
 import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.product.command.CreateProductCommand;
+import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
@@ -35,9 +35,9 @@ class LikeServiceIntegrationTest {
     private ProductService productService;
 
     private ProductResult createProduct() {
-        BrandResult brand = brandService.createBrand(new CreateBrandCommand("나이키"));
+        BrandResult brand = brandService.createBrand(new BrandCreateCommand("나이키"));
         return productService.createProduct(brand.id(),
-                new CreateProductCommand(brand.id(), "운동화", 50000, 10));
+                new ProductCreateCommand(brand.id(), "운동화", 50000, 10));
     }
 
     @Test

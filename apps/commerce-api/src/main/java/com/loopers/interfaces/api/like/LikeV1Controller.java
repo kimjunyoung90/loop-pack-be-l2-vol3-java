@@ -4,8 +4,8 @@ import com.loopers.application.like.LikeFacade;
 import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.like.LikeService;
 import com.loopers.interfaces.api.ApiResponse;
-import com.loopers.interfaces.api.like.response.CreateLikeResponse;
-import com.loopers.interfaces.api.like.response.GetLikeResponse;
+import com.loopers.interfaces.api.like.response.LikeCreateResponse;
+import com.loopers.interfaces.api.like.response.LikeGetResponse;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +28,12 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @PostMapping("/products/{productId}")
     @Override
-    public ApiResponse<CreateLikeResponse> createLike(
+    public ApiResponse<LikeCreateResponse> createLike(
             @LoginUser AuthUser authUser,
             @PathVariable Long productId
     ) {
         LikeResult likeResult = likeFacade.createLike(authUser.id(), productId);
-        return ApiResponse.success(CreateLikeResponse.from(likeResult));
+        return ApiResponse.success(LikeCreateResponse.from(likeResult));
     }
 
     @DeleteMapping("/products/{productId}")
@@ -48,11 +48,11 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @GetMapping("/products")
     @Override
-    public ApiResponse<Page<GetLikeResponse>> getLikes(
+    public ApiResponse<Page<LikeGetResponse>> getLikes(
             @LoginUser AuthUser authUser,
             Pageable pageable
     ) {
         Page<LikeResult> likes = likeService.getLikes(authUser.id(), pageable);
-        return ApiResponse.success(likes.map(GetLikeResponse::from));
+        return ApiResponse.success(likes.map(LikeGetResponse::from));
     }
 }

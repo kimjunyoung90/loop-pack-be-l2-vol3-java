@@ -1,8 +1,8 @@
 package com.loopers.interfaces.api.like;
 
 import com.loopers.interfaces.api.ApiResponse;
-import com.loopers.interfaces.api.like.response.CreateLikeResponse;
-import com.loopers.interfaces.api.like.response.GetLikeResponse;
+import com.loopers.interfaces.api.like.response.LikeCreateResponse;
+import com.loopers.interfaces.api.like.response.LikeGetResponse;
 import com.loopers.support.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +16,7 @@ public interface LikeV1ApiSpec {
             summary = "좋아요 등록",
             description = "상품에 좋아요를 등록합니다."
     )
-    ApiResponse<CreateLikeResponse> createLike(
+    ApiResponse<LikeCreateResponse> createLike(
             AuthUser authUser,
             Long productId
     );
@@ -34,7 +34,7 @@ public interface LikeV1ApiSpec {
             summary = "좋아요한 상품 목록 조회",
             description = "좋아요한 상품 목록을 조회합니다."
     )
-    ApiResponse<Page<GetLikeResponse>> getLikes(
+    ApiResponse<Page<LikeGetResponse>> getLikes(
             AuthUser authUser,
             Pageable pageable
     );

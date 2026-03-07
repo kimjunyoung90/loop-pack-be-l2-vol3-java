@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.user;
 
-import com.loopers.interfaces.api.user.request.ChangePasswordRequest;
-import com.loopers.interfaces.api.user.request.CreateUserRequest;
+import com.loopers.interfaces.api.user.request.PasswordChangeRequest;
+import com.loopers.interfaces.api.user.request.UserCreateRequest;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,7 +26,7 @@ class UserE2ETest {
     @Test
     void 회원가입_시_200_OK와_SUCCESS_응답을_반환한다() {
         // given
-        CreateUserRequest request = new CreateUserRequest(
+        UserCreateRequest request = new UserCreateRequest(
                 "testuser",
                 "Password1!",
                 "홍길동",
@@ -48,7 +48,7 @@ class UserE2ETest {
     @Test
     void 존재하는_ID로_내정보_조회시_마스킹된_이름과_비밀번호_제외한_정보를_반환한다() {
         //given
-        CreateUserRequest createUserRequest = new CreateUserRequest(
+        UserCreateRequest createUserRequest = new UserCreateRequest(
                 "myinfouser", "Pass1234!", "홍길동", "1999-01-01", "test@email.com");
 
         restTemplate.postForEntity("/api/v1/users", createUserRequest, String.class);
@@ -93,7 +93,7 @@ class UserE2ETest {
         String loginId = "pwsame" + (System.currentTimeMillis() % 1000);
         String currentPassword = "Password1!";
 
-        CreateUserRequest createRequest = new CreateUserRequest(
+        UserCreateRequest createRequest = new UserCreateRequest(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@example.com"
         );
         ResponseEntity<String> createResponse = restTemplate.postForEntity("/api/v1/users", createRequest, String.class);
@@ -105,8 +105,8 @@ class UserE2ETest {
         headers.set(LOGIN_PW_HEADER, currentPassword);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest(currentPassword);
-        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
+        PasswordChangeRequest changeRequest = new PasswordChangeRequest(currentPassword);
+        HttpEntity<PasswordChangeRequest> entity = new HttpEntity<>(changeRequest, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/users/password",
@@ -124,12 +124,12 @@ class UserE2ETest {
 
         String id = "chgpwuser";
         String password = "Pass1234!";
-        CreateUserRequest createUserRequest = new CreateUserRequest(
+        UserCreateRequest createUserRequest = new UserCreateRequest(
                 id, password, "홍길동", "1999-01-01", "test@email.com");
 
         restTemplate.postForEntity("/api/v1/users", createUserRequest, String.class);
 
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest("NewPass123!");
+        PasswordChangeRequest changeRequest = new PasswordChangeRequest("NewPass123!");
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Loopers-LoginId", id);
@@ -160,7 +160,7 @@ class UserE2ETest {
         // given
         String loginId = "authtest01";
         String password = "Pass1234!";
-        CreateUserRequest createRequest = new CreateUserRequest(
+        UserCreateRequest createRequest = new UserCreateRequest(
                 loginId, password, "홍길동", "1990-01-01", "test@example.com"
         );
         restTemplate.postForEntity("/api/v1/users", createRequest, String.class);
@@ -184,7 +184,7 @@ class UserE2ETest {
         // given
         String loginId = "authtest02";
         String password = "Pass1234!";
-        CreateUserRequest createRequest = new CreateUserRequest(
+        UserCreateRequest createRequest = new UserCreateRequest(
                 loginId, password, "홍길동", "1990-01-01", "test@example.com"
         );
         restTemplate.postForEntity("/api/v1/users", createRequest, String.class);
@@ -195,8 +195,8 @@ class UserE2ETest {
         headers.set(LOGIN_PW_HEADER, "WrongPass1!");
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        ChangePasswordRequest changeRequest = new ChangePasswordRequest("NewPass456!");
-        HttpEntity<ChangePasswordRequest> entity = new HttpEntity<>(changeRequest, headers);
+        PasswordChangeRequest changeRequest = new PasswordChangeRequest("NewPass456!");
+        HttpEntity<PasswordChangeRequest> entity = new HttpEntity<>(changeRequest, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/v1/users/password",

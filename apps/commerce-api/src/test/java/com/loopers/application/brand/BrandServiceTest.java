@@ -1,6 +1,6 @@
 package com.loopers.application.brand;
 
-import com.loopers.application.brand.command.UpdateBrandCommand;
+import com.loopers.application.brand.command.BrandUpdateCommand;
 import com.loopers.domain.brand.BrandRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -40,7 +40,7 @@ class BrandServiceTest {
     void 존재하지_않는_브랜드_수정_시_예외가_발생한다() {
         // given
         given(brandRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
-        UpdateBrandCommand command = new UpdateBrandCommand("아디다스");
+        BrandUpdateCommand command = new BrandUpdateCommand("아디다스");
 
         // when & then
         assertThatThrownBy(() -> brandService.updateBrand(1L, command))

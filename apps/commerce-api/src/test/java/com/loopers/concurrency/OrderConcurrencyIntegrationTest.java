@@ -1,15 +1,15 @@
 package com.loopers.application.order;
 
-import com.loopers.application.order.command.CreateOrderCommand;
-import com.loopers.application.order.command.CreateOrderItemCommand;
+import com.loopers.application.order.command.OrderCreateCommand;
+import com.loopers.application.order.command.OrderItemCreateCommand;
 import com.loopers.application.brand.BrandService;
-import com.loopers.application.brand.command.CreateBrandCommand;
+import com.loopers.application.brand.command.BrandCreateCommand;
 import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.product.command.CreateProductCommand;
+import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.user.UserService;
-import com.loopers.application.user.command.CreateUserCommand;
+import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
 import com.loopers.domain.product.Product;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
@@ -58,10 +58,10 @@ class OrderConcurrencyIntegrationTest {
     @Test
     void 동시에_같은_상품을_주문하면_재고가_정확히_차감된다() throws InterruptedException {
         // given
-        BrandResult brand = brandService.createBrand(new CreateBrandCommand("나이키"));
+        BrandResult brand = brandService.createBrand(new BrandCreateCommand("나이키"));
         int initialStock = 100;
         ProductResult product = productService.createProduct(brand.id(),
-                new CreateProductCommand(brand.id(), "운동화", 50000, initialStock));
+                new ProductCreateCommand(brand.id(), "운동화", 50000, initialStock));
 
         int threadCount = 100;
         int quantityPerOrder = 1;
@@ -76,10 +76,10 @@ class OrderConcurrencyIntegrationTest {
             executorService.submit(() -> {
                 try {
                     UserResult user = userService.createUser(
-                            new CreateUserCommand("ct" + index, "password1!", "사용자", "1990-01-01", "ct" + index + "@t.com"));
+                            new UserCreateCommand("ct" + index, "password1!", "사용자", "1990-01-01", "ct" + index + "@t.com"));
 
-                    CreateOrderCommand command = new CreateOrderCommand(user.id(), null, List.of(
-                            new CreateOrderItemCommand(product.id(), quantityPerOrder)
+                    OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
+                            new OrderItemCreateCommand(product.id(), quantityPerOrder)
                     ));
                     orderFacade.createOrder(command);
                     successCount.incrementAndGet();
@@ -111,13 +111,13 @@ class OrderConcurrencyIntegrationTest {
     @Test
     void 여러_상품_주문_시_하나라도_재고가_부족하면_주문이_실패하고_모든_재고가_롤백된다() throws InterruptedException {
         // given
-        BrandResult brand = brandService.createBrand(new CreateBrandCommand("아디다스"));
+        BrandResult brand = brandService.createBrand(new BrandCreateCommand("아디다스"));
         int productAStock = 100;
         int productBStock = 5;
         ProductResult productA = productService.createProduct(brand.id(),
-                new CreateProductCommand(brand.id(), "운동화", 50000, productAStock));
+                new ProductCreateCommand(brand.id(), "운동화", 50000, productAStock));
         ProductResult productB = productService.createProduct(brand.id(),
-                new CreateProductCommand(brand.id(), "슬리퍼", 30000, productBStock));
+                new ProductCreateCommand(brand.id(), "슬리퍼", 30000, productBStock));
 
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -131,11 +131,11 @@ class OrderConcurrencyIntegrationTest {
             executorService.submit(() -> {
                 try {
                     UserResult user = userService.createUser(
-                            new CreateUserCommand("st" + index, "password1!", "사용자", "1990-01-01", "st" + index + "@t.com"));
+                            new UserCreateCommand("st" + index, "password1!", "사용자", "1990-01-01", "st" + index + "@t.com"));
 
-                    CreateOrderCommand command = new CreateOrderCommand(user.id(), null, List.of(
-                            new CreateOrderItemCommand(productA.id(), 1),
-                            new CreateOrderItemCommand(productB.id(), 1)
+                    OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
+                            new OrderItemCreateCommand(productA.id(), 1),
+                            new OrderItemCreateCommand(productB.id(), 1)
                     ));
                     orderFacade.createOrder(command);
                     successCount.incrementAndGet();

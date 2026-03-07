@@ -1,8 +1,8 @@
 package com.loopers.application.order;
 
 import com.loopers.application.coupon.CouponService;
-import com.loopers.application.order.command.CreateOrderCommand;
-import com.loopers.application.order.command.CreateOrderItemCommand;
+import com.loopers.application.order.command.OrderCreateCommand;
+import com.loopers.application.order.command.OrderItemCreateCommand;
 import com.loopers.application.order.command.OrderItemCommand;
 import com.loopers.application.order.result.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
@@ -25,13 +25,13 @@ public class OrderFacade {
     private final CouponService couponService;
 
     @Transactional
-    public OrderResult createOrder(CreateOrderCommand command) {
+    public OrderResult createOrder(OrderCreateCommand command) {
         // 1. 주문 상품의 재고를 차감한다. (productId 오름차순 정렬로 데드락 방지)
-        List<CreateOrderItemCommand> sortedItems = command.orderItems().stream()
-                .sorted(Comparator.comparing(CreateOrderItemCommand::productId))
+        List<OrderItemCreateCommand> sortedItems = command.orderItems().stream()
+                .sorted(Comparator.comparing(OrderItemCreateCommand::productId))
                 .toList();
         List<OrderItemCommand> orderItemCommands = new ArrayList<>();
-        for (CreateOrderItemCommand item : sortedItems) {
+        for (OrderItemCreateCommand item : sortedItems) {
             ProductResult product = productService.deductStock(item.productId(), item.quantity());
             orderItemCommands.add(new OrderItemCommand(
                     product.id(), product.name(), product.price(), item.quantity()));

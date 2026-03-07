@@ -1,7 +1,7 @@
 package com.loopers.application.brand;
 
-import com.loopers.application.brand.command.CreateBrandCommand;
-import com.loopers.application.brand.command.UpdateBrandCommand;
+import com.loopers.application.brand.command.BrandCreateCommand;
+import com.loopers.application.brand.command.BrandUpdateCommand;
 import com.loopers.application.brand.result.BrandResult;
 import com.loopers.domain.brand.BrandRepository;
 import com.loopers.support.error.CoreException;
@@ -31,7 +31,7 @@ class BrandServiceIntegrationTest {
     @Test
     void 브랜드_등록_조회_수정_삭제_전체_흐름을_검증한다() {
         // 등록
-        CreateBrandCommand createCommand = new CreateBrandCommand("나이키");
+        BrandCreateCommand createCommand = new BrandCreateCommand("나이키");
         BrandResult created = brandService.createBrand(createCommand);
         assertThat(created.name()).isEqualTo("나이키");
         assertThat(created.id()).isNotNull();
@@ -41,7 +41,7 @@ class BrandServiceIntegrationTest {
         assertThat(found.name()).isEqualTo("나이키");
 
         // 수정
-        UpdateBrandCommand updateCommand = new UpdateBrandCommand("아디다스");
+        BrandUpdateCommand updateCommand = new BrandUpdateCommand("아디다스");
         BrandResult updated = brandService.updateBrand(created.id(), updateCommand);
         assertThat(updated.name()).isEqualTo("아디다스");
 
@@ -56,8 +56,8 @@ class BrandServiceIntegrationTest {
     @Test
     void 삭제된_브랜드는_목록에서_제외된다() {
         // given
-        BrandResult brand1 = brandService.createBrand(new CreateBrandCommand("나이키"));
-        BrandResult brand2 = brandService.createBrand(new CreateBrandCommand("아디다스"));
+        BrandResult brand1 = brandService.createBrand(new BrandCreateCommand("나이키"));
+        BrandResult brand2 = brandService.createBrand(new BrandCreateCommand("아디다스"));
         brandService.deleteBrand(brand1.id());
 
         // when

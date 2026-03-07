@@ -1,6 +1,6 @@
 package com.loopers.application.coupon;
 
-import com.loopers.application.coupon.command.UpdateCouponCommand;
+import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.DiscountType;
@@ -46,7 +46,7 @@ class CouponServiceTest {
     void 존재하지_않는_쿠폰_수정_시_NOT_FOUND_예외가_발생한다() {
         // given
         given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
-        UpdateCouponCommand command = new UpdateCouponCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
+        CouponUpdateCommand command = new CouponUpdateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
 
         // when & then
         assertThatThrownBy(() -> couponService.updateCoupon(1L, command))

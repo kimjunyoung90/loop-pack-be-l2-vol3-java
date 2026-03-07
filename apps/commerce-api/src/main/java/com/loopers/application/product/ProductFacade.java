@@ -2,8 +2,8 @@ package com.loopers.application.product;
 
 import com.loopers.application.brand.BrandService;
 import com.loopers.application.like.LikeService;
-import com.loopers.application.product.command.CreateProductCommand;
-import com.loopers.application.product.command.UpdateProductCommand;
+import com.loopers.application.product.command.ProductCreateCommand;
+import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -20,7 +20,7 @@ public class ProductFacade {
     private final LikeService likeService;
 
     @Transactional
-    public ProductResult createProduct(CreateProductCommand command) {
+    public ProductResult createProduct(ProductCreateCommand command) {
         if (!brandService.existsBrandById(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }
@@ -28,7 +28,7 @@ public class ProductFacade {
     }
 
     @Transactional
-    public ProductResult updateProduct(Long productId, UpdateProductCommand command) {
+    public ProductResult updateProduct(Long productId, ProductUpdateCommand command) {
         if (!brandService.existsBrandById(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }

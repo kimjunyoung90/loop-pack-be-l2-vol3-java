@@ -1,7 +1,7 @@
 package com.loopers.application.product;
 
-import com.loopers.application.product.command.CreateProductCommand;
-import com.loopers.application.product.command.UpdateProductCommand;
+import com.loopers.application.product.command.ProductCreateCommand;
+import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
@@ -23,7 +23,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public ProductResult createProduct(Long brandId, CreateProductCommand command) {
+    public ProductResult createProduct(Long brandId, ProductCreateCommand command) {
         Product product = Product.builder()
                 .brandId(brandId)
                 .name(command.name())
@@ -49,7 +49,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResult updateProduct(Long productId, Long brandId, UpdateProductCommand command) {
+    public ProductResult updateProduct(Long productId, Long brandId, ProductUpdateCommand command) {
         Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 

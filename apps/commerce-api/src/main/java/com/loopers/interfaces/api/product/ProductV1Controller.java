@@ -3,7 +3,7 @@ package com.loopers.interfaces.api.product;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.interfaces.api.ApiResponse;
-import com.loopers.interfaces.api.product.response.GetProductResponse;
+import com.loopers.interfaces.api.product.response.ProductGetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,19 +18,19 @@ public class ProductV1Controller implements ProductV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<GetProductResponse>> getProducts(
+    public ApiResponse<Page<ProductGetResponse>> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<GetProductResponse> products = productService.getProducts(PageRequest.of(page, size))
-                .map(GetProductResponse::from);
+        Page<ProductGetResponse> products = productService.getProducts(PageRequest.of(page, size))
+                .map(ProductGetResponse::from);
         return ApiResponse.success(products);
     }
 
     @GetMapping("/{productId}")
     @Override
-    public ApiResponse<GetProductResponse> getProduct(@PathVariable Long productId) {
+    public ApiResponse<ProductGetResponse> getProduct(@PathVariable Long productId) {
         ProductResult productResult = productService.getProduct(productId);
-        return ApiResponse.success(GetProductResponse.from(productResult));
+        return ApiResponse.success(ProductGetResponse.from(productResult));
     }
 }

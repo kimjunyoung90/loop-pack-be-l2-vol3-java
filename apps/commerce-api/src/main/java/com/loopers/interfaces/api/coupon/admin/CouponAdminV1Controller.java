@@ -1,16 +1,16 @@
 package com.loopers.interfaces.api.coupon.admin;
 
 import com.loopers.application.coupon.CouponService;
-import com.loopers.application.coupon.command.CreateCouponCommand;
-import com.loopers.application.coupon.command.UpdateCouponCommand;
+import com.loopers.application.coupon.command.CouponCreateCommand;
+import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.interfaces.api.ApiResponse;
-import com.loopers.interfaces.api.coupon.admin.request.CreateCouponRequest;
-import com.loopers.interfaces.api.coupon.admin.request.UpdateCouponRequest;
-import com.loopers.interfaces.api.coupon.admin.response.CreateCouponResponse;
-import com.loopers.interfaces.api.coupon.admin.response.GetCouponResponse;
-import com.loopers.interfaces.api.coupon.admin.response.GetIssuedCouponResponse;
-import com.loopers.interfaces.api.coupon.admin.response.UpdateCouponResponse;
+import com.loopers.interfaces.api.coupon.admin.request.CouponCreateRequest;
+import com.loopers.interfaces.api.coupon.admin.request.CouponUpdateRequest;
+import com.loopers.interfaces.api.coupon.admin.response.CouponCreateResponse;
+import com.loopers.interfaces.api.coupon.admin.response.CouponGetResponse;
+import com.loopers.interfaces.api.coupon.admin.response.IssuedCouponGetResponse;
+import com.loopers.interfaces.api.coupon.admin.response.CouponUpdateResponse;
 import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,11 +36,11 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<CreateCouponResponse> createCoupon(
-            @Valid @RequestBody CreateCouponRequest request
+    public ApiResponse<CouponCreateResponse> createCoupon(
+            @Valid @RequestBody CouponCreateRequest request
     ) {
         CouponResult couponResult = couponService.createCoupon(
-                new CreateCouponCommand(
+                new CouponCreateCommand(
                         request.name(),
                         request.discountType(),
                         request.discountValue(),
@@ -48,38 +48,38 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
                         request.expiredAt()
                 )
         );
-        return ApiResponse.success(CreateCouponResponse.from(couponResult));
+        return ApiResponse.success(CouponCreateResponse.from(couponResult));
     }
 
     @GetMapping
     @Override
-    public ApiResponse<Page<GetCouponResponse>> getCoupons(
+    public ApiResponse<Page<CouponGetResponse>> getCoupons(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<GetCouponResponse> coupons = couponService.getCoupons(PageRequest.of(page, size))
-                .map(GetCouponResponse::from);
+        Page<CouponGetResponse> coupons = couponService.getCoupons(PageRequest.of(page, size))
+                .map(CouponGetResponse::from);
         return ApiResponse.success(coupons);
     }
 
     @GetMapping("/{couponId}")
     @Override
-    public ApiResponse<GetCouponResponse> getCoupon(
+    public ApiResponse<CouponGetResponse> getCoupon(
             @PathVariable Long couponId
     ) {
         CouponResult couponResult = couponService.getCoupon(couponId);
-        return ApiResponse.success(GetCouponResponse.from(couponResult));
+        return ApiResponse.success(CouponGetResponse.from(couponResult));
     }
 
     @PutMapping("/{couponId}")
     @Override
-    public ApiResponse<UpdateCouponResponse> updateCoupon(
+    public ApiResponse<CouponUpdateResponse> updateCoupon(
             @PathVariable Long couponId,
-            @Valid @RequestBody UpdateCouponRequest request
+            @Valid @RequestBody CouponUpdateRequest request
     ) {
         CouponResult couponResult = couponService.updateCoupon(
                 couponId,
-                new UpdateCouponCommand(
+                new CouponUpdateCommand(
                         request.name(),
                         request.discountType(),
                         request.discountValue(),
@@ -87,7 +87,7 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
                         request.expiredAt()
                 )
         );
-        return ApiResponse.success(UpdateCouponResponse.from(couponResult));
+        return ApiResponse.success(CouponUpdateResponse.from(couponResult));
     }
 
     @DeleteMapping("/{couponId}")
@@ -101,13 +101,13 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @GetMapping("/{couponId}/issues")
     @Override
-    public ApiResponse<Page<GetIssuedCouponResponse>> getIssuedCoupons(
+    public ApiResponse<Page<IssuedCouponGetResponse>> getIssuedCoupons(
             @PathVariable Long couponId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<GetIssuedCouponResponse> issuedCoupons = couponService.getUserCouponsByCouponId(couponId, PageRequest.of(page, size))
-                .map(GetIssuedCouponResponse::from);
+        Page<IssuedCouponGetResponse> issuedCoupons = couponService.getUserCouponsByCouponId(couponId, PageRequest.of(page, size))
+                .map(IssuedCouponGetResponse::from);
         return ApiResponse.success(issuedCoupons);
     }
 }

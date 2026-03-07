@@ -7,8 +7,8 @@ import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
-import com.loopers.interfaces.api.brand.admin.request.CreateBrandRequest;
-import com.loopers.interfaces.api.brand.admin.request.UpdateBrandRequest;
+import com.loopers.interfaces.api.brand.admin.request.BrandCreateRequest;
+import com.loopers.interfaces.api.brand.admin.request.BrandUpdateRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -58,7 +58,7 @@ class BrandAdminV1ControllerTest {
         ZonedDateTime now = ZonedDateTime.now();
         given(brandService.createBrand(any())).willReturn(new BrandResult(1L, "나이키", now, now));
 
-        CreateBrandRequest request = new CreateBrandRequest("나이키");
+        BrandCreateRequest request = new BrandCreateRequest("나이키");
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/brands")
@@ -73,7 +73,7 @@ class BrandAdminV1ControllerTest {
     @Test
     void 관리자_헤더가_없으면_브랜드_등록시_403을_반환한다() throws Exception {
         // given
-        CreateBrandRequest request = new CreateBrandRequest("나이키");
+        BrandCreateRequest request = new BrandCreateRequest("나이키");
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/brands")
@@ -85,7 +85,7 @@ class BrandAdminV1ControllerTest {
     @Test
     void 관리자_헤더_값이_잘못되면_브랜드_등록시_403을_반환한다() throws Exception {
         // given
-        CreateBrandRequest request = new CreateBrandRequest("나이키");
+        BrandCreateRequest request = new BrandCreateRequest("나이키");
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/brands")
@@ -142,7 +142,7 @@ class BrandAdminV1ControllerTest {
         ZonedDateTime now = ZonedDateTime.now();
         given(brandService.updateBrand(eq(1L), any())).willReturn(new BrandResult(1L, "아디다스", now, now));
 
-        UpdateBrandRequest request = new UpdateBrandRequest("아디다스");
+        BrandUpdateRequest request = new BrandUpdateRequest("아디다스");
 
         // when & then
         mockMvc.perform(put("/api-admin/v1/brands/1")
@@ -155,7 +155,7 @@ class BrandAdminV1ControllerTest {
 
     @Test
     void 관리자_헤더가_없으면_브랜드_수정시_403을_반환한다() throws Exception {
-        UpdateBrandRequest request = new UpdateBrandRequest("아디다스");
+        BrandUpdateRequest request = new BrandUpdateRequest("아디다스");
 
         mockMvc.perform(put("/api-admin/v1/brands/1")
                         .contentType(MediaType.APPLICATION_JSON)

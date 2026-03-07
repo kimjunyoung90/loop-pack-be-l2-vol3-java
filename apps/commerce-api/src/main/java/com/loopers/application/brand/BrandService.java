@@ -1,7 +1,7 @@
 package com.loopers.application.brand;
 
-import com.loopers.application.brand.command.CreateBrandCommand;
-import com.loopers.application.brand.command.UpdateBrandCommand;
+import com.loopers.application.brand.command.BrandCreateCommand;
+import com.loopers.application.brand.command.BrandUpdateCommand;
 import com.loopers.application.brand.result.BrandResult;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.brand.BrandRepository;
@@ -20,7 +20,7 @@ public class BrandService {
     private final BrandRepository brandRepository;
 
     @Transactional
-    public BrandResult createBrand(CreateBrandCommand command) {
+    public BrandResult createBrand(BrandCreateCommand command) {
         Brand brand = Brand.builder()
                 .name(command.name())
                 .build();
@@ -48,7 +48,7 @@ public class BrandService {
     }
 
     @Transactional
-    public BrandResult updateBrand(Long brandId, UpdateBrandCommand command) {
+    public BrandResult updateBrand(Long brandId, BrandUpdateCommand command) {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
