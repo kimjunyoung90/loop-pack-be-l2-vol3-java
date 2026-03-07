@@ -36,20 +36,12 @@ public class User extends BaseEntity {
 
     @Builder
     private User(String loginId, String password, String name, String birthDate, String email, PasswordEncoder passwordEncoder) {
-        if (password.length() < 8 || password.length() > 16) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 8자 이상 16자 이하여야 합니다.");
-        }
-        if (!password.matches("^[a-zA-Z\\d\\p{Punct}]+$")) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 영문, 숫자, 특수문자만 사용할 수 있습니다.");
-        }
-        if (password.contains(birthDate)) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 생년월일을 포함할 수 없습니다.");
-        }
         this.loginId = loginId;
         this.name = name;
         this.birthDate = birthDate;
         this.email = email;
-        this.password = passwordEncoder.encode(password);
+		// 비밀번호는 암호화가 필요하므로 변경 메서드 호출
+        changePassword(password, birthDate, passwordEncoder);
         guard();
     }
 
@@ -58,6 +50,9 @@ public class User extends BaseEntity {
     }
 
     public void changePassword(String password, String birthDate, PasswordEncoder passwordEncoder) {
+        if (password == null || password.isBlank()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 필수입니다.");
+        }
         if (password.length() < 8 || password.length() > 16) {
             throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 8자 이상 16자 이하여야 합니다.");
         }
@@ -68,16 +63,6 @@ public class User extends BaseEntity {
             throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 생년월일을 포함할 수 없습니다.");
         }
         this.password = passwordEncoder.encode(password);
-    }
-
-    public void changeEmail(String email) {
-        this.email = email;
-        guard();
-    }
-
-    public void changeBirthDate(String birthDate) {
-        this.birthDate = birthDate;
-        guard();
     }
 
     @Override
@@ -95,6 +80,9 @@ public class User extends BaseEntity {
         }
         if (!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
             throw new CoreException(ErrorType.BAD_REQUEST, "올바른 이메일 형식이 아닙니다.");
+        }
+        if (password == null || password.isBlank()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 필수입니다.");
         }
     }
 }

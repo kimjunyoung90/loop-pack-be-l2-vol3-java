@@ -65,6 +65,19 @@
 - Hard Delete 정책이 적용된 도메인도 BaseEntity를 상속한다.(코드 일관성)
 - `guard()` 오버라이드로 `@PrePersist`/`@PreUpdate` 시점 검증 가능
 
+### 엔티티 유효성 검증
+엔티티의 검증은 **데이터 유효성**과 **비즈니스 규칙**으로 구분한다.
+
+| 구분 | 의미 | 위치 | 예시 |
+|------|------|------|------|
+| **데이터 유효성** | 엔티티가 존재할 수 있는 상태인가 | `guard()` | name이 null이면 안 된다, price가 음수면 안 된다 |
+| **비즈니스 규칙** | 이 행위를 지금 수행할 수 있는가 | 행위 메서드 내부 | 만료된 쿠폰은 사용할 수 없다, 비밀번호는 8자 이상이어야 한다 |
+
+- **데이터 유효성**: `guard()`를 오버라이드하여 한 곳에서 검증한다.
+  - 생성자/변경 메서드 끝에서 `guard()`를 명시적으로 호출한다.
+  - `@PrePersist`/`@PreUpdate` 시점에도 자동 호출되어 이중 안전망 역할을 한다.
+- **비즈니스 규칙**: 해당 행위 메서드 내부에서 인라인으로 검증한다.
+
 ### 엔티티 생성 패턴
 ```java
 @Entity
@@ -74,19 +87,31 @@ public class Product extends BaseEntity {
 
     @Builder
     private Product(/* 필드 */) {
-        // 비즈니스 규칙 검증
         this.field = field;
+        guard(); // 데이터 유효성 검증
     }
 
-    public void update(/* 필드 */) {
+    public void changeInfo(/* 필드 */) {
+        this.field = field;
+        guard(); // 데이터 유효성 검증
+    }
+
+    public void use() {
         // 비즈니스 규칙 검증
+        if (status == USED) { throw new CoreException(...); }
+        this.status = USED;
+    }
+
+    @Override
+    protected void guard() {
+        // 엔티티가 존재할 수 있는 상태인지 검증
+        if (field == null) { throw new CoreException(...); }
     }
 }
 ```
 - `@Builder` + private 생성자, `@NoArgsConstructor(access = PROTECTED)`
 - `@Getter`만 사용, setter 금지 — 변경은 도메인 메서드를 통해서만
 - 도메인 모델의 메서드 명칭은 유비쿼터스 언어를 바탕으로 비즈니스 의미가 드러나도록 작성한다.
-- 비즈니스 규칙 검증은 생성자/변경 메서드에서 수행
 
 ## 6. 네이밍 규칙
 

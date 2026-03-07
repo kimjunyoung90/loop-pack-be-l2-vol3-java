@@ -55,6 +55,8 @@ public class Coupon extends BaseEntity {
         guard();
     }
 
+    // --- 데이터 유효성 검증 ---
+
     @Override
     protected void guard() {
         if (name == null || name.isBlank()) {
@@ -76,6 +78,8 @@ public class Coupon extends BaseEntity {
             throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 현재 시점 이후여야 합니다.");
         }
     }
+
+    // --- 비즈니스 규칙 ---
 
     public UserCoupon issue(Long userId) {
         if (getId() == null) {

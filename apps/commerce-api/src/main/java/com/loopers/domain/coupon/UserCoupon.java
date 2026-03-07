@@ -61,6 +61,8 @@ public class UserCoupon extends BaseEntity {
         guard();
     }
 
+    // --- 데이터 유효성 검증 ---
+
     @Override
     protected void guard() {
         if (userId == null) {
@@ -85,6 +87,8 @@ public class UserCoupon extends BaseEntity {
             throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 필수입니다.");
         }
     }
+
+    // --- 비즈니스 규칙 ---
 
     public void validateUsable(Long userId, int totalAmount) {
         if (!this.userId.equals(userId)) {
