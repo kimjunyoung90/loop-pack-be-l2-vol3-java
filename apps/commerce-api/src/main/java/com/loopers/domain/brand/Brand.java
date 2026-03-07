@@ -22,18 +22,16 @@ public class Brand extends BaseEntity {
 
     @Builder
     private Brand(String name) {
-        validateName(name);
+        if (name == null || name.isBlank()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "브랜드명은 필수입니다.");
+        }
         this.name = name;
     }
 
     public void changeName(String name) {
-        validateName(name);
-        this.name = name;
-    }
-
-    private void validateName(String name) {
         if (name == null || name.isBlank()) {
             throw new CoreException(ErrorType.BAD_REQUEST, "브랜드명은 필수입니다.");
         }
+        this.name = name;
     }
 }
