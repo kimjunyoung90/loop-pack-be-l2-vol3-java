@@ -56,7 +56,7 @@ class CouponServiceTest {
     @Test
     void 존재하지_않는_쿠폰_삭제_시_NOT_FOUND_예외가_발생한다() {
         // given
-        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+        given(couponRepository.findById(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.deleteCoupon(1L))

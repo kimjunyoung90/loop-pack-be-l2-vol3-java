@@ -51,7 +51,7 @@ class BrandServiceTest {
     @Test
     void 존재하지_않는_브랜드_삭제_시_예외가_발생한다() {
         // given
-        given(brandRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+        given(brandRepository.findById(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> brandService.deleteBrand(1L))

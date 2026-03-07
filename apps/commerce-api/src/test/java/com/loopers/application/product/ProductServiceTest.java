@@ -51,7 +51,7 @@ class ProductServiceTest {
     @Test
     void 존재하지_않는_상품_삭제_시_예외가_발생한다() {
         // given
-        given(productRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+        given(productRepository.findById(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> productService.deleteProduct(1L))
