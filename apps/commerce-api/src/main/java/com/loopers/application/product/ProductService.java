@@ -1,5 +1,8 @@
 package com.loopers.application.product;
 
+import com.loopers.application.product.command.ProductCreateCommand;
+import com.loopers.application.product.command.ProductUpdateCommand;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
@@ -20,7 +23,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public ProductInfo createProduct(Long brandId, CreateProductCommand command) {
+    public ProductResult registerProduct(Long brandId, ProductCreateCommand command) {
         Product product = Product.builder()
                 .brandId(brandId)
                 .name(command.name())
@@ -28,31 +31,31 @@ public class ProductService {
                 .stock(command.stock())
                 .build();
 
-        return ProductInfo.from(productRepository.save(product));
+        return ProductResult.from(productRepository.save(product));
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductInfo> getProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(ProductInfo::from);
+    public Page<ProductResult> getProducts(Pageable pageable) {
+        return productRepository.findAllByDeletedAtIsNull(pageable)
+                .map(ProductResult::from);
     }
 
     @Transactional(readOnly = true)
-    public ProductInfo getProduct(Long productId) {
-        Product product = productRepository.findById(productId)
+    public ProductResult getProduct(Long productId) {
+        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
-        return ProductInfo.from(product);
+        return ProductResult.from(product);
     }
 
     @Transactional
-    public ProductInfo updateProduct(Long productId, Long brandId, UpdateProductCommand command) {
-        Product product = productRepository.findById(productId)
+    public ProductResult modifyProduct(Long productId, Long brandId, ProductUpdateCommand command) {
+        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
-        product.update(brandId, command.name(), command.price(), command.stock());
+        product.changeInfo(brandId, command.name(), command.price(), command.stock());
 
-        return ProductInfo.from(product);
+        return ProductResult.from(product);
     }
 
     @Transactional
@@ -65,7 +68,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<Product> findProductsByBrandId(Long brandId) {
-        return productRepository.findAllByBrandId(brandId);
+        return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId);
     }
 
     @Transactional
@@ -75,17 +78,17 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductInfo deductStock(Long productId, int quantity) {
+    public ProductResult deductStock(Long productId, int quantity) {
         int updatedCount = productRepository.deductStock(productId, quantity);
 
-		Product product = productRepository.findById(productId)
+		Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
 		if (updatedCount == 0) {
 			throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
 		}
 
-        return ProductInfo.from(product);
+        return ProductResult.from(product);
     }
 
     @Transactional
@@ -98,7 +101,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Product findProduct(Long productId) {
-        return productRepository.findById(productId)
+        return productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
     }
 

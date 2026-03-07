@@ -1,5 +1,6 @@
 package com.loopers.application.coupon;
 
+import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.DiscountType;
@@ -34,7 +35,7 @@ class CouponServiceTest {
     @Test
     void 쿠폰_조회_시_쿠폰이_존재하지_않으면_NOT_FOUND_예외가_발생한다() {
         // given
-        given(couponRepository.findById(1L)).willReturn(Optional.empty());
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.getCoupon(1L))
@@ -44,11 +45,11 @@ class CouponServiceTest {
     @Test
     void 존재하지_않는_쿠폰_수정_시_NOT_FOUND_예외가_발생한다() {
         // given
-        given(couponRepository.findById(1L)).willReturn(Optional.empty());
-        UpdateCouponCommand command = new UpdateCouponCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+        CouponUpdateCommand command = new CouponUpdateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
 
         // when & then
-        assertThatThrownBy(() -> couponService.updateCoupon(1L, command))
+        assertThatThrownBy(() -> couponService.modifyCoupon(1L, command))
                 .isInstanceOf(CoreException.class);
     }
 
@@ -63,9 +64,9 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_쿠폰_발급_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_쿠폰_발급_시_예외가_발생한다() {
         // given
-        given(couponRepository.findById(1L)).willReturn(Optional.empty());
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.issueCoupon(1L, 1L))
@@ -74,7 +75,7 @@ class CouponServiceTest {
     }
 
     @Test
-    void 이미_발급받은_쿠폰을_다시_발급하면_CoreException_CONFLICT가_발생한다() {
+    void 이미_발급받은_쿠폰을_다시_발급하면_예외가_발생한다() {
         // given
         Coupon coupon = Coupon.builder()
                 .name("테스트 쿠폰")
@@ -82,7 +83,7 @@ class CouponServiceTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build();
-        given(couponRepository.findById(1L)).willReturn(Optional.of(coupon));
+        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(coupon));
         given(userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(1L, 1L)).willReturn(true);
 
         // when & then
@@ -92,9 +93,9 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_사용자_쿠폰_사용_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_사용자_쿠폰_사용_시_예외가_발생한다() {
         // given
-        given(userCouponRepository.findByIdWithLock(1L)).willReturn(Optional.empty());
+        given(userCouponRepository.findByIdWithLockAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.useCoupon(1L, 1L, 50000))
@@ -103,9 +104,9 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_사용자_쿠폰_복원_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_사용자_쿠폰_복원_시_예외가_발생한다() {
         // given
-        given(userCouponRepository.findById(1L)).willReturn(Optional.empty());
+        given(userCouponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> couponService.restoreCoupon(1L))

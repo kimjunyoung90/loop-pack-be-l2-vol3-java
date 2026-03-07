@@ -1,5 +1,6 @@
 package com.loopers.application.like;
 
+import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,8 +14,8 @@ public class LikeFacade {
     private final ProductService productService;
 
     @Transactional
-    public LikeInfo createLike(Long userId, Long productId) {
+    public LikeResult like(Long userId, Long productId) {
         productService.findProduct(productId);
-        return likeService.createLike(userId, productId);
+        return likeService.like(userId, productId);
     }
 }

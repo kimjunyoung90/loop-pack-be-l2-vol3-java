@@ -1,5 +1,6 @@
 package com.loopers.application.like;
 
+import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.product.ProductService;
 import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
@@ -30,7 +31,7 @@ class LikeFacadeTest {
     private LikeFacade likeFacade;
 
     @Test
-    void 존재하는_상품에_좋아요를_등록하면_상품_검증_후_LikeInfo를_반환한다() {
+    void 존재하는_상품에_좋아요를_등록하면_상품_검증_후_LikeResult를_반환한다() {
         // given
         Long userId = 1L;
         Long productId = 1L;
@@ -41,13 +42,13 @@ class LikeFacadeTest {
                 .stock(50)
                 .build();
         ZonedDateTime now = ZonedDateTime.now();
-        LikeInfo expectedInfo = new LikeInfo(1L, userId, productId, now);
+        LikeResult expectedResult = new LikeResult(1L, userId, productId, now);
 
         given(productService.findProduct(productId)).willReturn(product);
-        given(likeService.createLike(userId, productId)).willReturn(expectedInfo);
+        given(likeService.like(userId, productId)).willReturn(expectedResult);
 
         // when
-        LikeInfo result = likeFacade.createLike(userId, productId);
+        LikeResult result = likeFacade.like(userId, productId);
 
         // then
         assertThat(result.userId()).isEqualTo(userId);
@@ -55,7 +56,7 @@ class LikeFacadeTest {
     }
 
     @Test
-    void 존재하지_않는_상품에_좋아요를_등록하면_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_상품에_좋아요를_등록하면_예외가_발생한다() {
         // given
         Long userId = 1L;
         Long productId = 999L;
@@ -63,7 +64,7 @@ class LikeFacadeTest {
                 .given(productService).findProduct(productId);
 
         // when & then
-        assertThatThrownBy(() -> likeFacade.createLike(userId, productId))
+        assertThatThrownBy(() -> likeFacade.like(userId, productId))
                 .isInstanceOf(CoreException.class);
     }
 }

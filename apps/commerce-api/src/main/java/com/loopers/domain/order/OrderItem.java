@@ -1,6 +1,8 @@
 package com.loopers.domain.order;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -30,16 +32,33 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private int quantity;
 
-    @Column(nullable = false)
-    private int totalPrice;
-
     @Builder
     private OrderItem(Long productId, String productName, int productPrice, int quantity) {
         this.productId = productId;
         this.productName = productName;
         this.productPrice = productPrice;
         this.quantity = quantity;
-        this.totalPrice = productPrice * quantity;
+        guard();
+    }
+
+    public int getTotalPrice() {
+        return productPrice * quantity;
+    }
+
+    @Override
+    protected void guard() {
+        if (productId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품 ID는 필수입니다.");
+        }
+        if (productName == null || productName.isBlank()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품명은 필수입니다.");
+        }
+        if (productPrice <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품 가격은 0보다 커야 합니다.");
+        }
+        if (quantity <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문 수량은 0보다 커야 합니다.");
+        }
     }
 
     void assignOrder(Order order) {

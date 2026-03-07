@@ -10,5 +10,5 @@ public interface UserRepository {
 
     Optional<User> findByLoginId(String loginId);
 
-    Optional<User> findById(Long userId);
+    Optional<User> findByIdAndDeletedAtIsNull(Long userId);
 }

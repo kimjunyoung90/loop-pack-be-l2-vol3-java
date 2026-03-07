@@ -1,8 +1,12 @@
 package com.loopers.application.order;
 
 import com.loopers.application.coupon.CouponService;
-import com.loopers.application.product.ProductInfo;
+import com.loopers.application.order.command.OrderCreateCommand;
+import com.loopers.application.order.command.OrderItemCommand;
+import com.loopers.application.order.result.OrderResult.OrderItemResult;
+import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.product.ProductService;
+import com.loopers.application.product.result.ProductResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +24,14 @@ public class OrderFacade {
     private final CouponService couponService;
 
     @Transactional
-    public OrderInfo createOrder(CreateOrderCommand command) {
+    public OrderResult placeOrder(OrderCreateCommand command) {
         // 1. 주문 상품의 재고를 차감한다. (productId 오름차순 정렬로 데드락 방지)
-        List<CreateOrderCommand.CreateOrderItemCommand> sortedItems = command.orderItems().stream()
-                .sorted(Comparator.comparing(CreateOrderCommand.CreateOrderItemCommand::productId))
+        List<OrderCreateCommand.OrderItem> sortedItems = command.orderItems().stream()
+                .sorted(Comparator.comparing(OrderCreateCommand.OrderItem::productId))
                 .toList();
         List<OrderItemCommand> orderItemCommands = new ArrayList<>();
-        for (CreateOrderCommand.CreateOrderItemCommand item : sortedItems) {
-            ProductInfo product = productService.deductStock(item.productId(), item.quantity());
+        for (OrderCreateCommand.OrderItem item : sortedItems) {
+            ProductResult product = productService.deductStock(item.productId(), item.quantity());
             orderItemCommands.add(new OrderItemCommand(
                     product.id(), product.name(), product.price(), item.quantity()));
         }
@@ -40,24 +44,24 @@ public class OrderFacade {
         }
 
         // 3. 주문을 생성한다.
-        return orderService.createOrder(command.userId(), command.userCouponId(), orderItemCommands, discountAmount);
+        return orderService.placeOrder(command.userId(), command.userCouponId(), orderItemCommands, discountAmount);
     }
 
     @Transactional
-    public OrderInfo cancelOrder(Long userId, Long orderId) {
+    public OrderResult cancelOrder(Long userId, Long orderId) {
         // 1. 주문을 취소한다.
-        OrderInfo orderInfo = orderService.cancelOrder(userId, orderId);
+        OrderResult orderResult = orderService.cancelOrder(userId, orderId);
 
         // 2. 재고를 복원한다.
-        for (OrderInfo.OrderItemInfo item : orderInfo.orderItems()) {
+        for (OrderItemResult item : orderResult.orderItems()) {
             productService.restoreStock(item.productId(), item.quantity());
         }
 
         // 3. 쿠폰을 복원한다. (쿠폰이 있는 경우)
-        if (orderInfo.userCouponId() != null) {
-            couponService.restoreCoupon(orderInfo.userCouponId());
+        if (orderResult.userCouponId() != null) {
+            couponService.restoreCoupon(orderResult.userCouponId());
         }
 
-        return orderInfo;
+        return orderResult;
     }
 }

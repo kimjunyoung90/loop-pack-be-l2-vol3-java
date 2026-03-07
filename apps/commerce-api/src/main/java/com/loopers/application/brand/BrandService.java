@@ -1,5 +1,8 @@
 package com.loopers.application.brand;
 
+import com.loopers.application.brand.command.BrandCreateCommand;
+import com.loopers.application.brand.command.BrandUpdateCommand;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.brand.BrandRepository;
 import com.loopers.support.error.CoreException;
@@ -17,42 +20,41 @@ public class BrandService {
     private final BrandRepository brandRepository;
 
     @Transactional
-    public BrandInfo createBrand(CreateBrandCommand command) {
+    public BrandResult registerBrand(BrandCreateCommand command) {
         Brand brand = Brand.builder()
                 .name(command.name())
                 .build();
 
-        return BrandInfo.from(brandRepository.save(brand));
+        return BrandResult.from(brandRepository.save(brand));
     }
 
     @Transactional(readOnly = true)
-    public Brand findBrand(Long brandId) {
-        return brandRepository.findById(brandId)
+    public boolean existsBrandById(Long brandId) {
+        return brandRepository.existsByIdAndDeletedAtIsNull(brandId);
+    }
+
+    @Transactional(readOnly = true)
+    public BrandResult getBrand(Long brandId) {
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
+
+        return BrandResult.from(brand);
     }
 
     @Transactional(readOnly = true)
-    public BrandInfo getBrand(Long brandId) {
-        Brand brand = brandRepository.findById(brandId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
-
-        return BrandInfo.from(brand);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<BrandInfo> getBrands(Pageable pageable) {
-        return brandRepository.findAll(pageable)
-                .map(BrandInfo::from);
+    public Page<BrandResult> getBrands(Pageable pageable) {
+        return brandRepository.findAllByDeletedAtIsNull(pageable)
+                .map(BrandResult::from);
     }
 
     @Transactional
-    public BrandInfo updateBrand(Long brandId, UpdateBrandCommand command) {
-        Brand brand = brandRepository.findById(brandId)
+    public BrandResult modifyBrand(Long brandId, BrandUpdateCommand command) {
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
-        brand.update(command.name());
+        brand.changeName(command.name());
 
-        return BrandInfo.from(brand);
+        return BrandResult.from(brand);
     }
 
     @Transactional

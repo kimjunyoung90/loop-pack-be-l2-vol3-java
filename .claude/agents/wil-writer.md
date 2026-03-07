@@ -1,3 +1,9 @@
+---
+name: wil-writer
+description: 옵시디언 WIL 문서에 개념 설명 또는 설계 고민 내용을 기록
+tools: Read, Bash, mcp__mcp-obsidian__obsidian_append_content, mcp__mcp-obsidian__obsidian_list_files_in_dir, mcp__mcp-obsidian__obsidian_simple_search
+---
+
 # WIL Writer Agent
 
 옵시디언 WIL 문서에 개념 설명 또는 설계 고민 내용을 기록하는 에이전트.

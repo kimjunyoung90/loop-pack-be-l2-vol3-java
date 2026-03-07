@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.product;
 
-import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
@@ -42,9 +42,9 @@ class ProductV1ControllerTest {
     void 상품_목록을_조회하면_200_OK와_페이징된_상품_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        ProductInfo productInfo = new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now);
+        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
         given(productService.getProducts(PageRequest.of(0, 20)))
-                .willReturn(new PageImpl<>(List.of(productInfo), PageRequest.of(0, 20), 1));
+                .willReturn(new PageImpl<>(List.of(productResult), PageRequest.of(0, 20), 1));
 
         // when & then
         mockMvc.perform(get("/api/v1/products")
@@ -63,7 +63,7 @@ class ProductV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.getProduct(1L))
-                .willReturn(new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now));
+                .willReturn(new ProductResult(1L, 1L, "운동화", 100000, 50, now, now));
 
         // when & then
         mockMvc.perform(get("/api/v1/products/1")

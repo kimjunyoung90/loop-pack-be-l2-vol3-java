@@ -1,8 +1,9 @@
 package com.loopers.interfaces.api.brand;
 
-import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.brand.response.BrandDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,18 +18,18 @@ public class BrandV1Controller implements BrandV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<BrandV1Dto.GetBrandResponse>> getBrands(
+    public ApiResponse<Page<BrandDetailResponse>> getBrands(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<BrandInfo> brandInfo = brandService.getBrands(PageRequest.of(page, size));
-        return ApiResponse.success(brandInfo.map(BrandV1Dto.GetBrandResponse::from));
+        Page<BrandResult> brandResult = brandService.getBrands(PageRequest.of(page, size));
+        return ApiResponse.success(brandResult.map(BrandDetailResponse::from));
     }
 
     @GetMapping("/{brandId}")
     @Override
-    public ApiResponse<BrandV1Dto.GetBrandResponse> getBrand(@PathVariable Long brandId) {
-        BrandInfo brandInfo = brandService.getBrand(brandId);
-        return ApiResponse.success(BrandV1Dto.GetBrandResponse.from(brandInfo));
+    public ApiResponse<BrandDetailResponse> getBrand(@PathVariable Long brandId) {
+        BrandResult brandResult = brandService.getBrand(brandId);
+        return ApiResponse.success(BrandDetailResponse.from(brandResult));
     }
 }

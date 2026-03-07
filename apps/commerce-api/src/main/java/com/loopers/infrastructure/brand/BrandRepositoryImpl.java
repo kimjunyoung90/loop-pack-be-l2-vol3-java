@@ -22,11 +22,21 @@ public class BrandRepositoryImpl implements BrandRepository {
 
     @Override
     public Optional<Brand> findById(Long id) {
+        return brandJpaRepository.findById(id);
+    }
+
+    @Override
+    public Optional<Brand> findByIdAndDeletedAtIsNull(Long id) {
         return brandJpaRepository.findByIdAndDeletedAtIsNull(id);
     }
 
     @Override
-    public Page<Brand> findAll(Pageable pageable) {
+    public Page<Brand> findAllByDeletedAtIsNull(Pageable pageable) {
         return brandJpaRepository.findAllByDeletedAtIsNull(pageable);
+    }
+
+    @Override
+    public boolean existsByIdAndDeletedAtIsNull(Long id) {
+        return brandJpaRepository.existsByIdAndDeletedAtIsNull(id);
     }
 }

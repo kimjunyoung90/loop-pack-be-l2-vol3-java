@@ -1,11 +1,16 @@
 package com.loopers.interfaces.api.product.admin;
 
-import com.loopers.application.product.CreateProductCommand;
 import com.loopers.application.product.ProductFacade;
-import com.loopers.application.product.ProductInfo;
 import com.loopers.application.product.ProductService;
-import com.loopers.application.product.UpdateProductCommand;
+import com.loopers.application.product.command.ProductCreateCommand;
+import com.loopers.application.product.command.ProductUpdateCommand;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.product.admin.request.ProductCreateRequest;
+import com.loopers.interfaces.api.product.admin.request.ProductUpdateRequest;
+import com.loopers.interfaces.api.product.admin.response.ProductCreateResponse;
+import com.loopers.interfaces.api.product.admin.response.ProductDetailResponse;
+import com.loopers.interfaces.api.product.admin.response.ProductUpdateResponse;
 import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,46 +29,46 @@ public class ProductAdminV1Controller implements ProductAdminV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<ProductAdminV1Dto.CreateProductResponse> createProduct(
-            @Valid @RequestBody ProductAdminV1Dto.CreateProductRequest request
+    public ApiResponse<ProductCreateResponse> registerProduct(
+            @Valid @RequestBody ProductCreateRequest request
     ) {
-        ProductInfo productInfo = productFacade.createProduct(
-                new CreateProductCommand(request.brandId(), request.name(), request.price(), request.stock())
+        ProductResult productResult = productFacade.registerProduct(
+                new ProductCreateCommand(request.brandId(), request.name(), request.price(), request.stock())
         );
-        return ApiResponse.success(ProductAdminV1Dto.CreateProductResponse.from(productInfo));
+        return ApiResponse.success(ProductCreateResponse.from(productResult));
     }
 
     @GetMapping
     @Override
-    public ApiResponse<Page<ProductAdminV1Dto.GetProductResponse>> getProducts(
+    public ApiResponse<Page<ProductDetailResponse>> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<ProductAdminV1Dto.GetProductResponse> products = productService.getProducts(PageRequest.of(page, size))
-                .map(ProductAdminV1Dto.GetProductResponse::from);
+        Page<ProductDetailResponse> products = productService.getProducts(PageRequest.of(page, size))
+                .map(ProductDetailResponse::from);
         return ApiResponse.success(products);
     }
 
     @GetMapping("/{productId}")
     @Override
-    public ApiResponse<ProductAdminV1Dto.GetProductResponse> getProduct(
+    public ApiResponse<ProductDetailResponse> getProduct(
             @PathVariable Long productId
     ) {
-        ProductInfo productInfo = productService.getProduct(productId);
-        return ApiResponse.success(ProductAdminV1Dto.GetProductResponse.from(productInfo));
+        ProductResult productResult = productService.getProduct(productId);
+        return ApiResponse.success(ProductDetailResponse.from(productResult));
     }
 
     @PutMapping("/{productId}")
     @Override
-    public ApiResponse<ProductAdminV1Dto.UpdateProductResponse> updateProduct(
+    public ApiResponse<ProductUpdateResponse> modifyProduct(
             @PathVariable Long productId,
-            @Valid @RequestBody ProductAdminV1Dto.UpdateProductRequest request
+            @Valid @RequestBody ProductUpdateRequest request
     ) {
-        ProductInfo productInfo = productFacade.updateProduct(
+        ProductResult productResult = productFacade.modifyProduct(
                 productId,
-                new UpdateProductCommand(request.brandId(), request.name(), request.price(), request.stock())
+                new ProductUpdateCommand(request.brandId(), request.name(), request.price(), request.stock())
         );
-        return ApiResponse.success(ProductAdminV1Dto.UpdateProductResponse.from(productInfo));
+        return ApiResponse.success(ProductUpdateResponse.from(productResult));
     }
 
     @DeleteMapping("/{productId}")

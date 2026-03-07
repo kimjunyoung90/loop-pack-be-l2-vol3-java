@@ -8,6 +8,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CouponTest {
@@ -71,7 +72,8 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -82,7 +84,8 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -93,7 +96,8 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -104,7 +108,8 @@ class CouponTest {
                 .discountValue(0)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -115,7 +120,8 @@ class CouponTest {
                 .discountValue(-1)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -126,7 +132,8 @@ class CouponTest {
                 .discountValue(101)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -166,7 +173,8 @@ class CouponTest {
                 .minOrderAmount(0)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -178,7 +186,8 @@ class CouponTest {
                 .minOrderAmount(-1)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -189,7 +198,8 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().minusDays(1))
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -200,7 +210,8 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(null)
                 .build()
-        ).isInstanceOf(CoreException.class);
+        ).isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test
@@ -215,7 +226,7 @@ class CouponTest {
 
         // when
         LocalDate newExpiredAt = LocalDate.now().plusDays(30);
-        coupon.modify("수정된 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt);
+        coupon.changeInfo("수정된 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt);
 
         // then
         assertThat(coupon.getName()).isEqualTo("수정된 쿠폰");
@@ -226,7 +237,7 @@ class CouponTest {
     }
 
     @Test
-    void 유효기간이_남아있는_쿠폰은_발급_유효성_검증을_통과한다() {
+    void 유효기간이_남아있는_쿠폰은_발급_시_예외가_발생하지_않는다() {
         // given
         Coupon coupon = Coupon.builder()
                 .name("쿠폰")
@@ -234,28 +245,14 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
 
         // when & then (예외 없음)
-        coupon.validateIssuable();
+        assertThatCode(() -> coupon.issue(1L)).doesNotThrowAnyException();
     }
 
     @Test
-    void 유효기간이_지난_쿠폰은_발급_유효성_검증_시_예외가_발생한다() {
-        // given
-        Coupon coupon = Coupon.builder()
-                .name("쿠폰")
-                .discountType(DiscountType.FIXED)
-                .discountValue(1000)
-                .expiredAt(LocalDate.now().minusDays(1))
-                .build();
-
-        // when & then
-        assertThatThrownBy(() -> coupon.validateIssuable())
-                .isInstanceOf(CoreException.class);
-    }
-
-    @Test
-    void 삭제된_쿠폰은_발급_유효성_검증_시_예외가_발생한다() {
+    void 유효기간이_지난_쿠폰은_발급_시_예외가_발생한다() {
         // given
         Coupon coupon = Coupon.builder()
                 .name("쿠폰")
@@ -263,11 +260,31 @@ class CouponTest {
                 .discountValue(1000)
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
+        ReflectionTestUtils.setField(coupon, "expiredAt", LocalDate.now().minusDays(1));
+
+        // when & then
+        assertThatThrownBy(() -> coupon.issue(1L))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
+    }
+
+    @Test
+    void 삭제된_쿠폰은_발급_시_예외가_발생한다() {
+        // given
+        Coupon coupon = Coupon.builder()
+                .name("쿠폰")
+                .discountType(DiscountType.FIXED)
+                .discountValue(1000)
+                .expiredAt(LocalDate.now().plusDays(7))
+                .build();
+        ReflectionTestUtils.setField(coupon, "id", 1L);
         coupon.delete();
 
         // when & then
-        assertThatThrownBy(coupon::validateIssuable)
-                .isInstanceOf(CoreException.class);
+        assertThatThrownBy(() -> coupon.issue(1L))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
     }
 
     @Test
@@ -281,8 +298,9 @@ class CouponTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> coupon.modify("", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7)))
-                .isInstanceOf(CoreException.class);
+        assertThatThrownBy(() -> coupon.changeInfo("", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7)))
+                .isInstanceOf(CoreException.class)
+                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
 
     @Test

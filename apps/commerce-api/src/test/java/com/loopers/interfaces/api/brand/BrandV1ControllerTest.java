@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.brand;
 
-import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
@@ -36,11 +36,11 @@ class BrandV1ControllerTest {
     private static final String LOGIN_PW_HEADER = "X-Loopers-LoginPw";
 
     @Test
-    void 브랜드_상세_조회에_성공한다() throws Exception {
+    void 브랜드_상세_조회_시_200_OK와_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(brandService.getBrand(1L)).willReturn(
-                new BrandInfo(1L, "나이키", now, now)
+                new BrandResult(1L, "나이키", now, now)
         );
 
         // when & then

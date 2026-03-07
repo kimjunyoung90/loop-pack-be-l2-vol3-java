@@ -1,6 +1,8 @@
 package com.loopers.domain.order;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -46,21 +48,53 @@ public class Order extends BaseEntity {
         this.totalAmount = 0;
         this.discountAmount = 0;
         this.finalAmount = 0;
+        guard();
+    }
+
+    @Override
+    protected void guard() {
+        if (userId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문자 ID는 필수입니다.");
+        }
+        if (status == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문 상태는 필수입니다.");
+        }
+        if (totalAmount < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "총 주문 금액은 0 이상이어야 합니다.");
+        }
+        if (discountAmount < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "할인 금액은 0 이상이어야 합니다.");
+        }
+        if (finalAmount < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "최종 결제 금액은 0 이상이어야 합니다.");
+        }
     }
 
     public void addOrderItem(OrderItem orderItem) {
         orderItem.assignOrder(this);
         this.orderItems.add(orderItem);
-        this.totalAmount += orderItem.getTotalPrice();
-        this.finalAmount = this.totalAmount - this.discountAmount;
+        refreshAmounts();
     }
 
     public void applyDiscount(int discountAmount) {
         this.discountAmount = discountAmount;
+        refreshAmounts();
+    }
+
+    private void refreshAmounts() {
+        this.totalAmount = orderItems.stream()
+                .mapToInt(OrderItem::getTotalPrice)
+                .sum();
         this.finalAmount = Math.max(this.totalAmount - this.discountAmount, 0);
     }
 
-    public void cancel() {
+    public void cancel(Long userId) {
+        if (!isOwnedBy(userId)) {
+            throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다.");
+        }
+        if (isCancelled()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다.");
+        }
         this.status = OrderStatus.CANCELLED;
     }
 

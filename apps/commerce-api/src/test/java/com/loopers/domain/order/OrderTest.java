@@ -21,7 +21,7 @@ class OrderTest {
         Order order = Order.builder().userId(1L).build();
 
         // when
-        order.cancel();
+        order.cancel(1L);
 
         // then
         assertThat(order.isCancelled()).isTrue();

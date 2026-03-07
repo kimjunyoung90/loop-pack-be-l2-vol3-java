@@ -10,7 +10,7 @@ public interface OrderRepository {
 
     Order save(Order order);
 
-    Optional<Order> findById(Long orderId);
+    Optional<Order> findByIdAndDeletedAtIsNull(Long orderId);
 
     Page<Order> findAllByUserId(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable);
 }

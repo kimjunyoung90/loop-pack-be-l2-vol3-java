@@ -23,7 +23,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<Order> findById(Long orderId) {
+    public Optional<Order> findByIdAndDeletedAtIsNull(Long orderId) {
         return orderJpaRepository.findByIdAndDeletedAtIsNull(orderId);
     }
 

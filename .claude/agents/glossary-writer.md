@@ -1,3 +1,9 @@
+---
+name: glossary-writer
+description: 유비쿼터스 언어를 정의하고 문서(glossary.md)에 기록
+tools: Read, Edit, Bash
+---
+
 # Glossary Writer Agent
 
 자유 텍스트로 전달받은 도메인 용어를 파싱하여 `docs/design/glossary.md`에 기록하는 에이전트.

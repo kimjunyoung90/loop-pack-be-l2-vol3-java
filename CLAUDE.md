@@ -37,22 +37,29 @@
 
 ## 4. 계층별 DTO
 - 각 계층은 자신만의 데이터 객체를 정의하고, 변환 책임은 상위 계층(호출하는 쪽)이 갖는다.
-- 매개변수가 3개를 초과하는 경우 DTO를 생성하여 전달한다.
+- 매개변수가 3개 이상인 경우 DTO를 생성하여 전달한다.
 - DTO는 record를 사용하여 불변성을 유지한다.
 
-| 계층           | 입력      | 출력       |
-|----------------|-----------|------------|
-| interface      | `Request` | `Response` |
-| application    | `Command` | `Result`   |
-| infrastructure | `Dto`     | `Domain`   |
+| 계층           | 입력      | 출력       | 네이밍 패턴 | 예시 |
+|----------------|-----------|------------|-------------|------|
+| interface      | `Request` | `Response` | `{Domain}{Action}Request/Response` | `BrandCreateRequest`, `BrandCreateResponse` |
+| application    | `Command` | `Result`   | `{Domain}{Action}Command/Result` | `BrandCreateCommand`, `BrandCreateResult` |
+| infrastructure | `Dto`     | `Domain`   | - | - |
+
+### 조회 DTO 네이밍
+조회 관련 DTO는 행위(`Get`) 대신 용도를 드러내는 이름을 사용한다.
+
+| 구분 | Presentation (Client ↔ Ctrl) | Application (Ctrl ↔ Service) |
+|------|------------------------------|------------------------------|
+| 단건 상세 조회 | `{Domain}DetailResponse` | `{Domain}Result` |
+| 목록/검색 조회 | `{Domain}ListResponse` | `{Domain}Result` |
+
+- 단건과 목록이 동일한 필드를 사용하는 경우 `DetailResponse` 하나로 유지하고, 실제로 분화가 필요한 시점에 `ListResponse`로 분리한다.
 
 - 변환 메서드는 수신 객체에 `static from()` 또는 `toXxx()`로 정의한다.
 
-- **Interface DTO**: Request/Response
-- **Application DTO**: Command/Result
-- **변환**: DTO 내부 `static from()` 메서드 사용
-
 ## 5. 도메인 설계 원칙
+- 엔티티 객체는 자기 자신이 유효한 상태임을 보장해야 한다.
 - 도메인 객체는 비즈니스 규칙을 캡슐화해야 한다.
 - 도메인 서비스는 서로 다른 도메인을 조립해, 도메인 로직을 조정하여 기능을 제공해야 한다.
 - 규칙이 여러 서비스에 나타나면 도메인 객체에 속할 가능성이 높다.
@@ -64,6 +71,19 @@
 - Hard Delete 정책이 적용된 도메인도 BaseEntity를 상속한다.(코드 일관성)
 - `guard()` 오버라이드로 `@PrePersist`/`@PreUpdate` 시점 검증 가능
 
+### 엔티티 유효성 검증
+엔티티의 검증은 **데이터 유효성**과 **비즈니스 규칙**으로 구분한다.
+
+| 구분 | 의미 | 위치 | 예시 |
+|------|------|------|------|
+| **데이터 유효성** | 엔티티가 존재할 수 있는 상태인가 | `guard()` | name이 null이면 안 된다, price가 음수면 안 된다 |
+| **비즈니스 규칙** | 이 행위를 지금 수행할 수 있는가 | 행위 메서드 내부 | 만료된 쿠폰은 사용할 수 없다, 비밀번호는 8자 이상이어야 한다 |
+
+- **데이터 유효성**: `guard()`를 오버라이드하여 한 곳에서 검증한다.
+  - 생성자/변경 메서드 끝에서 `guard()`를 명시적으로 호출한다.
+  - `@PrePersist`/`@PreUpdate` 시점에도 자동 호출되어 이중 안전망 역할을 한다.
+- **비즈니스 규칙**: 해당 행위 메서드 내부에서 인라인으로 검증한다.
+
 ### 엔티티 생성 패턴
 ```java
 @Entity
@@ -73,19 +93,31 @@ public class Product extends BaseEntity {
 
     @Builder
     private Product(/* 필드 */) {
-        // 비즈니스 규칙 검증
         this.field = field;
+        guard(); // 데이터 유효성 검증
     }
 
-    public void update(/* 필드 */) {
+    public void changeInfo(/* 필드 */) {
+        this.field = field;
+        guard(); // 데이터 유효성 검증
+    }
+
+    public void use() {
         // 비즈니스 규칙 검증
+        if (status == USED) { throw new CoreException(...); }
+        this.status = USED;
+    }
+
+    @Override
+    protected void guard() {
+        // 엔티티가 존재할 수 있는 상태인지 검증
+        if (field == null) { throw new CoreException(...); }
     }
 }
 ```
 - `@Builder` + private 생성자, `@NoArgsConstructor(access = PROTECTED)`
 - `@Getter`만 사용, setter 금지 — 변경은 도메인 메서드를 통해서만
 - 도메인 모델의 메서드 명칭은 유비쿼터스 언어를 바탕으로 비즈니스 의미가 드러나도록 작성한다.
-- 비즈니스 규칙 검증은 생성자/변경 메서드에서 수행
 
 ## 6. 네이밍 규칙
 
@@ -102,12 +134,13 @@ public class Product extends BaseEntity {
 | JPA Repository | `{Domain}JpaRepository` | `BrandJpaRepository` |
 
 ### Service 메서드
-| 접두어 | 용도 | 반환 타입 | 예시 |
-|--------|------|-----------|------|
-| `get~` | 단건/목록 조회 | application DTO | `getBrand(Long): BrandInfo` |
-| `create~` | 생성 | application DTO | `createProduct(Brand, Command): ProductInfo` |
-| `update~` | 수정 | application DTO | `updateProduct(Long, Brand, Command): ProductInfo` |
-| `delete~` | 삭제 | void | `deleteProduct(Long): void` |
+- 메서드명은 유비쿼터스 언어를 기반으로 비즈니스 의미가 드러나도록 작성한다.
+- 유비쿼터스 언어가 정의되어 있지 않으면 정의하고 반영한다.
+
+| 구분 | 네이밍 원칙 | 예시 |
+|------|-------------|------|
+| 조회 | `get~` — 단건/목록 모두 동일 | `getBrand(Long)`, `getBrands(Pageable)` |
+| 변경 행위 | 유비쿼터스 언어(glossary) 기반 동사 | `registerBrand(...)`, `modifyBrand(...)`, `deleteBrand(...)`, `placeOrder(...)`, `cancelOrder(...)` |
 
 ### Repository 인터페이스
 - soft delete 필터링은 비즈니스 정책이므로, 인터페이스 메서드명에 의도를 명확히 드러낸다.
@@ -140,16 +173,7 @@ public class Product extends BaseEntity {
 - 도메인 엔티티에는 `@Transactional` 사용 금지
 
 ## 10. 테스트
-
-### 테스트 유형
-| 유형 | 클래스 접미사 | 어노테이션 | 목적 |
-|------|-------------|-----------|------|
-| Domain/Unit | `*Test` | `@ExtendWith(MockitoExtension.class)` | 엔티티·서비스 단위 테스트 (Mockito) |
-| Integration | `*IntegrationTest` | `@SpringBootTest` + `@Import(MySqlTestContainersConfig.class)` + `@Transactional` | 계층 통합 검증 |
-| Controller | `*ControllerTest` | `@WebMvcTest` + `@Import({LoginUserArgumentResolver.class, AdminAuthInterceptor.class})` | API 계층 슬라이스 테스트 |
-| E2E | `*E2ETest` | `@SpringBootTest(webEnvironment = RANDOM_PORT)` + `@Import(MySqlTestContainersConfig.class)` | 실제 HTTP 요청 전체 흐름 검증 |
-
-### 테스트 규칙
-- 메서드명: 한국어로 행위 기술 (`유효한_이름으로_브랜드를_생성하면_성공한다`)
+- 테스트 코드 생성 시 test-generate 스킬을 따른다.
+- 메서드명: 한국어, 유비쿼터스 언어 기반
 - 구조: given-when-then
-- 도구: JUnit5, Mockito(BDDMockito: `given`/`willReturn`), AssertJ(`assertThat`), TestContainers(MySQL 8.0)
+- 도구: JUnit5, BDDMockito, AssertJ, TestContainers(MySQL 8.0)

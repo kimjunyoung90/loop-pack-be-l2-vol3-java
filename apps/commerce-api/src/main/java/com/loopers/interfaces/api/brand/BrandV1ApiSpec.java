@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.brand;
 
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.brand.response.BrandDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
@@ -14,7 +15,7 @@ public interface BrandV1ApiSpec {
             summary = "브랜드 목록 조회",
             description = "브랜드 목록을 조회합니다."
     )
-    ApiResponse<Page<BrandV1Dto.GetBrandResponse>> getBrands(
+    ApiResponse<Page<BrandDetailResponse>> getBrands(
             @RequestParam int page,
             @RequestParam int size
     );
@@ -23,5 +24,5 @@ public interface BrandV1ApiSpec {
         summary = "브랜드 상세 조회",
         description = "브랜드 상세 정보를 조회합니다."
     )
-    ApiResponse<BrandV1Dto.GetBrandResponse> getBrand(Long brandId);
+    ApiResponse<BrandDetailResponse> getBrand(Long brandId);
 }

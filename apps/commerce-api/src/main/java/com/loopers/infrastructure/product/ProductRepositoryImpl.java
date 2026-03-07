@@ -16,17 +16,27 @@ public class ProductRepositoryImpl implements ProductRepository {
     private final ProductJpaRepository productJpaRepository;
 
     @Override
-    public Page<Product> findAll(Pageable pageable) {
+    public Page<Product> findAllByDeletedAtIsNull(Pageable pageable) {
         return productJpaRepository.findAllByDeletedAtIsNull(pageable);
     }
 
     @Override
     public List<Product> findAllByBrandId(Long brandId) {
+        return productJpaRepository.findAllByBrandId(brandId);
+    }
+
+    @Override
+    public List<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId) {
         return productJpaRepository.findAllByBrandIdAndDeletedAtIsNull(brandId);
     }
 
     @Override
     public Optional<Product> findById(Long productId) {
+        return productJpaRepository.findById(productId);
+    }
+
+    @Override
+    public Optional<Product> findByIdAndDeletedAtIsNull(Long productId) {
         return productJpaRepository.findByIdAndDeletedAtIsNull(productId);
     }
 

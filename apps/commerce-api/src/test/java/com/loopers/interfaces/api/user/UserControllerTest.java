@@ -5,6 +5,8 @@ import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
+import com.loopers.interfaces.api.user.request.PasswordChangeRequest;
+import com.loopers.interfaces.api.user.request.UserCreateRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -39,7 +41,7 @@ public class UserControllerTest {
 
     @ParameterizedTest(name = "{1} 누락")
     @MethodSource("필수값_누락_케이스")
-    void 회원가입시_필수값이_누락되면_응답코드_400을_반환한다(UserV1Dto.CreateUserRequest request, String nullField) throws Exception {
+    void 회원가입시_필수값이_누락되면_응답코드_400을_반환한다(UserCreateRequest request, String nullField) throws Exception {
 
         //when
         ResultActions result = mockMvc.perform(post("/api/v1/users")
@@ -53,11 +55,11 @@ public class UserControllerTest {
 
     static Stream<Arguments> 필수값_누락_케이스() {
         return Stream.of(
-                Arguments.of(new UserV1Dto.CreateUserRequest(null, "pw", "name", "1990-01-01", "a@a.com"), "loginId"),
-                Arguments.of(new UserV1Dto.CreateUserRequest("test", null, "name", "1990-01-01", "a@a.com"), "password"),
-                Arguments.of(new UserV1Dto.CreateUserRequest("test", "pw", null, "1990-01-01", "a@a.com"), "name"),
-                Arguments.of(new UserV1Dto.CreateUserRequest("test", "pw", "name", null, "a@a.com"), "birthDate"),
-                Arguments.of(new UserV1Dto.CreateUserRequest("test", "pw", "name", "1990-01-01", null), "email")
+                Arguments.of(new UserCreateRequest(null, "pw", "name", "1990-01-01", "a@a.com"), "loginId"),
+                Arguments.of(new UserCreateRequest("test", null, "name", "1990-01-01", "a@a.com"), "password"),
+                Arguments.of(new UserCreateRequest("test", "pw", null, "1990-01-01", "a@a.com"), "name"),
+                Arguments.of(new UserCreateRequest("test", "pw", "name", null, "a@a.com"), "birthDate"),
+                Arguments.of(new UserCreateRequest("test", "pw", "name", "1990-01-01", null), "email")
         );
     }
 
@@ -65,7 +67,7 @@ public class UserControllerTest {
     void 이메일_형식_오류시_응답코드_400을_반환한다() throws Exception {
         //given
         String email = "testtest.com";
-        UserV1Dto.CreateUserRequest request = new UserV1Dto.CreateUserRequest(
+        UserCreateRequest request = new UserCreateRequest(
                 "testId", "password123!", "김준영", "1990-04-27", email
         );
 
@@ -83,7 +85,7 @@ public class UserControllerTest {
     void 이메일_도메인_누락시_응답코드_400을_반환한다() throws Exception {
         //given
         String email = "test@";
-        UserV1Dto.CreateUserRequest request = new UserV1Dto.CreateUserRequest(
+        UserCreateRequest request = new UserCreateRequest(
                 "testId", "password123!", "김준영", "1990-04-27", email
         );
 
@@ -101,7 +103,7 @@ public class UserControllerTest {
     void 생년월일_형식_오류시_응답코드_400을_반환한다() throws Exception {
         //given
         String birthDate = "1990-0427";
-        UserV1Dto.CreateUserRequest request = new UserV1Dto.CreateUserRequest(
+        UserCreateRequest request = new UserCreateRequest(
                 "testId", "password123!", "김준영", birthDate, "test@test.com"
         );
 
@@ -118,7 +120,7 @@ public class UserControllerTest {
     @ParameterizedTest(name = "비밀번호가 \"{0}\"이면 400")
     @MethodSource("회원가입_비밀번호_형식_오류_케이스")
     void 회원가입시_비밀번호_형식이_올바르지_않으면_응답코드_400을_반환한다(String password) throws Exception {
-        UserV1Dto.CreateUserRequest request = new UserV1Dto.CreateUserRequest(
+        UserCreateRequest request = new UserCreateRequest(
                 "testId", password, "김준영", "1990-04-27", "test@test.com"
         );
 
@@ -175,7 +177,7 @@ public class UserControllerTest {
         given(mockUser.getLoginId()).willReturn(loginId);
         given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
 
-        UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest("");
+        PasswordChangeRequest request = new PasswordChangeRequest("");
 
         ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -198,7 +200,7 @@ public class UserControllerTest {
         given(mockUser.getLoginId()).willReturn(loginId);
         given(userService.authenticateUser(loginId, password)).willReturn(mockUser);
 
-        UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest(newPassword);
+        PasswordChangeRequest request = new PasswordChangeRequest(newPassword);
 
         ResultActions result = mockMvc.perform(patch("/api/v1/users/password")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -221,7 +223,7 @@ public class UserControllerTest {
     @Test
     void 비밀번호_변경시_헤더의_로그인ID를_서비스에_전달한다() throws Exception {
         String newPassword = "newwpwd123!";
-        UserV1Dto.ChangePasswordRequest request = new UserV1Dto.ChangePasswordRequest(newPassword);
+        PasswordChangeRequest request = new PasswordChangeRequest(newPassword);
 
         String loginId = "rlawnsdud05";
         String loginPasswd = "password123!";

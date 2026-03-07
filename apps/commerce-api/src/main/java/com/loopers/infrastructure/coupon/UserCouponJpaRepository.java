@@ -14,9 +14,11 @@ import java.util.Optional;
 
 public interface UserCouponJpaRepository extends JpaRepository<UserCoupon, Long> {
 
+    Optional<UserCoupon> findByIdAndDeletedAtIsNull(Long id);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT uc FROM UserCoupon uc WHERE uc.id = :id")
-    Optional<UserCoupon> findByIdWithLock(@Param("id") Long id);
+    @Query("SELECT uc FROM UserCoupon uc WHERE uc.id = :id AND uc.deletedAt IS NULL")
+    Optional<UserCoupon> findByIdWithLockAndDeletedAtIsNull(@Param("id") Long id);
 
     List<UserCoupon> findAllByUserIdAndDeletedAtIsNull(Long userId);
 

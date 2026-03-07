@@ -2,11 +2,13 @@ package com.loopers.interfaces.api.brand.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.brand.BrandFacade;
-import com.loopers.application.brand.BrandInfo;
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
+import com.loopers.interfaces.api.brand.admin.request.BrandCreateRequest;
+import com.loopers.interfaces.api.brand.admin.request.BrandUpdateRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -48,15 +50,15 @@ class BrandAdminV1ControllerTest {
     private UserService userService;
 
     private static final String LDAP_HEADER = "X-Loopers-Ldap";
-    private static final String VALID_LDAP = "loopers.admin";
+    private static final String VALID_LDAP = "test";
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_등록에_성공한다() throws Exception {
+    void 브랜드_등록_시_200_OK와_생성된_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        given(brandService.createBrand(any())).willReturn(new BrandInfo(1L, "나이키", now, now));
+        given(brandService.registerBrand(any())).willReturn(new BrandResult(1L, "나이키", now, now));
 
-        BrandAdminV1Dto.CreateBrandRequest request = new BrandAdminV1Dto.CreateBrandRequest("나이키");
+        BrandCreateRequest request = new BrandCreateRequest("나이키");
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/brands")
@@ -71,7 +73,7 @@ class BrandAdminV1ControllerTest {
     @Test
     void 관리자_헤더가_없으면_브랜드_등록시_403을_반환한다() throws Exception {
         // given
-        BrandAdminV1Dto.CreateBrandRequest request = new BrandAdminV1Dto.CreateBrandRequest("나이키");
+        BrandCreateRequest request = new BrandCreateRequest("나이키");
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/brands")
@@ -83,7 +85,7 @@ class BrandAdminV1ControllerTest {
     @Test
     void 관리자_헤더_값이_잘못되면_브랜드_등록시_403을_반환한다() throws Exception {
         // given
-        BrandAdminV1Dto.CreateBrandRequest request = new BrandAdminV1Dto.CreateBrandRequest("나이키");
+        BrandCreateRequest request = new BrandCreateRequest("나이키");
 
         // when & then
         mockMvc.perform(post("/api-admin/v1/brands")
@@ -94,11 +96,11 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_목록_조회에_성공한다() throws Exception {
+    void 브랜드_목록_조회_시_200_OK와_페이징된_브랜드_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        BrandInfo brandInfo = new BrandInfo(1L, "나이키", now, now);
-        given(brandService.getBrands(any())).willReturn(new PageImpl<>(List.of(brandInfo), PageRequest.of(0, 20), 1));
+        BrandResult brandResult = new BrandResult(1L, "나이키", now, now);
+        given(brandService.getBrands(any())).willReturn(new PageImpl<>(List.of(brandResult), PageRequest.of(0, 20), 1));
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/brands")
@@ -116,10 +118,10 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_상세_조회에_성공한다() throws Exception {
+    void 브랜드_상세_조회_시_200_OK와_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        given(brandService.getBrand(1L)).willReturn(new BrandInfo(1L, "나이키", now, now));
+        given(brandService.getBrand(1L)).willReturn(new BrandResult(1L, "나이키", now, now));
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/brands/1")
@@ -135,12 +137,12 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_수정에_성공한다() throws Exception {
+    void 브랜드_수정_시_200_OK와_수정된_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        given(brandService.updateBrand(eq(1L), any())).willReturn(new BrandInfo(1L, "아디다스", now, now));
+        given(brandService.modifyBrand(eq(1L), any())).willReturn(new BrandResult(1L, "아디다스", now, now));
 
-        BrandAdminV1Dto.UpdateBrandRequest request = new BrandAdminV1Dto.UpdateBrandRequest("아디다스");
+        BrandUpdateRequest request = new BrandUpdateRequest("아디다스");
 
         // when & then
         mockMvc.perform(put("/api-admin/v1/brands/1")
@@ -153,7 +155,7 @@ class BrandAdminV1ControllerTest {
 
     @Test
     void 관리자_헤더가_없으면_브랜드_수정시_403을_반환한다() throws Exception {
-        BrandAdminV1Dto.UpdateBrandRequest request = new BrandAdminV1Dto.UpdateBrandRequest("아디다스");
+        BrandUpdateRequest request = new BrandUpdateRequest("아디다스");
 
         mockMvc.perform(put("/api-admin/v1/brands/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -162,7 +164,7 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_삭제에_성공한다() throws Exception {
+    void 브랜드_삭제_시_200_OK를_반환한다() throws Exception {
         // when & then
         mockMvc.perform(delete("/api-admin/v1/brands/1")
                         .header(LDAP_HEADER, VALID_LDAP))

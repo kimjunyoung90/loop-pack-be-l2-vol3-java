@@ -1,5 +1,7 @@
 package com.loopers.application.user;
 
+import com.loopers.application.user.command.UserCreateCommand;
+import com.loopers.application.user.result.UserResult;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.domain.user.User;
 import com.loopers.support.error.CoreException;
@@ -31,14 +33,14 @@ public class UserServiceIntegrationTest {
     void 가입된_ID로_회원가입시_DuplicateLoginIdException이_발생한다() {
         //given
         String loginId = "testuser";
-        CreateUserCommand command = new CreateUserCommand(
+        UserCreateCommand command = new UserCreateCommand(
                 loginId, "password123!", "홍길동", "1990-04-27", "test@test.com"
         );
         userService.createUser(command);
 
         //when
         //동일한 아이디로 가입
-        CreateUserCommand duplicateCommand = new CreateUserCommand(
+        UserCreateCommand duplicateCommand = new UserCreateCommand(
                 loginId, "password456!", "김철수", "1995-01-01", "other@test.com"
         );
         Throwable thrown = catchThrowable(() -> userService.createUser(duplicateCommand));
@@ -50,15 +52,15 @@ public class UserServiceIntegrationTest {
     @Test
     void 존재하지_않는_ID로_회원가입시_회원가입에_성공한다() {
         //given
-        CreateUserCommand command = new CreateUserCommand(
+        UserCreateCommand command = new UserCreateCommand(
                 "testuser", "password123!", "홍길동", "1990-04-27", "test@test.com"
         );
 
         //when
-        UserInfo userInfo = userService.createUser(command);
+        UserResult userResult = userService.createUser(command);
 
         //then
-        User foundUser = userRepository.findByLoginId(userInfo.loginId()).orElseThrow();
+        User foundUser = userRepository.findByLoginId(userResult.loginId()).orElseThrow();
         assertThat(foundUser.getLoginId()).isEqualTo(command.loginId());
         assertThat(foundUser.getName()).isEqualTo(command.name());
         assertThat(foundUser.getEmail()).isEqualTo(command.email());
@@ -71,7 +73,7 @@ public class UserServiceIntegrationTest {
         String currentPassword = "password123!";
         String newPassword = "newPassword456!";
 
-        CreateUserCommand command = new CreateUserCommand(
+        UserCreateCommand command = new UserCreateCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
         userService.createUser(command);
@@ -91,7 +93,7 @@ public class UserServiceIntegrationTest {
         String currentPassword = "password123!";
         String newPassword = "password123!";
 
-        CreateUserCommand command = new CreateUserCommand(
+        UserCreateCommand command = new UserCreateCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
         userService.createUser(command);

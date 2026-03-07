@@ -1,5 +1,6 @@
 package com.loopers.application.like;
 
+import com.loopers.application.like.result.LikeResult;
 import com.loopers.domain.like.ProductLike;
 import com.loopers.domain.like.ProductLikeRepository;
 import com.loopers.support.error.CoreException;
@@ -17,24 +18,27 @@ public class LikeService {
     private final ProductLikeRepository productLikeRepository;
 
     @Transactional
-    public LikeInfo createLike(Long userId, Long productId) {
+    public LikeResult like(Long userId, Long productId) {
         productLikeRepository.findByUserIdAndProductId(userId, productId)
                 .ifPresent(like -> {
                     throw new CoreException(ErrorType.CONFLICT, "이미 좋아요한 상품입니다.");
                 });
 
-        ProductLike productLike = new ProductLike(userId, productId);
-        return LikeInfo.from(productLikeRepository.save(productLike));
+        ProductLike productLike = ProductLike.builder()
+                .userId(userId)
+                .productId(productId)
+                .build();
+        return LikeResult.from(productLikeRepository.save(productLike));
     }
 
     @Transactional(readOnly = true)
-    public Page<LikeInfo> getLikes(Long userId, Pageable pageable) {
+    public Page<LikeResult> getLikes(Long userId, Pageable pageable) {
         return productLikeRepository.findAllByUserId(userId, pageable)
-                .map(LikeInfo::from);
+                .map(LikeResult::from);
     }
 
     @Transactional
-    public void deleteLike(Long userId, Long productId) {
+    public void unlike(Long userId, Long productId) {
         ProductLike productLike = productLikeRepository.findByUserIdAndProductId(userId, productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "좋아요를 찾을 수 없습니다."));
         productLikeRepository.delete(productLike);

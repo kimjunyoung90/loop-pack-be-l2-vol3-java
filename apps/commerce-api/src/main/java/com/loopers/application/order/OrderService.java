@@ -1,5 +1,7 @@
 package com.loopers.application.order;
 
+import com.loopers.application.order.command.OrderItemCommand;
+import com.loopers.application.order.result.OrderResult;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.order.OrderRepository;
@@ -21,7 +23,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderInfo createOrder(Long userId, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
+    public OrderResult placeOrder(Long userId, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
         Order order = Order.builder()
                 .userId(userId)
                 .userCouponId(userCouponId)
@@ -39,53 +41,45 @@ public class OrderService {
 
         order.applyDiscount(discountAmount);
 
-        return OrderInfo.from(orderRepository.save(order));
+        return OrderResult.from(orderRepository.save(order));
     }
 
     @Transactional
-    public OrderInfo cancelOrder(Long userId, Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public OrderResult cancelOrder(Long userId, Long orderId) {
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
 
-        if (!order.isOwnedBy(userId)) {
-            throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다.");
-        }
+        order.cancel(userId);
 
-        if (order.isCancelled()) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다.");
-        }
-
-        order.cancel();
-
-        return OrderInfo.from(order);
+        return OrderResult.from(order);
     }
 
     @Transactional(readOnly = true)
     public Order findOrder(Long orderId) {
-        return orderRepository.findById(orderId)
+        return orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
     }
 
     @Transactional(readOnly = true)
-    public OrderInfo getOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public OrderResult getOrder(Long orderId) {
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
-        return OrderInfo.from(order);
+        return OrderResult.from(order);
     }
 
     @Transactional(readOnly = true)
-    public OrderInfo getOrder(Long userId, Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public OrderResult getOrder(Long userId, Long orderId) {
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
         if (!order.isOwnedBy(userId)) {
             throw new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 조회할 수 있습니다.");
         }
-        return OrderInfo.from(order);
+        return OrderResult.from(order);
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderInfo> getOrders(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<OrderResult> getOrders(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         return orderRepository.findAllByUserId(userId, startDate, endDate, pageable)
-                .map(OrderInfo::from);
+                .map(OrderResult::from);
     }
 }
