@@ -186,7 +186,7 @@ class CouponAdminV1ControllerTest {
     }
 
     @Test
-    void 쿠폰_삭제_시_성공_응답을_반환한다() throws Exception {
+    void 쿠폰_삭제_시_200_OK를_반환한다() throws Exception {
         // when & then
         mockMvc.perform(delete("/api-admin/v1/coupons/1")
                         .header(LDAP_HEADER, VALID_LDAP))

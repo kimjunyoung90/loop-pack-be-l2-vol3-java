@@ -48,10 +48,10 @@ class BrandAdminV1ControllerTest {
     private UserService userService;
 
     private static final String LDAP_HEADER = "X-Loopers-Ldap";
-    private static final String VALID_LDAP = "loopers.admin";
+    private static final String VALID_LDAP = "test";
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_등록에_성공한다() throws Exception {
+    void 브랜드_등록_시_200_OK와_생성된_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(brandService.createBrand(any())).willReturn(new BrandInfo(1L, "나이키", now, now));
@@ -94,7 +94,7 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_목록_조회에_성공한다() throws Exception {
+    void 브랜드_목록_조회_시_200_OK와_페이징된_브랜드_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         BrandInfo brandInfo = new BrandInfo(1L, "나이키", now, now);
@@ -116,7 +116,7 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_상세_조회에_성공한다() throws Exception {
+    void 브랜드_상세_조회_시_200_OK와_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(brandService.getBrand(1L)).willReturn(new BrandInfo(1L, "나이키", now, now));
@@ -135,7 +135,7 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_수정에_성공한다() throws Exception {
+    void 브랜드_수정_시_200_OK와_수정된_브랜드_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(brandService.updateBrand(eq(1L), any())).willReturn(new BrandInfo(1L, "아디다스", now, now));
@@ -162,7 +162,7 @@ class BrandAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_브랜드_삭제에_성공한다() throws Exception {
+    void 브랜드_삭제_시_200_OK를_반환한다() throws Exception {
         // when & then
         mockMvc.perform(delete("/api-admin/v1/brands/1")
                         .header(LDAP_HEADER, VALID_LDAP))

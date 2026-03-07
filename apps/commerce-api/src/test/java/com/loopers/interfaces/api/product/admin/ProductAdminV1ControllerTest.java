@@ -48,10 +48,10 @@ class ProductAdminV1ControllerTest {
     private UserService userService;
 
     private static final String LDAP_HEADER = "X-Loopers-Ldap";
-    private static final String VALID_LDAP = "loopers.admin";
+    private static final String VALID_LDAP = "test";
 
     @Test
-    void 관리자_헤더가_유효하면_상품을_등록하고_200_OK와_생성된_상품_정보를_반환한다() throws Exception {
+    void 상품_등록_시_200_OK와_생성된_상품_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productFacade.createProduct(any())).willReturn(
@@ -100,7 +100,7 @@ class ProductAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_상품_목록_조회시_200_OK와_페이징된_상품_목록을_반환한다() throws Exception {
+    void 상품_목록_조회_시_200_OK와_페이징된_상품_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         ProductInfo productInfo = new ProductInfo(1L, 1L, "운동화", 100000, 50, now, now);
@@ -124,7 +124,7 @@ class ProductAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_상품_상세_조회시_200_OK와_상품_정보를_반환한다() throws Exception {
+    void 상품_상세_조회_시_200_OK와_상품_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.getProduct(1L)).willReturn(
@@ -146,7 +146,7 @@ class ProductAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_상품을_수정하고_200_OK와_수정된_상품_정보를_반환한다() throws Exception {
+    void 상품_수정_시_200_OK와_수정된_상품_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productFacade.updateProduct(eq(1L), any())).willReturn(
@@ -180,7 +180,7 @@ class ProductAdminV1ControllerTest {
     }
 
     @Test
-    void 관리자_헤더가_유효하면_상품을_삭제하고_200_OK를_반환한다() throws Exception {
+    void 상품_삭제_시_200_OK를_반환한다() throws Exception {
         // when & then
         mockMvc.perform(delete("/api-admin/v1/products/1")
                         .header(LDAP_HEADER, VALID_LDAP))

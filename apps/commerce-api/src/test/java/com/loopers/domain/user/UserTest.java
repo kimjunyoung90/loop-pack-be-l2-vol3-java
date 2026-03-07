@@ -42,7 +42,7 @@ class UserTest {
     }
 
     @Test
-    void 비밀번호가_8자이면_정상_입력된다() {
+    void 비밀번호가_8자이면_변경_시_예외가_발생하지_않는다() {
         String password = "12345678";
         User user = createValidUser();
 
@@ -52,7 +52,7 @@ class UserTest {
     }
 
     @Test
-    void 비밀번호가_16자이면_정상_입력된다() {
+    void 비밀번호가_16자이면_변경_시_예외가_발생하지_않는다() {
         String password = "1234567890123456";
         User user = createValidUser();
 

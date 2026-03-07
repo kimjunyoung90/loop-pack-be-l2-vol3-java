@@ -16,13 +16,13 @@ import static com.loopers.support.auth.AuthConstants.LOGIN_PW_HEADER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(MySqlTestContainersConfig.class)
-public class UserE2ETest {
+class UserE2ETest {
 
     @Autowired
     private TestRestTemplate restTemplate;
 
     @Test
-    void 유효한_데이터로_회원가입_요청하면_회원가입에_성공한다() {
+    void 회원가입_시_200_OK와_SUCCESS_응답을_반환한다() {
         // given
         UserV1Dto.CreateUserRequest request = new UserV1Dto.CreateUserRequest(
                 "testuser",

@@ -48,8 +48,8 @@ class OrderConcurrencyIntegrationTest {
     /**
      * 동시성 제어 검증: 원자적 업데이트(Atomic Update)로 재고 정합성 보장
      *
-     * 시나리오: 재고 100개인 상품에 10명이 동시에 1개씩 주문
-     * 기대 결과: 10건 모두 성공, 재고 100 → 90
+     * 시나리오: 재고 100개인 상품에 100명이 동시에 1개씩 주문
+     * 기대 결과: 100건 모두 성공, 재고 100 → 0
      * 핵심: UPDATE ... SET stock = stock - :quantity WHERE stock >= :quantity 로
      *       DB 레벨에서 원자적으로 차감하여 재고 갱신 손실(lost update)이 발생하지 않음
      */
@@ -68,7 +68,7 @@ class OrderConcurrencyIntegrationTest {
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
 
-        // when - 10개 스레드가 동시에 같은 상품을 주문
+        // when - 100개 스레드가 동시에 같은 상품을 주문
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             executorService.submit(() -> {
@@ -91,7 +91,7 @@ class OrderConcurrencyIntegrationTest {
         latch.await();
         executorService.shutdown();
 
-        // then - 10건 모두 성공하고, 재고가 정확히 10개 차감되어야 한다
+        // then - 100건 모두 성공하고, 재고가 정확히 100개 차감되어야 한다
         Product updatedProduct = productService.findProduct(product.id());
         assertThat(successCount.get()).isEqualTo(threadCount);
         assertThat(updatedProduct.getStock()).isEqualTo(initialStock - (successCount.get() * quantityPerOrder));

@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BrandTest {
 
     @Test
-    void 브랜드_이름을_변경할_수_있다() {
+    void 브랜드_이름_변경_시_name이_변경된다() {
         // given
         Brand brand = Brand.builder()
                 .name("나이키")

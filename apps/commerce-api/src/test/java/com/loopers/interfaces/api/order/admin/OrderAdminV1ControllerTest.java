@@ -36,10 +36,10 @@ class OrderAdminV1ControllerTest {
     private UserService userService;
 
     private static final String LDAP_HEADER = "X-Loopers-Ldap";
-    private static final String VALID_LDAP = "loopers.admin";
+    private static final String VALID_LDAP = "test";
 
     @Test
-    void 관리자_헤더가_유효하면_주문_상세_조회에_성공한다() throws Exception {
+    void 주문_상세_조회_시_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         OrderInfo orderInfo = new OrderInfo(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
