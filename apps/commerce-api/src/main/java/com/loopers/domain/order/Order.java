@@ -1,6 +1,8 @@
 package com.loopers.domain.order;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -40,6 +42,9 @@ public class Order extends BaseEntity {
 
     @Builder
     private Order(Long userId, Long userCouponId) {
+        if (userId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문자 ID는 필수입니다.");
+        }
         this.userId = userId;
         this.userCouponId = userCouponId;
         this.status = OrderStatus.COMPLETED;
