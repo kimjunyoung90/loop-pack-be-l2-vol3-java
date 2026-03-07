@@ -140,16 +140,7 @@ public class Product extends BaseEntity {
 - 도메인 엔티티에는 `@Transactional` 사용 금지
 
 ## 10. 테스트
-
-### 테스트 유형
-| 유형 | 클래스 접미사 | 어노테이션 | 목적 |
-|------|-------------|-----------|------|
-| Domain/Unit | `*Test` | `@ExtendWith(MockitoExtension.class)` | 엔티티·서비스 단위 테스트 (Mockito) |
-| Integration | `*IntegrationTest` | `@SpringBootTest` + `@Import(MySqlTestContainersConfig.class)` + `@Transactional` | 계층 통합 검증 |
-| Controller | `*ControllerTest` | `@WebMvcTest` + `@Import({LoginUserArgumentResolver.class, AdminAuthInterceptor.class})` | API 계층 슬라이스 테스트 |
-| E2E | `*E2ETest` | `@SpringBootTest(webEnvironment = RANDOM_PORT)` + `@Import(MySqlTestContainersConfig.class)` | 실제 HTTP 요청 전체 흐름 검증 |
-
-### 테스트 규칙
-- 메서드명: 한국어로 행위 기술 (`유효한_이름으로_브랜드를_생성하면_성공한다`)
+- 테스트 코드 생성 시 test-generate 스킬을 따른다.
+- 메서드명: 한국어, 유비쿼터스 언어 기반
 - 구조: given-when-then
-- 도구: JUnit5, Mockito(BDDMockito: `given`/`willReturn`), AssertJ(`assertThat`), TestContainers(MySQL 8.0)
+- 도구: JUnit5, BDDMockito, AssertJ, TestContainers(MySQL 8.0)
