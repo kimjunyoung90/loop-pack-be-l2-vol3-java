@@ -134,12 +134,13 @@ public class Product extends BaseEntity {
 | JPA Repository | `{Domain}JpaRepository` | `BrandJpaRepository` |
 
 ### Service 메서드
-| 접두어 | 용도 | 반환 타입 | 예시 |
-|--------|------|-----------|------|
-| `get~` | 단건/목록 조회 | application DTO | `getBrand(Long): BrandGetResult` |
-| `create~` | 생성 | application DTO | `createProduct(Brand, ProductCreateCommand): ProductCreateResult` |
-| `update~` | 수정 | application DTO | `updateProduct(Long, Brand, ProductUpdateCommand): ProductUpdateResult` |
-| `delete~` | 삭제 | void | `deleteProduct(Long): void` |
+- 메서드명은 유비쿼터스 언어를 기반으로 비즈니스 의미가 드러나도록 작성한다.
+- 유비쿼터스 언어가 정의되어 있지 않으면 정의하고 반영한다.
+
+| 구분 | 네이밍 원칙 | 예시 |
+|------|-------------|------|
+| 조회 | `get~` — 단건/목록 모두 동일 | `getBrand(Long)`, `getBrands(Pageable)` |
+| 변경 행위 | 유비쿼터스 언어(glossary) 기반 동사 | `registerBrand(...)`, `modifyBrand(...)`, `deleteBrand(...)`, `placeOrder(...)`, `cancelOrder(...)` |
 
 ### Repository 인터페이스
 - soft delete 필터링은 비즈니스 정책이므로, 인터페이스 메서드명에 의도를 명확히 드러낸다.
