@@ -25,7 +25,7 @@ class ProductServiceTest {
     private ProductService productService;
 
     @Test
-    void 존재하지_않는_상품_조회_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_상품_조회_시_예외가_발생한다() {
         // given
         given(productRepository.findById(1L)).willReturn(Optional.empty());
 
@@ -36,7 +36,7 @@ class ProductServiceTest {
     }
 
     @Test
-    void 존재하지_않는_상품_수정_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_상품_수정_시_예외가_발생한다() {
         // given
         given(productRepository.findById(1L)).willReturn(Optional.empty());
         UpdateProductCommand command = new UpdateProductCommand(2L, "슬리퍼", 50000, 30);
@@ -48,7 +48,7 @@ class ProductServiceTest {
     }
 
     @Test
-    void 존재하지_않는_상품_삭제_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_상품_삭제_시_예외가_발생한다() {
         // given
         given(productRepository.findById(1L)).willReturn(Optional.empty());
 

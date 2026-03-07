@@ -27,7 +27,7 @@ class ProductTest {
     }
 
     @Test
-    void 상품을_삭제하면_deletedAt이_설정된다() {
+    void 상품을_삭제하면_삭제_처리된다() {
         // given
         Product product = Product.builder()
                 .brandId(1L)

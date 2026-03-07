@@ -49,7 +49,7 @@ class ProductFacadeTest {
     }
 
     @Test
-    void 존재하지_않는_브랜드로_상품을_생성하면_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_브랜드로_상품을_생성하면_예외가_발생한다() {
         // given
         CreateProductCommand command = new CreateProductCommand(999L, "운동화", 100000, 50);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))
@@ -79,7 +79,7 @@ class ProductFacadeTest {
     }
 
     @Test
-    void 존재하지_않는_브랜드로_상품을_수정하면_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_브랜드로_상품을_수정하면_예외가_발생한다() {
         // given
         UpdateProductCommand command = new UpdateProductCommand(999L, "슬리퍼", 50000, 30);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."))

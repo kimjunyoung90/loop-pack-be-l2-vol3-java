@@ -30,7 +30,7 @@ class UserServiceTest {
     private UserService userService;
 
     @Test
-    void 사용자_정보_조회_시_ID와_일치한_사용자가_없으면_CoreException이_발생한다() {
+    void 사용자_정보_조회_시_ID와_일치한_사용자가_없으면_예외가_발생한다() {
         // given
         String loginId = "rlawnsdud05";
         given(userRepository.findByLoginId(loginId)).willReturn(Optional.empty());
@@ -92,7 +92,7 @@ class UserServiceTest {
     }
 
     @Test
-    void 존재하지_않는_loginId로_인증하면_CoreException_UNAUTHORIZED가_발생한다() {
+    void 존재하지_않는_loginId로_인증하면_예외가_발생한다() {
         // given
         given(userRepository.findByLoginId("unknown")).willReturn(Optional.empty());
 
@@ -103,7 +103,7 @@ class UserServiceTest {
     }
 
     @Test
-    void 잘못된_비밀번호로_인증하면_CoreException_UNAUTHORIZED가_발생한다() {
+    void 잘못된_비밀번호로_인증하면_예외가_발생한다() {
         // given
         String loginId = "loginId";
         String rawPassword = "validPass1!";

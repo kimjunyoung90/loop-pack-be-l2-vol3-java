@@ -50,7 +50,7 @@ class UserCouponTest {
     }
 
     @Test
-    void 이미_사용된_쿠폰을_다시_사용하면_CoreException_BAD_REQUEST가_발생한다() {
+    void 이미_사용된_쿠폰을_다시_사용하면_예외가_발생한다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
         userCoupon.use();

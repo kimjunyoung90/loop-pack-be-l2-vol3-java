@@ -75,7 +75,7 @@ class LikeServiceIntegrationTest {
     }
 
     @Test
-    void 이미_좋아요한_상품에_다시_좋아요하면_CoreException_CONFLICT가_발생한다() {
+    void 이미_좋아요한_상품에_다시_좋아요하면_예외가_발생한다() {
         // given
         ProductInfo product = createProduct();
         Long userId = 1L;
@@ -87,7 +87,7 @@ class LikeServiceIntegrationTest {
     }
 
     @Test
-    void 좋아요하지_않은_상품의_좋아요를_취소하면_CoreException_NOT_FOUND가_발생한다() {
+    void 좋아요하지_않은_상품의_좋아요를_취소하면_예외가_발생한다() {
         // when & then
         assertThatThrownBy(() -> likeService.deleteLike(1L, 999L))
                 .isInstanceOf(CoreException.class);

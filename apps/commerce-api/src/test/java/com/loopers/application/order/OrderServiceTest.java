@@ -26,7 +26,7 @@ class OrderServiceTest {
     private OrderService orderService;
 
     @Test
-    void 존재하지_않는_주문ID로_조회_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_주문ID로_조회_시_예외가_발생한다() {
         // given
         given(orderRepository.findById(999L)).willReturn(Optional.empty());
 
@@ -37,7 +37,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void 관리자용_주문_상세_조회_시_존재하지_않는_주문이면_CoreException_NOT_FOUND가_발생한다() {
+    void 관리자용_주문_상세_조회_시_존재하지_않는_주문이면_예외가_발생한다() {
         // given
         given(orderRepository.findById(999L)).willReturn(Optional.empty());
 
@@ -48,7 +48,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void 일반_사용자용_주문_상세_조회_시_본인_주문이_아니면_CoreException_FORBIDDEN이_발생한다() {
+    void 일반_사용자용_주문_상세_조회_시_본인_주문이_아니면_예외가_발생한다() {
         // given
         Order order = Order.builder().userId(1L).build();
         given(orderRepository.findById(1L)).willReturn(Optional.of(order));
@@ -63,7 +63,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void 일반_사용자용_주문_상세_조회_시_존재하지_않는_주문이면_CoreException_NOT_FOUND가_발생한다() {
+    void 일반_사용자용_주문_상세_조회_시_존재하지_않는_주문이면_예외가_발생한다() {
         // given
         given(orderRepository.findById(999L)).willReturn(Optional.empty());
 

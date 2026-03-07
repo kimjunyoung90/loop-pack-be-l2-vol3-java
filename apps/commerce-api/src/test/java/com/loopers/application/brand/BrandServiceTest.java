@@ -25,7 +25,7 @@ class BrandServiceTest {
     private BrandService brandService;
 
     @Test
-    void 존재하지_않는_브랜드_조회_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_브랜드_조회_시_예외가_발생한다() {
         // given
         given(brandRepository.findById(1L)).willReturn(Optional.empty());
 
@@ -36,7 +36,7 @@ class BrandServiceTest {
     }
 
     @Test
-    void 존재하지_않는_브랜드_수정_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_브랜드_수정_시_예외가_발생한다() {
         // given
         given(brandRepository.findById(1L)).willReturn(Optional.empty());
         UpdateBrandCommand command = new UpdateBrandCommand("아디다스");
@@ -48,7 +48,7 @@ class BrandServiceTest {
     }
 
     @Test
-    void 존재하지_않는_브랜드_삭제_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_브랜드_삭제_시_예외가_발생한다() {
         // given
         given(brandRepository.findById(1L)).willReturn(Optional.empty());
 

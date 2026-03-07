@@ -26,7 +26,7 @@ class LikeServiceTest {
     private LikeService likeService;
 
     @Test
-    void 이미_좋아요한_상품에_다시_좋아요하면_CoreException_CONFLICT가_발생한다() {
+    void 이미_좋아요한_상품에_다시_좋아요하면_예외가_발생한다() {
         // given
         Long userId = 1L;
         Long productId = 1L;
@@ -42,7 +42,7 @@ class LikeServiceTest {
     }
 
     @Test
-    void 좋아요하지_않은_상품의_좋아요를_취소하면_CoreException_NOT_FOUND가_발생한다() {
+    void 좋아요하지_않은_상품의_좋아요를_취소하면_예외가_발생한다() {
         // given
         Long userId = 1L;
         Long productId = 999L;

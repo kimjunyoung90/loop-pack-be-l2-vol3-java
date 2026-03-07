@@ -63,7 +63,7 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_쿠폰_발급_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_쿠폰_발급_시_예외가_발생한다() {
         // given
         given(couponRepository.findById(1L)).willReturn(Optional.empty());
 
@@ -74,7 +74,7 @@ class CouponServiceTest {
     }
 
     @Test
-    void 이미_발급받은_쿠폰을_다시_발급하면_CoreException_CONFLICT가_발생한다() {
+    void 이미_발급받은_쿠폰을_다시_발급하면_예외가_발생한다() {
         // given
         Coupon coupon = Coupon.builder()
                 .name("테스트 쿠폰")
@@ -92,7 +92,7 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_사용자_쿠폰_사용_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_사용자_쿠폰_사용_시_예외가_발생한다() {
         // given
         given(userCouponRepository.findByIdWithLock(1L)).willReturn(Optional.empty());
 
@@ -103,7 +103,7 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_사용자_쿠폰_복원_시_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_사용자_쿠폰_복원_시_예외가_발생한다() {
         // given
         given(userCouponRepository.findById(1L)).willReturn(Optional.empty());
 

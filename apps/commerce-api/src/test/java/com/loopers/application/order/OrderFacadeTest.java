@@ -67,7 +67,7 @@ class OrderFacadeTest {
     }
 
     @Test
-    void 존재하지_않는_상품으로_주문하면_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_상품으로_주문하면_예외가_발생한다() {
         // given
         CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
                 new CreateOrderCommand.CreateOrderItemCommand(999L, 2)
@@ -81,7 +81,7 @@ class OrderFacadeTest {
     }
 
     @Test
-    void 재고가_부족한_상품이_포함되면_CoreException이_발생한다() {
+    void 재고가_부족한_상품이_포함되면_예외가_발생한다() {
         // given
         CreateOrderCommand command = new CreateOrderCommand(1L, null, List.of(
                 new CreateOrderCommand.CreateOrderItemCommand(1L, 5)
@@ -112,7 +112,7 @@ class OrderFacadeTest {
     }
 
     @Test
-    void 본인_주문이_아니면_CoreException_FORBIDDEN이_발생한다() {
+    void 본인_주문이_아니면_예외가_발생한다() {
         // given
         willThrow(new CoreException(ErrorType.FORBIDDEN, "본인의 주문만 취소할 수 있습니다."))
                 .given(orderService).cancelOrder(999L, 1L);
@@ -123,7 +123,7 @@ class OrderFacadeTest {
     }
 
     @Test
-    void 이미_취소된_주문이면_CoreException_BAD_REQUEST가_발생한다() {
+    void 이미_취소된_주문이면_예외가_발생한다() {
         // given
         willThrow(new CoreException(ErrorType.BAD_REQUEST, "이미 취소된 주문입니다."))
                 .given(orderService).cancelOrder(1L, 1L);

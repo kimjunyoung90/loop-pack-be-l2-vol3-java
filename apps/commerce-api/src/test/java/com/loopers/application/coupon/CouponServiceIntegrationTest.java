@@ -83,7 +83,7 @@ class CouponServiceIntegrationTest {
     }
 
     @Test
-    void 삭제된_쿠폰_상세_조회_시_CoreException_NOT_FOUND가_발생한다() {
+    void 삭제된_쿠폰_상세_조회_시_예외가_발생한다() {
         // given
         CouponInfo created = couponService.createCoupon(
                 new CreateCouponCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))

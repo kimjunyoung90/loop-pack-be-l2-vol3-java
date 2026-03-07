@@ -21,7 +21,7 @@ class BrandTest {
     }
 
     @Test
-    void 브랜드를_소프트_삭제하면_deletedAt이_설정된다() {
+    void 브랜드를_삭제하면_삭제_처리된다() {
         // given
         Brand brand = Brand.builder()
                 .name("나이키")

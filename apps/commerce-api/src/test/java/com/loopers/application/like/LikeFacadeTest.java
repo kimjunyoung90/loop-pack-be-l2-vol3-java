@@ -55,7 +55,7 @@ class LikeFacadeTest {
     }
 
     @Test
-    void 존재하지_않는_상품에_좋아요를_등록하면_CoreException_NOT_FOUND가_발생한다() {
+    void 존재하지_않는_상품에_좋아요를_등록하면_예외가_발생한다() {
         // given
         Long userId = 1L;
         Long productId = 999L;
