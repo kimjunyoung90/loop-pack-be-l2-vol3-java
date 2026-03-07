@@ -47,7 +47,7 @@ class OrderFacadeTest {
     @Test
     void 유효한_상품으로_주문하면_재고_차감_후_OrderResult를_반환한다() {
         // given
-        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
+        ProductResult productResult = new ProductResult(1L, 1L, null, "운동화", 50000, 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
 
         OrderCreateCommand command = new OrderCreateCommand(1L, null, List.of(
                 new OrderCreateCommand.OrderItem(1L, 2)
@@ -141,7 +141,7 @@ class OrderFacadeTest {
     @Test
     void 쿠폰을_적용하여_주문하면_할인이_반영된_OrderResult를_반환한다() {
         // given
-        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
+        ProductResult productResult = new ProductResult(1L, 1L, null, "운동화", 50000, 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
 
         OrderCreateCommand command = new OrderCreateCommand(1L, 10L, List.of(
                 new OrderCreateCommand.OrderItem(1L, 2)
@@ -168,7 +168,7 @@ class OrderFacadeTest {
     @Test
     void 쿠폰_검증에_실패하면_주문이_생성되지_않는다() {
         // given
-        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, ZonedDateTime.now(), ZonedDateTime.now());
+        ProductResult productResult = new ProductResult(1L, 1L, null, "운동화", 50000, 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
 
         OrderCreateCommand command = new OrderCreateCommand(1L, 10L, List.of(
                 new OrderCreateCommand.OrderItem(1L, 2)

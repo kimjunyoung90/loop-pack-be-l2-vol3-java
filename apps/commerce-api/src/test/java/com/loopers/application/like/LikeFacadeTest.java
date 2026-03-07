@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class LikeFacadeTest {
@@ -53,6 +54,7 @@ class LikeFacadeTest {
         // then
         assertThat(result.userId()).isEqualTo(userId);
         assertThat(result.productId()).isEqualTo(productId);
+        verify(productService).incrementLikeCount(productId);
     }
 
     @Test
@@ -66,5 +68,19 @@ class LikeFacadeTest {
         // when & then
         assertThatThrownBy(() -> likeFacade.like(userId, productId))
                 .isInstanceOf(CoreException.class);
+    }
+
+    @Test
+    void 좋아요를_취소하면_좋아요_삭제_후_좋아요수를_감소시킨다() {
+        // given
+        Long userId = 1L;
+        Long productId = 1L;
+
+        // when
+        likeFacade.unlike(userId, productId);
+
+        // then
+        verify(likeService).unlike(userId, productId);
+        verify(productService).decrementLikeCount(productId);
     }
 }

@@ -27,6 +27,8 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findAllByDeletedAtIsNull(Pageable pageable);
 
+    Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
+
     List<Product> findAllByBrandId(Long brandId);
 
     List<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId);

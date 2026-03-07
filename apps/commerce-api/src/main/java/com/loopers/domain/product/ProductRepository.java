@@ -21,5 +21,7 @@ public interface ProductRepository {
 
     int restoreStock(Long productId, int quantity);
 
+    Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
+
     Product save(Product product);
 }

@@ -57,7 +57,7 @@ class ProductAdminV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productFacade.registerProduct(any())).willReturn(
-                new ProductResult(1L, 1L, "운동화", 100000, 50, now, now)
+                new ProductResult(1L, 1L, null, "운동화", 100000, 50, 0, now, now)
         );
 
         ProductCreateRequest request =
@@ -105,7 +105,7 @@ class ProductAdminV1ControllerTest {
     void 상품_목록_조회_시_200_OK와_페이징된_상품_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
+        ProductResult productResult = new ProductResult(1L, 1L, null, "운동화", 100000, 50, 0, now, now);
         given(productService.getProducts(any())).willReturn(
                 new PageImpl<>(List.of(productResult), PageRequest.of(0, 20), 1)
         );
@@ -130,7 +130,7 @@ class ProductAdminV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.getProduct(1L)).willReturn(
-                new ProductResult(1L, 1L, "운동화", 100000, 50, now, now)
+                new ProductResult(1L, 1L, null, "운동화", 100000, 50, 0, now, now)
         );
 
         // when & then
@@ -152,7 +152,7 @@ class ProductAdminV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productFacade.modifyProduct(eq(1L), any())).willReturn(
-                new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now)
+                new ProductResult(1L, 2L, null, "슬리퍼", 50000, 30, 0, now, now)
         );
 
         ProductUpdateRequest request =

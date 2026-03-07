@@ -11,9 +11,9 @@ public interface ProductV1ApiSpec {
 
     @Operation(
         summary = "상품 목록 조회",
-        description = "상품 목록을 조회합니다."
+        description = "상품 목록을 조회합니다. 정렬 조건(LATEST, PRICE_ASC, PRICE_DESC, LIKES_DESC)과 브랜드 필터를 지원합니다."
     )
-    ApiResponse<Page<ProductDetailResponse>> getProducts(int page, int size);
+    ApiResponse<Page<ProductDetailResponse>> getProducts(int page, int size, String sortBy, Long brandId);
 
     @Operation(
         summary = "상품 상세 조회",

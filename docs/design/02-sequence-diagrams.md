@@ -266,50 +266,96 @@ sequenceDiagram
 
 ### 상품 목록 조회 (사용자)
 
-사용자는 상품 목록을 조회할 수 있다.
+사용자는 상품 목록을 조회할 수 있다. 상품 정보에는 브랜드 정보와 좋아요 수가 포함된다.
 
 ```mermaid
 sequenceDiagram
     actor User as 사용자
     participant PC as ProductController
+    participant PF as ProductFacade
     participant PS as ProductService
+    participant BS as BrandService
+    participant LS as LikeService
     participant PR as ProductRepository
+    participant BR as BrandRepository
+    participant LR as LikeRepository
 
-    User->>+PC: 상품 목록 조회 요청
-    PC->>+PS: 상품 목록 조회
+    User->>+PC: 상품 목록 조회 요청 (정렬조건, 브랜드필터)
+    PC->>+PF: 상품 목록 조회
+
+    PF->>+PS: 상품 목록 조회 (정렬조건, 브랜드필터)
     PS->>+PR: 상품 목록 조회
     PR-->>-PS: 상품 목록
-    PS-->>-PC: 상품 목록
+    PS-->>-PF: 상품 목록
+
+    PF->>+BS: 브랜드 정보 조회
+    BS->>+BR: 브랜드 조회
+    BR-->>-BS: 브랜드 정보
+    BS-->>-PF: 브랜드 정보
+
+    PF->>+LS: 좋아요 수 조회
+    LS->>+LR: 상품별 좋아요 수 조회
+    LR-->>-LS: 좋아요 수
+    LS-->>-PF: 좋아요 수
+
+    PF-->>-PC: 상품 목록 (브랜드 정보, 좋아요 수 포함)
     PC-->>-User: 상품 목록 응답
 ```
 
+**해석**:
+- 상품 조회에 브랜드 정보와 좋아요 수가 포함되므로, 여러 도메인이 엮여 `ProductFacade`가 조합을 담당한다.
+- 정렬 조건(최신순, 가격순, 좋아요순)과 브랜드 필터링을 지원한다.
 
 ---
 
 ### 상품 상세 조회 (사용자)
 
-사용자는 특정 상품의 상세 정보를 조회할 수 있다.
+사용자는 특정 상품의 상세 정보를 조회할 수 있다. 상품 정보에는 브랜드 정보와 좋아요 수가 포함된다.
 
 ```mermaid
 sequenceDiagram
     actor User as 사용자
     participant PC as ProductController
+    participant PF as ProductFacade
     participant PS as ProductService
+    participant BS as BrandService
+    participant LS as LikeService
     participant PR as ProductRepository
+    participant BR as BrandRepository
+    participant LR as LikeRepository
 
     User->>+PC: 상품 상세 조회 요청 (productId)
-    PC->>+PS: 상품 상세 조회(productId)
+    PC->>+PF: 상품 상세 조회(productId)
+
+    PF->>+PS: 상품 조회(productId)
     PS->>+PR: 상품 조회
     PR-->>-PS: 상품 정보
 
     opt 상품 미존재
-        PS-->>PC: 예외
+        PS-->>PF: 예외
+        PF-->>PC: 예외
         PC-->>User: 404 Not Found
     end
 
-    PS-->>-PC: 상품 상세 정보
+    PS-->>-PF: 상품 정보
+
+    PF->>+BS: 브랜드 조회(brandId)
+    BS->>+BR: 브랜드 조회
+    BR-->>-BS: 브랜드 정보
+    BS-->>-PF: 브랜드 정보
+
+    PF->>+LS: 좋아요 수 조회(productId)
+    LS->>+LR: 좋아요 수 조회
+    LR-->>-LS: 좋아요 수
+    LS-->>-PF: 좋아요 수
+
+    PF-->>-PC: 상품 상세 정보 (브랜드 정보, 좋아요 수 포함)
     PC-->>-User: 상품 상세 응답
 ```
+
+**해석**:
+- 상품 상세 조회 시 Product + Brand + Like 세 도메인의 정보를 조합하므로 `ProductFacade`가 담당한다.
+- Controller는 단일 도메인이 아닌 복합 조회이므로 Facade를 호출한다.
 
 ---
 

@@ -35,7 +35,7 @@ class ProductFacadeTest {
         // given
         ProductCreateCommand command = new ProductCreateCommand(1L, "운동화", 100000, 50);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
+        ProductResult expectedResult = new ProductResult(1L, 1L, null, "운동화", 100000, 50, 0, now, now);
         given(brandService.existsBrandById(1L)).willReturn(true);
         given(productService.registerProduct(eq(1L), eq(command))).willReturn(expectedResult);
 
@@ -63,7 +63,7 @@ class ProductFacadeTest {
         // given
         ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", 50000, 30);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now);
+        ProductResult expectedResult = new ProductResult(1L, 2L, null, "슬리퍼", 50000, 30, 0, now, now);
         given(brandService.existsBrandById(2L)).willReturn(true);
         given(productService.modifyProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedResult);
 

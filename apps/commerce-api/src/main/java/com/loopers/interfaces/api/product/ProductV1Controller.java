@@ -1,12 +1,12 @@
 package com.loopers.interfaces.api.product;
 
-import com.loopers.application.product.ProductService;
+import com.loopers.application.product.ProductFacade;
+import com.loopers.application.product.ProductSortType;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.product.response.ProductDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -14,15 +14,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/products")
 public class ProductV1Controller implements ProductV1ApiSpec {
 
-    private final ProductService productService;
+    private final ProductFacade productFacade;
 
     @GetMapping
     @Override
     public ApiResponse<Page<ProductDetailResponse>> getProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "LATEST") String sortBy,
+            @RequestParam(required = false) Long brandId
     ) {
-        Page<ProductDetailResponse> products = productService.getProducts(PageRequest.of(page, size))
+        ProductSortType sortType = ProductSortType.valueOf(sortBy.toUpperCase());
+        Page<ProductDetailResponse> products = productFacade.getProducts(brandId, sortType, page, size)
                 .map(ProductDetailResponse::from);
         return ApiResponse.success(products);
     }
@@ -30,7 +33,7 @@ public class ProductV1Controller implements ProductV1ApiSpec {
     @GetMapping("/{productId}")
     @Override
     public ApiResponse<ProductDetailResponse> getProduct(@PathVariable Long productId) {
-        ProductResult productResult = productService.getProduct(productId);
+        ProductResult productResult = productFacade.getProduct(productId);
         return ApiResponse.success(ProductDetailResponse.from(productResult));
     }
 }

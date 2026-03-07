@@ -1,13 +1,18 @@
 package com.loopers.application.product;
 
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.like.LikeService;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +23,24 @@ public class ProductFacade {
     private final ProductService productService;
     private final BrandService brandService;
     private final LikeService likeService;
+
+    @Transactional(readOnly = true)
+    public ProductResult getProduct(Long productId) {
+        Product product = productService.findProduct(productId);
+        BrandResult brand = brandService.getBrand(product.getBrandId());
+        return ProductResult.from(product, brand.name());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResult> getProducts(Long brandId, ProductSortType sortType, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, sortType.getSort());
+        Page<Product> products = productService.getProducts(brandId, pageable);
+
+        return products.map(product -> {
+            BrandResult brand = brandService.getBrand(product.getBrandId());
+            return ProductResult.from(product, brand.name());
+        });
+    }
 
     @Transactional
     public ProductResult registerProduct(ProductCreateCommand command) {

@@ -7,9 +7,11 @@ import java.time.ZonedDateTime;
 public record ProductDetailResponse(
         Long id,
         Long brandId,
+        String brandName,
         String name,
         int price,
         int stock,
+        int likeCount,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -17,9 +19,11 @@ public record ProductDetailResponse(
         return new ProductDetailResponse(
                 result.id(),
                 result.brandId(),
+                result.brandName(),
                 result.name(),
                 result.price(),
                 result.stock(),
+                result.likeCount(),
                 result.createdAt(),
                 result.updatedAt()
         );
