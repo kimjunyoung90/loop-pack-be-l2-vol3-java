@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class OrderItemTest {
+class ItemTest {
 
     @Test
     void 주문항목을_생성하면_totalPrice가_productPrice와_quantity의_곱으로_계산된다() {

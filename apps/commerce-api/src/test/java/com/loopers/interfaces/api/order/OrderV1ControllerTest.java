@@ -2,7 +2,7 @@ package com.loopers.interfaces.api.order;
 
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderService;
-import com.loopers.application.order.result.OrderItemResult;
+import com.loopers.application.order.result.OrderResult.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;

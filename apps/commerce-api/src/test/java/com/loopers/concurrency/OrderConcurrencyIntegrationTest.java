@@ -1,7 +1,6 @@
 package com.loopers.application.order;
 
 import com.loopers.application.order.command.OrderCreateCommand;
-import com.loopers.application.order.command.OrderItemCreateCommand;
 import com.loopers.application.brand.BrandService;
 import com.loopers.application.brand.command.BrandCreateCommand;
 import com.loopers.application.brand.result.BrandResult;
@@ -79,7 +78,7 @@ class OrderConcurrencyIntegrationTest {
                             new UserCreateCommand("ct" + index, "password1!", "사용자", "1990-01-01", "ct" + index + "@t.com"));
 
                     OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
-                            new OrderItemCreateCommand(product.id(), quantityPerOrder)
+                            new OrderCreateCommand.OrderItem(product.id(), quantityPerOrder)
                     ));
                     orderFacade.createOrder(command);
                     successCount.incrementAndGet();
@@ -134,8 +133,8 @@ class OrderConcurrencyIntegrationTest {
                             new UserCreateCommand("st" + index, "password1!", "사용자", "1990-01-01", "st" + index + "@t.com"));
 
                     OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
-                            new OrderItemCreateCommand(productA.id(), 1),
-                            new OrderItemCreateCommand(productB.id(), 1)
+                            new OrderCreateCommand.OrderItem(productA.id(), 1),
+                            new OrderCreateCommand.OrderItem(productB.id(), 1)
                     ));
                     orderFacade.createOrder(command);
                     successCount.incrementAndGet();

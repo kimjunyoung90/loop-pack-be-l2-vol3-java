@@ -1,5 +1,6 @@
 package com.loopers.interfaces.api.order.response;
 
+import com.loopers.application.order.result.OrderResult.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
 
 import java.time.ZonedDateTime;
@@ -13,7 +14,7 @@ public record OrderCreateResponse(
         int totalAmount,
         int discountAmount,
         int finalAmount,
-        List<OrderItemResponse> orderItems,
+        List<OrderItem> orderItems,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -27,10 +28,34 @@ public record OrderCreateResponse(
                 result.discountAmount(),
                 result.finalAmount(),
                 result.orderItems().stream()
-                        .map(OrderItemResponse::from)
+                        .map(OrderItem::from)
                         .toList(),
                 result.createdAt(),
                 result.updatedAt()
         );
+    }
+
+    public record OrderItem(
+            Long id,
+            Long productId,
+            String productName,
+            int productPrice,
+            int quantity,
+            int totalPrice,
+            ZonedDateTime createdAt,
+            ZonedDateTime updatedAt
+    ) {
+        public static OrderItem from(OrderItemResult result) {
+            return new OrderItem(
+                    result.id(),
+                    result.productId(),
+                    result.productName(),
+                    result.productPrice(),
+                    result.quantity(),
+                    result.totalPrice(),
+                    result.createdAt(),
+                    result.updatedAt()
+            );
+        }
     }
 }

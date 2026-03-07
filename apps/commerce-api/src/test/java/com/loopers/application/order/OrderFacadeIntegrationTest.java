@@ -8,7 +8,6 @@ import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.application.order.command.OrderCreateCommand;
-import com.loopers.application.order.command.OrderItemCreateCommand;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.command.ProductCreateCommand;
@@ -66,8 +65,8 @@ class OrderFacadeIntegrationTest {
 
         // 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
-                new OrderItemCreateCommand(productResult1.id(), 2),
-                new OrderItemCreateCommand(productResult2.id(), 1)
+                new OrderCreateCommand.OrderItem(productResult1.id(), 2),
+                new OrderCreateCommand.OrderItem(productResult2.id(), 1)
         ));
         OrderResult result = orderFacade.createOrder(command);
 
@@ -96,7 +95,7 @@ class OrderFacadeIntegrationTest {
 
         // 재고 초과 주문
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
-                new OrderItemCreateCommand(productResult.id(), 5)
+                new OrderCreateCommand.OrderItem(productResult.id(), 5)
         ));
 
         // 주문 실패 검증
@@ -116,7 +115,7 @@ class OrderFacadeIntegrationTest {
 
         // 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
-                new OrderItemCreateCommand(productResult.id(), 2)
+                new OrderCreateCommand.OrderItem(productResult.id(), 2)
         ));
         OrderResult orderResult = orderFacade.createOrder(command);
 
@@ -158,7 +157,7 @@ class OrderFacadeIntegrationTest {
         // 쿠폰 적용 주문 생성
         int expectedTotalAmount = productPrice * orderQuantity;
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
-                new OrderItemCreateCommand(productResult.id(), orderQuantity)
+                new OrderCreateCommand.OrderItem(productResult.id(), orderQuantity)
         ));
         OrderResult result = orderFacade.createOrder(command);
 
@@ -198,7 +197,7 @@ class OrderFacadeIntegrationTest {
 
         // 쿠폰 적용 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
-                new OrderItemCreateCommand(productResult.id(), orderQuantity)
+                new OrderCreateCommand.OrderItem(productResult.id(), orderQuantity)
         ));
         OrderResult orderResult = orderFacade.createOrder(command);
 

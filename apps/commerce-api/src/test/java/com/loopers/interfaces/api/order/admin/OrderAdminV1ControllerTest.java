@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.order.admin;
 
 import com.loopers.application.order.OrderService;
-import com.loopers.application.order.result.OrderItemResult;
+import com.loopers.application.order.result.OrderResult.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;

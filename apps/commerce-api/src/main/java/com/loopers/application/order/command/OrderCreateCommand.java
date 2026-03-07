@@ -5,6 +5,11 @@ import java.util.List;
 public record OrderCreateCommand(
         Long userId,
         Long userCouponId,
-        List<OrderItemCreateCommand> orderItems
+        List<OrderItem> orderItems
 ) {
+    public record OrderItem(
+            Long productId,
+            int quantity
+    ) {
+    }
 }
