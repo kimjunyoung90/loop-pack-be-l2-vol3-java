@@ -37,6 +37,16 @@ public class OrderItem extends BaseEntity {
 
     @Builder
     private OrderItem(Long productId, String productName, int productPrice, int quantity) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productPrice = productPrice;
+        this.quantity = quantity;
+        this.totalPrice = productPrice * quantity;
+        guard();
+    }
+
+    @Override
+    protected void guard() {
         if (productId == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "상품 ID는 필수입니다.");
         }
@@ -49,11 +59,6 @@ public class OrderItem extends BaseEntity {
         if (quantity <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 수량은 0보다 커야 합니다.");
         }
-        this.productId = productId;
-        this.productName = productName;
-        this.productPrice = productPrice;
-        this.quantity = quantity;
-        this.totalPrice = productPrice * quantity;
     }
 
     void assignOrder(Order order) {

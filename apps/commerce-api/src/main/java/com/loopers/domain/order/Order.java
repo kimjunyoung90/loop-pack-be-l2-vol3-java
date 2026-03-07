@@ -42,15 +42,32 @@ public class Order extends BaseEntity {
 
     @Builder
     private Order(Long userId, Long userCouponId) {
-        if (userId == null) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "주문자 ID는 필수입니다.");
-        }
         this.userId = userId;
         this.userCouponId = userCouponId;
         this.status = OrderStatus.COMPLETED;
         this.totalAmount = 0;
         this.discountAmount = 0;
         this.finalAmount = 0;
+        guard();
+    }
+
+    @Override
+    protected void guard() {
+        if (userId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문자 ID는 필수입니다.");
+        }
+        if (status == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문 상태는 필수입니다.");
+        }
+        if (totalAmount < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "총 주문 금액은 0 이상이어야 합니다.");
+        }
+        if (discountAmount < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "할인 금액은 0 이상이어야 합니다.");
+        }
+        if (finalAmount < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "최종 결제 금액은 0 이상이어야 합니다.");
+        }
     }
 
     public void addOrderItem(OrderItem orderItem) {

@@ -50,6 +50,19 @@ public class UserCoupon extends BaseEntity {
     private UserCoupon(Long userId, Long couponId, String couponName,
                        DiscountType discountType, int discountValue, Integer minOrderAmount,
                        LocalDate expiredAt) {
+        this.userId = userId;
+        this.couponId = couponId;
+        this.couponName = couponName;
+        this.discountType = discountType;
+        this.discountValue = discountValue;
+        this.minOrderAmount = minOrderAmount;
+        this.status = CouponStatus.AVAILABLE;
+        this.expiredAt = expiredAt;
+        guard();
+    }
+
+    @Override
+    protected void guard() {
         if (userId == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "사용자 ID는 필수입니다.");
         }
@@ -65,17 +78,12 @@ public class UserCoupon extends BaseEntity {
         if (discountValue <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "할인 값은 0보다 커야 합니다.");
         }
+        if (status == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "쿠폰 상태는 필수입니다.");
+        }
         if (expiredAt == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 필수입니다.");
         }
-        this.userId = userId;
-        this.couponId = couponId;
-        this.couponName = couponName;
-        this.discountType = discountType;
-        this.discountValue = discountValue;
-        this.minOrderAmount = minOrderAmount;
-        this.status = CouponStatus.AVAILABLE;
-        this.expiredAt = expiredAt;
     }
 
     public void validateUsable(Long userId, int totalAmount) {

@@ -29,29 +29,35 @@ public class Product extends BaseEntity {
 
     @Builder
     private Product(Long brandId, String name, int price, int stock) {
-        if (price <= 0) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "상품 가격은 0보다 커야 합니다.");
-        }
-        if (stock < 0) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "상품 재고는 0 이상이어야 합니다.");
-        }
         this.brandId = brandId;
         this.name = name;
         this.price = price;
         this.stock = stock;
+        guard();
     }
 
     public void changeInfo(Long brandId, String name, int price, int stock) {
+        this.brandId = brandId;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        guard();
+    }
+
+    @Override
+    protected void guard() {
+        if (brandId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "브랜드 ID는 필수입니다.");
+        }
+        if (name == null || name.isBlank()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "상품명은 필수입니다.");
+        }
         if (price <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "상품 가격은 0보다 커야 합니다.");
         }
         if (stock < 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "상품 재고는 0 이상이어야 합니다.");
         }
-        this.brandId = brandId;
-        this.name = name;
-        this.price = price;
-        this.stock = stock;
     }
 
 }
