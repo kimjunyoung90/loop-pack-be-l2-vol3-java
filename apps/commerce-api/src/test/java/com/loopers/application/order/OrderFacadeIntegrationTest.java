@@ -16,7 +16,6 @@ import com.loopers.application.user.UserService;
 import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
 import com.loopers.domain.coupon.DiscountType;
-import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 
 import java.time.LocalDate;
@@ -77,10 +76,10 @@ class OrderFacadeIntegrationTest {
         assertThat(result.orderItems()).hasSize(2);
 
         // 재고 차감 검증
-        Product updatedProduct1 = productService.findProduct(productResult1.id());
-        Product updatedProduct2 = productService.findProduct(productResult2.id());
-        assertThat(updatedProduct1.getStock()).isEqualTo(8);
-        assertThat(updatedProduct2.getStock()).isEqualTo(4);
+        ProductResult updatedProduct1 = productService.getProduct(productResult1.id());
+        ProductResult updatedProduct2 = productService.getProduct(productResult2.id());
+        assertThat(updatedProduct1.stock()).isEqualTo(8);
+        assertThat(updatedProduct2.stock()).isEqualTo(4);
     }
 
     @Test
@@ -120,8 +119,8 @@ class OrderFacadeIntegrationTest {
         OrderResult orderResult = orderFacade.placeOrder(command);
 
         // 재고 차감 확인
-        Product deductedProduct = productService.findProduct(productResult.id());
-        assertThat(deductedProduct.getStock()).isEqualTo(8);
+        ProductResult deductedProduct = productService.getProduct(productResult.id());
+        assertThat(deductedProduct.stock()).isEqualTo(8);
 
         // 주문 취소
         OrderResult cancelResult = orderFacade.cancelOrder(userResult.id(), orderResult.id());
@@ -130,8 +129,8 @@ class OrderFacadeIntegrationTest {
         assertThat(cancelResult.status()).isEqualTo("CANCELLED");
 
         // 재고 복원 확인
-        Product restoredProduct = productService.findProduct(productResult.id());
-        assertThat(restoredProduct.getStock()).isEqualTo(10);
+        ProductResult restoredProduct = productService.getProduct(productResult.id());
+        assertThat(restoredProduct.stock()).isEqualTo(10);
     }
 
     @Test
@@ -173,8 +172,8 @@ class OrderFacadeIntegrationTest {
         assertThat(usedCoupon.status()).isEqualTo("USED");
 
         // 재고 차감 검증
-        Product updatedProduct = productService.findProduct(productResult.id());
-        assertThat(updatedProduct.getStock()).isEqualTo(initialStock - orderQuantity);
+        ProductResult updatedProduct = productService.getProduct(productResult.id());
+        assertThat(updatedProduct.stock()).isEqualTo(initialStock - orderQuantity);
     }
 
     @Test
@@ -220,7 +219,7 @@ class OrderFacadeIntegrationTest {
         assertThat(restoredCoupon.status()).isEqualTo("AVAILABLE");
 
         // 재고 복원 확인
-        Product restoredProduct = productService.findProduct(productResult.id());
-        assertThat(restoredProduct.getStock()).isEqualTo(initialStock);
+        ProductResult restoredProduct = productService.getProduct(productResult.id());
+        assertThat(restoredProduct.stock()).isEqualTo(initialStock);
     }
 }

@@ -109,12 +109,6 @@ public class ProductService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Product findProduct(Long productId) {
-        return productRepository.findByIdAndDeletedAtIsNull(productId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-    }
-
     @Transactional
     public void incrementLikeCount(Long productId) {
         Product product = productRepository.findByIdAndDeletedAtIsNull(productId)

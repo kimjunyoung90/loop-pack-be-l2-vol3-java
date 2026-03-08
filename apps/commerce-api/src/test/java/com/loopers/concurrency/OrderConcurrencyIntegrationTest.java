@@ -10,7 +10,7 @@ import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.user.UserService;
 import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
-import com.loopers.domain.product.Product;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -93,9 +93,9 @@ class OrderConcurrencyIntegrationTest {
         executorService.shutdown();
 
         // then - 100건 모두 성공하고, 재고가 정확히 100개 차감되어야 한다
-        Product updatedProduct = productService.findProduct(product.id());
+        ProductResult updatedProduct = productService.getProduct(product.id());
         assertThat(successCount.get()).isEqualTo(threadCount);
-        assertThat(updatedProduct.getStock()).isEqualTo(initialStock - (successCount.get() * quantityPerOrder));
+        assertThat(updatedProduct.stock()).isEqualTo(initialStock - (successCount.get() * quantityPerOrder));
     }
 
     /**
@@ -153,9 +153,9 @@ class OrderConcurrencyIntegrationTest {
         assertThat(failCount.get()).isEqualTo(threadCount - productBStock);
 
         // 실패한 주문의 상품A 재고도 롤백되어야 한다 (상품A: 100 → 95, 상품B: 5 → 0)
-        Product updatedProductA = productService.findProduct(productA.id());
-        Product updatedProductB = productService.findProduct(productB.id());
-        assertThat(updatedProductA.getStock()).isEqualTo(productAStock - successCount.get());
-        assertThat(updatedProductB.getStock()).isEqualTo(0);
+        ProductResult updatedProductA = productService.getProduct(productA.id());
+        ProductResult updatedProductB = productService.getProduct(productB.id());
+        assertThat(updatedProductA.stock()).isEqualTo(productAStock - successCount.get());
+        assertThat(updatedProductB.stock()).isEqualTo(0);
     }
 }
