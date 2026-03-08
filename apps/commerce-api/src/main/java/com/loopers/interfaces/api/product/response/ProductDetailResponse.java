@@ -1,6 +1,6 @@
 package com.loopers.interfaces.api.product.response;
 
-import com.loopers.application.product.result.ProductResult;
+import com.loopers.application.product.result.ProductWithBrandResult;
 
 import java.time.ZonedDateTime;
 
@@ -15,7 +15,7 @@ public record ProductDetailResponse(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static ProductDetailResponse from(ProductResult result) {
+    public static ProductDetailResponse from(ProductWithBrandResult result) {
         return new ProductDetailResponse(
                 result.id(),
                 result.brandId(),

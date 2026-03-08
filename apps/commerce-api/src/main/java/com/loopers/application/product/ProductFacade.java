@@ -6,7 +6,7 @@ import com.loopers.application.like.LikeService;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
-import com.loopers.domain.product.Product;
+import com.loopers.application.product.result.ProductWithBrandResult;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -25,20 +25,20 @@ public class ProductFacade {
     private final LikeService likeService;
 
     @Transactional(readOnly = true)
-    public ProductResult getProduct(Long productId) {
-        Product product = productService.findProduct(productId);
-        BrandResult brand = brandService.getBrand(product.getBrandId());
-        return ProductResult.from(product, brand.name());
+    public ProductWithBrandResult getProduct(Long productId) {
+        ProductResult product = productService.getProduct(productId);
+        BrandResult brand = brandService.getBrand(product.brandId());
+        return ProductWithBrandResult.from(product, brand.name());
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResult> getProducts(Long brandId, ProductSortType sortType, int page, int size) {
+    public Page<ProductWithBrandResult> getProducts(Long brandId, ProductSortType sortType, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, sortType.getSort());
-        Page<Product> products = productService.getProducts(brandId, pageable);
+        Page<ProductResult> products = productService.getProducts(brandId, pageable);
 
         return products.map(product -> {
-            BrandResult brand = brandService.getBrand(product.getBrandId());
-            return ProductResult.from(product, brand.name());
+            BrandResult brand = brandService.getBrand(product.brandId());
+            return ProductWithBrandResult.from(product, brand.name());
         });
     }
 

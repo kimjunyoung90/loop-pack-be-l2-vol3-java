@@ -41,11 +41,13 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Product> getProducts(Long brandId, Pageable pageable) {
+    public Page<ProductResult> getProducts(Long brandId, Pageable pageable) {
         if (brandId != null) {
-            return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable);
+            return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable)
+                    .map(ProductResult::from);
         }
-        return productRepository.findAllByDeletedAtIsNull(pageable);
+        return productRepository.findAllByDeletedAtIsNull(pageable)
+                .map(ProductResult::from);
     }
 
     @Transactional(readOnly = true)
