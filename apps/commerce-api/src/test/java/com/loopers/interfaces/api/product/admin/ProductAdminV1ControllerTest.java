@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -106,7 +107,7 @@ class ProductAdminV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         ProductResult productResult = new ProductResult(1L, 1L, "운동화", 100000, 50, 0, now, now);
-        given(productService.getProducts(any())).willReturn(
+        given(productService.getProducts(any(Pageable.class))).willReturn(
                 new PageImpl<>(List.of(productResult), PageRequest.of(0, 20), 1)
         );
 

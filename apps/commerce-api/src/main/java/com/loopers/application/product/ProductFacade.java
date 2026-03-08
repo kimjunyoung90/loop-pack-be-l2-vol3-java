@@ -60,7 +60,7 @@ public class ProductFacade {
 
     @Transactional
     public void deleteProduct(Long productId) {
-        likeService.deleteLikesByProductId(productId);
+        likeService.deleteLikes(productId);
         productService.deleteProduct(productId);
     }
 }

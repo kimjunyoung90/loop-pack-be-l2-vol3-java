@@ -19,9 +19,9 @@ public class BrandFacade {
 
     @Transactional
     public void deleteBrand(Long brandId) {
-        List<Product> products = productService.findProductsByBrandId(brandId);
-        products.forEach(product -> likeService.deleteLikesByProductId(product.getId()));
-		productService.deleteProductsByBrandId(brandId);
+        List<Product> products = productService.getProducts(brandId);
+        products.forEach(product -> likeService.deleteLikes(product.getId()));
+		productService.deleteProducts(brandId);
 		brandService.deleteBrand(brandId);
 	}
 }

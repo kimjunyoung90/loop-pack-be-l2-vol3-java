@@ -136,6 +136,9 @@ public class Product extends BaseEntity {
 ### Service 메서드
 - 메서드명은 유비쿼터스 언어를 기반으로 비즈니스 의미가 드러나도록 작성한다.
 - 유비쿼터스 언어가 정의되어 있지 않으면 정의하고 반영한다.
+- 메서드명은 범용적으로 작성하고, 조건의 차이는 파라미터(오버로딩)로 식별한다. 메서드명에 파라미터 정보를 넣지 않는다.
+  - `deleteProducts(Long brandId)` (O) / `deleteProductsByBrandId(Long brandId)` (X)
+  - `getProducts(Long brandId, Pageable pageable)` (O) / `getProductsByBrandId(Long brandId, Pageable pageable)` (X)
 
 | 구분 | 네이밍 원칙 | 예시 |
 |------|-------------|------|

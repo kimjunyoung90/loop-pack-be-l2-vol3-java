@@ -77,12 +77,12 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> findProductsByBrandId(Long brandId) {
+    public List<Product> getProducts(Long brandId) {
         return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId);
     }
 
     @Transactional
-    public void deleteProductsByBrandId(Long brandId) {
+    public void deleteProducts(Long brandId) {
         List<Product> products = productRepository.findAllByBrandId(brandId);
         products.forEach(Product::delete);
     }
