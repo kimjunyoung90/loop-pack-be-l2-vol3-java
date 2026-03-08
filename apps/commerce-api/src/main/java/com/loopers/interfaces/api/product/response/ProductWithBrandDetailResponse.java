@@ -4,7 +4,7 @@ import com.loopers.application.product.result.ProductWithBrandResult;
 
 import java.time.ZonedDateTime;
 
-public record ProductDetailResponse(
+public record ProductWithBrandDetailResponse(
         Long id,
         Long brandId,
         String brandName,
@@ -15,8 +15,8 @@ public record ProductDetailResponse(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static ProductDetailResponse from(ProductWithBrandResult result) {
-        return new ProductDetailResponse(
+    public static ProductWithBrandDetailResponse from(ProductWithBrandResult result) {
+        return new ProductWithBrandDetailResponse(
                 result.id(),
                 result.brandId(),
                 result.brandName(),
