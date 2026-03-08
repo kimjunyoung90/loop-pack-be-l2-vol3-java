@@ -56,6 +56,17 @@
 
 - 단건과 목록이 동일한 필드를 사용하는 경우 `DetailResponse` 하나로 유지하고, 실제로 분화가 필요한 시점에 `ListResponse`로 분리한다.
 
+### 복합 DTO (애그리거트 간 조합)
+서로 다른 애그리거트의 정보를 조합하여 반환할 때는, 각 레이어에서 `With`를 사용한 새로운 DTO를 생성하여 반환한다.
+
+| 레이어 | 네이밍 패턴 | 예시 |
+|--------|-------------|------|
+| application | `{Domain}With{Other}Result` | `OrderWithCouponResult` |
+| interface | `{Domain}With{Other}Response` | `ProductWithBrandDetailResponse` |
+
+- 같은 애그리거트 내부(예: Order + OrderItem)는 하나의 DTO에 자연스럽게 포함하며 `With`를 사용하지 않는다.
+- 서로 다른 애그리거트 간 조합(예: Product + Brand, UserCoupon + Coupon)일 때 `With`를 사용한 새로운 DTO를 생성한다.
+
 - 변환 메서드는 수신 객체에 `static from()` 또는 `toXxx()`로 정의한다.
 
 ## 5. 도메인 설계 원칙
