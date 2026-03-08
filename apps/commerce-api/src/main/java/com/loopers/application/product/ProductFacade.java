@@ -44,7 +44,7 @@ public class ProductFacade {
 
     @Transactional
     public ProductResult registerProduct(ProductCreateCommand command) {
-        if (!brandService.existsBrandById(command.brandId())) {
+        if (!brandService.existsBrand(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }
         return productService.registerProduct(command.brandId(), command);
@@ -52,7 +52,7 @@ public class ProductFacade {
 
     @Transactional
     public ProductResult modifyProduct(Long productId, ProductUpdateCommand command) {
-        if (!brandService.existsBrandById(command.brandId())) {
+        if (!brandService.existsBrand(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }
         return productService.modifyProduct(productId, command.brandId(), command);

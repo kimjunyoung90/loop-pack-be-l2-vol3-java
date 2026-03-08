@@ -36,14 +36,14 @@ public class UserServiceIntegrationTest {
         UserCreateCommand command = new UserCreateCommand(
                 loginId, "password123!", "홍길동", "1990-04-27", "test@test.com"
         );
-        userService.createUser(command);
+        userService.signUp(command);
 
         //when
         //동일한 아이디로 가입
         UserCreateCommand duplicateCommand = new UserCreateCommand(
                 loginId, "password456!", "김철수", "1995-01-01", "other@test.com"
         );
-        Throwable thrown = catchThrowable(() -> userService.createUser(duplicateCommand));
+        Throwable thrown = catchThrowable(() -> userService.signUp(duplicateCommand));
 
         //then
         assertThat(thrown).isInstanceOf(CoreException.class);
@@ -57,7 +57,7 @@ public class UserServiceIntegrationTest {
         );
 
         //when
-        UserResult userResult = userService.createUser(command);
+        UserResult userResult = userService.signUp(command);
 
         //then
         User foundUser = userRepository.findByLoginId(userResult.loginId()).orElseThrow();
@@ -76,7 +76,7 @@ public class UserServiceIntegrationTest {
         UserCreateCommand command = new UserCreateCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
-        userService.createUser(command);
+        userService.signUp(command);
 
         // when
         userService.changePassword(loginId, newPassword);
@@ -96,7 +96,7 @@ public class UserServiceIntegrationTest {
         UserCreateCommand command = new UserCreateCommand(
                 loginId, currentPassword, "홍길동", "1990-01-01", "test@test.com"
         );
-        userService.createUser(command);
+        userService.signUp(command);
 
         // when & then
         assertThatThrownBy(() -> userService.changePassword(loginId, newPassword))

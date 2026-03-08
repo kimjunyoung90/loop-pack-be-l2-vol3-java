@@ -54,7 +54,7 @@ class OrderFacadeIntegrationTest {
     @Test
     void 주문_생성_전체_흐름을_검증한다() {
         // 사용자 등록
-        UserResult userResult = userService.createUser(
+        UserResult userResult = userService.signUp(
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
@@ -85,7 +85,7 @@ class OrderFacadeIntegrationTest {
     @Test
     void 재고가_부족하면_주문_전체가_실패하고_재고가_변경되지_않는다() {
         // 사용자 등록
-        UserResult userResult = userService.createUser(
+        UserResult userResult = userService.signUp(
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록 (재고 2개)
@@ -105,7 +105,7 @@ class OrderFacadeIntegrationTest {
     @Test
     void 주문_취소_시_상태가_CANCELLED로_변경되고_재고가_복원된다() {
         // 사용자 등록
-        UserResult userResult = userService.createUser(
+        UserResult userResult = userService.signUp(
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
@@ -136,7 +136,7 @@ class OrderFacadeIntegrationTest {
     @Test
     void 쿠폰을_적용하여_주문하면_할인이_반영되고_쿠폰이_사용_처리된다() {
         // 사용자 등록
-        UserResult userResult = userService.createUser(
+        UserResult userResult = userService.signUp(
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록
@@ -179,7 +179,7 @@ class OrderFacadeIntegrationTest {
     @Test
     void 쿠폰이_적용된_주문을_취소하면_쿠폰이_복원되고_재고가_복원된다() {
         // 사용자 등록
-        UserResult userResult = userService.createUser(
+        UserResult userResult = userService.signUp(
                 new UserCreateCommand("testuser", "password1!", "홍길동", "1990-01-01", "test@test.com"));
 
         // 브랜드 + 상품 등록

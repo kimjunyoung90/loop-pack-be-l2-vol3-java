@@ -74,7 +74,7 @@ class OrderConcurrencyIntegrationTest {
             final int index = i;
             executorService.submit(() -> {
                 try {
-                    UserResult user = userService.createUser(
+                    UserResult user = userService.signUp(
                             new UserCreateCommand("ct" + index, "password1!", "사용자", "1990-01-01", "ct" + index + "@t.com"));
 
                     OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
@@ -129,7 +129,7 @@ class OrderConcurrencyIntegrationTest {
             final int index = i;
             executorService.submit(() -> {
                 try {
-                    UserResult user = userService.createUser(
+                    UserResult user = userService.signUp(
                             new UserCreateCommand("st" + index, "password1!", "사용자", "1990-01-01", "st" + index + "@t.com"));
 
                     OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(

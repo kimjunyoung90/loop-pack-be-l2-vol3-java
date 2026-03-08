@@ -263,7 +263,7 @@ class CouponAdminV1ControllerTest {
                 1L, 1L, 1L, "테스트 쿠폰", DiscountType.FIXED, 1000, null,
                 "AVAILABLE", expiredAt, null, null
         );
-        given(couponService.getUserCouponsByCouponId(any(), any())).willReturn(new PageImpl<>(List.of(result)));
+        given(couponService.getIssuedCoupons(any(), any())).willReturn(new PageImpl<>(List.of(result)));
 
         // when & then
         mockMvc.perform(get("/api-admin/v1/coupons/1/issues")

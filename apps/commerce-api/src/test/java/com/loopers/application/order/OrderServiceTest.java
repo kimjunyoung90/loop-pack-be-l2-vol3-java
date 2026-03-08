@@ -26,17 +26,6 @@ class OrderServiceTest {
     private OrderService orderService;
 
     @Test
-    void 존재하지_않는_주문ID로_조회_시_예외가_발생한다() {
-        // given
-        given(orderRepository.findByIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> orderService.findOrder(999L))
-                .isInstanceOf(CoreException.class)
-                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
-    }
-
-    @Test
     void 관리자용_주문_상세_조회_시_존재하지_않는_주문이면_예외가_발생한다() {
         // given
         given(orderRepository.findByIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());

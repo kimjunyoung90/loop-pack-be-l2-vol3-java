@@ -29,11 +29,6 @@ public class BrandService {
     }
 
     @Transactional(readOnly = true)
-    public boolean existsBrandById(Long brandId) {
-        return brandRepository.existsByIdAndDeletedAtIsNull(brandId);
-    }
-
-    @Transactional(readOnly = true)
     public BrandResult getBrand(Long brandId) {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
@@ -45,6 +40,11 @@ public class BrandService {
     public Page<BrandResult> getBrands(Pageable pageable) {
         return brandRepository.findAllByDeletedAtIsNull(pageable)
                 .map(BrandResult::from);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsBrand(Long brandId) {
+        return brandRepository.existsByIdAndDeletedAtIsNull(brandId);
     }
 
     @Transactional
