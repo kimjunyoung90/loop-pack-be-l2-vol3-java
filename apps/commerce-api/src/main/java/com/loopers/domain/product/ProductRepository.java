@@ -17,9 +17,7 @@ public interface ProductRepository {
 
     Optional<Product> findByIdAndDeletedAtIsNull(Long productId);
 
-    int deductStock(Long productId, int quantity);
-
-    int restoreStock(Long productId, int quantity);
+    Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId);
 
     int incrementLikeCount(Long productId);
 

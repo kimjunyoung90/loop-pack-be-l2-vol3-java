@@ -48,6 +48,17 @@ public class Product extends BaseEntity {
         guard();
     }
 
+    public void deductStock(int quantity) {
+        if (this.stock < quantity) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
+        }
+        this.stock -= quantity;
+    }
+
+    public void restoreStock(int quantity) {
+        this.stock += quantity;
+    }
+
     @Override
     protected void guard() {
         if (brandId == null) {

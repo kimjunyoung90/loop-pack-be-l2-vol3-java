@@ -73,24 +73,17 @@ public class ProductService {
 
     @Transactional
     public ProductResult deductStock(Long productId, int quantity) {
-        int updatedCount = productRepository.deductStock(productId, quantity);
-
-        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
+        Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-
-        if (updatedCount == 0) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
-        }
-
+        product.deductStock(quantity);
         return ProductResult.from(product);
     }
 
     @Transactional
     public void restoreStock(Long productId, int quantity) {
-        int updatedCount = productRepository.restoreStock(productId, quantity);
-        if (updatedCount == 0) {
-            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
-        }
+        Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+        product.restoreStock(quantity);
     }
 
     @Transactional

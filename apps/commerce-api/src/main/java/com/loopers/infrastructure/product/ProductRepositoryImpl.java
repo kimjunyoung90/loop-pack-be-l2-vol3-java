@@ -41,13 +41,8 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public int deductStock(Long productId, int quantity) {
-        return productJpaRepository.deductStock(productId, quantity);
-    }
-
-    @Override
-    public int restoreStock(Long productId, int quantity) {
-        return productJpaRepository.restoreStock(productId, quantity);
+    public Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId) {
+        return productJpaRepository.findByIdWithLockAndDeletedAtIsNull(productId);
     }
 
     @Override

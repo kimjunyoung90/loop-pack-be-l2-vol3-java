@@ -17,13 +17,9 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByIdAndDeletedAtIsNull(Long id);
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.stock = p.stock - :quantity WHERE p.id = :id AND p.stock >= :quantity AND p.deletedAt IS NULL")
-    int deductStock(@Param("id") Long id, @Param("quantity") int quantity);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.stock = p.stock + :quantity WHERE p.id = :id AND p.deletedAt IS NULL")
-    int restoreStock(@Param("id") Long id, @Param("quantity") int quantity);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p WHERE p.id = :id AND p.deletedAt IS NULL")
+    Optional<Product> findByIdWithLockAndDeletedAtIsNull(@Param("id") Long id);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Product p SET p.likeCount = p.likeCount + 1 WHERE p.id = :id AND p.deletedAt IS NULL")
