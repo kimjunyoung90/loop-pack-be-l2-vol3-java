@@ -51,6 +51,16 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public int incrementLikeCount(Long productId) {
+        return productJpaRepository.incrementLikeCount(productId);
+    }
+
+    @Override
+    public int decrementLikeCount(Long productId) {
+        return productJpaRepository.decrementLikeCount(productId);
+    }
+
+    @Override
     public Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable) {
         return productJpaRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable);
     }

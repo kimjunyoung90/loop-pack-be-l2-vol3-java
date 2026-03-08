@@ -95,16 +95,18 @@ public class ProductService {
 
     @Transactional
     public void incrementLikeCount(Long productId) {
-        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-        product.incrementLikeCount();
+        int updatedCount = productRepository.incrementLikeCount(productId);
+        if (updatedCount == 0) {
+            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
+        }
     }
 
     @Transactional
     public void decrementLikeCount(Long productId) {
-        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-        product.decrementLikeCount();
+        int updatedCount = productRepository.decrementLikeCount(productId);
+        if (updatedCount == 0) {
+            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
+        }
     }
 
     @Transactional

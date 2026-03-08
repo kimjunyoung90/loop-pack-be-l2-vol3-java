@@ -48,16 +48,6 @@ public class Product extends BaseEntity {
         guard();
     }
 
-    public void incrementLikeCount() {
-        this.likeCount++;
-    }
-
-    public void decrementLikeCount() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
-    }
-
     @Override
     protected void guard() {
         if (brandId == null) {
