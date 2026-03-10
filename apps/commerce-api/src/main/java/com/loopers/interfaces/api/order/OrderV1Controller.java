@@ -5,6 +5,7 @@ import com.loopers.application.order.OrderService;
 import com.loopers.application.order.command.OrderCreateCommand;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.order.request.OrderCreateRequest;
 import com.loopers.interfaces.api.order.response.OrderCancelResponse;
 import com.loopers.interfaces.api.order.response.OrderCreateResponse;
@@ -14,7 +15,8 @@ import com.loopers.support.auth.LoginUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,15 +70,14 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
     @Override
     @GetMapping
-    public ApiResponse<Page<OrderDetailResponse>> getOrders(
+    public ApiResponse<PageResponse<OrderDetailResponse>> getOrders(
             @LoginUser AuthUser authUser,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @PageableDefault(size = 20) Pageable pageable) {
         Page<OrderDetailResponse> orders = orderService.getOrders(
-                        authUser.id(), startDate, endDate, PageRequest.of(page, size))
+                        authUser.id(), startDate, endDate, pageable)
                 .map(OrderDetailResponse::from);
-        return ApiResponse.success(orders);
+        return ApiResponse.success(PageResponse.from(orders));
     }
 }

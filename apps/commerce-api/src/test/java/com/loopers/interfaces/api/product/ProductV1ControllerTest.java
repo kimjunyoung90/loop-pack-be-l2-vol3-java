@@ -1,7 +1,6 @@
 package com.loopers.interfaces.api.product;
 
 import com.loopers.application.product.ProductFacade;
-import com.loopers.application.product.ProductSortType;
 import com.loopers.application.product.result.ProductWithBrandResult;
 import com.loopers.application.user.UserService;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
@@ -12,12 +11,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,7 +46,7 @@ class ProductV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         ProductWithBrandResult productResult = new ProductWithBrandResult(1L, 1L, "나이키", "운동화", 100000, 50, 10, now, now);
-        given(productFacade.getProducts(null, ProductSortType.LATEST, 0, 20))
+        given(productFacade.getProducts(isNull(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(productResult), PageRequest.of(0, 20), 1));
 
         // when & then

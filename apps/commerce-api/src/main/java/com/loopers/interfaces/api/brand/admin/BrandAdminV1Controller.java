@@ -6,6 +6,7 @@ import com.loopers.application.brand.command.BrandCreateCommand;
 import com.loopers.application.brand.command.BrandUpdateCommand;
 import com.loopers.application.brand.result.BrandResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.brand.admin.request.BrandCreateRequest;
 import com.loopers.interfaces.api.brand.admin.request.BrandUpdateRequest;
 import com.loopers.interfaces.api.brand.admin.response.BrandCreateResponse;
@@ -15,7 +16,8 @@ import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 @AdminOnly
@@ -38,13 +40,12 @@ public class BrandAdminV1Controller implements BrandAdminV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<BrandDetailResponse>> getBrands(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+    public ApiResponse<PageResponse<BrandDetailResponse>> getBrands(
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<BrandDetailResponse> brands = brandService.getBrands(PageRequest.of(page, size))
+        Page<BrandDetailResponse> brands = brandService.getBrands(pageable)
                 .map(BrandDetailResponse::from);
-        return ApiResponse.success(brands);
+        return ApiResponse.success(PageResponse.from(brands));
     }
 
     @GetMapping("/{brandId}")
