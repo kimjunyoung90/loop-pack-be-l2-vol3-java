@@ -45,7 +45,7 @@ public class LikeService {
     }
 
     @Transactional
-    public void deleteLikesByProductId(Long productId) {
+    public void deleteLikes(Long productId) {
         productLikeRepository.deleteByProductId(productId);
     }
 }

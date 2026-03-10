@@ -10,7 +10,7 @@ import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.user.UserService;
 import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
-import com.loopers.domain.product.Product;
+import com.loopers.application.product.result.ProductResult;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -47,12 +47,12 @@ class OrderConcurrencyIntegrationTest {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 동시성 제어 검증: 원자적 업데이트(Atomic Update)로 재고 정합성 보장
+     * 동시성 제어 검증: 비관적 락(PESSIMISTIC_WRITE)으로 재고 정합성 보장
      *
      * 시나리오: 재고 100개인 상품에 100명이 동시에 1개씩 주문
      * 기대 결과: 100건 모두 성공, 재고 100 → 0
-     * 핵심: UPDATE ... SET stock = stock - :quantity WHERE stock >= :quantity 로
-     *       DB 레벨에서 원자적으로 차감하여 재고 갱신 손실(lost update)이 발생하지 않음
+     * 핵심: SELECT ... FOR UPDATE로 행 락을 잡고 도메인 메서드로 재고를 차감하여
+     *       재고 갱신 손실(lost update)이 발생하지 않음
      */
     @Test
     void 동시에_같은_상품을_주문하면_재고가_정확히_차감된다() throws InterruptedException {
@@ -74,7 +74,7 @@ class OrderConcurrencyIntegrationTest {
             final int index = i;
             executorService.submit(() -> {
                 try {
-                    UserResult user = userService.createUser(
+                    UserResult user = userService.signUp(
                             new UserCreateCommand("ct" + index, "password1!", "사용자", "1990-01-01", "ct" + index + "@t.com"));
 
                     OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
@@ -93,9 +93,9 @@ class OrderConcurrencyIntegrationTest {
         executorService.shutdown();
 
         // then - 100건 모두 성공하고, 재고가 정확히 100개 차감되어야 한다
-        Product updatedProduct = productService.findProduct(product.id());
+        ProductResult updatedProduct = productService.getProduct(product.id());
         assertThat(successCount.get()).isEqualTo(threadCount);
-        assertThat(updatedProduct.getStock()).isEqualTo(initialStock - (successCount.get() * quantityPerOrder));
+        assertThat(updatedProduct.stock()).isEqualTo(initialStock - (successCount.get() * quantityPerOrder));
     }
 
     /**
@@ -129,7 +129,7 @@ class OrderConcurrencyIntegrationTest {
             final int index = i;
             executorService.submit(() -> {
                 try {
-                    UserResult user = userService.createUser(
+                    UserResult user = userService.signUp(
                             new UserCreateCommand("st" + index, "password1!", "사용자", "1990-01-01", "st" + index + "@t.com"));
 
                     OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
@@ -153,9 +153,9 @@ class OrderConcurrencyIntegrationTest {
         assertThat(failCount.get()).isEqualTo(threadCount - productBStock);
 
         // 실패한 주문의 상품A 재고도 롤백되어야 한다 (상품A: 100 → 95, 상품B: 5 → 0)
-        Product updatedProductA = productService.findProduct(productA.id());
-        Product updatedProductB = productService.findProduct(productB.id());
-        assertThat(updatedProductA.getStock()).isEqualTo(productAStock - successCount.get());
-        assertThat(updatedProductB.getStock()).isEqualTo(0);
+        ProductResult updatedProductA = productService.getProduct(productA.id());
+        ProductResult updatedProductB = productService.getProduct(productB.id());
+        assertThat(updatedProductA.stock()).isEqualTo(productAStock - successCount.get());
+        assertThat(updatedProductB.stock()).isEqualTo(0);
     }
 }

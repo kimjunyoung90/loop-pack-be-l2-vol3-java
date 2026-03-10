@@ -35,8 +35,8 @@ class ProductFacadeTest {
         // given
         ProductCreateCommand command = new ProductCreateCommand(1L, "운동화", 100000, 50);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", 100000, 50, now, now);
-        given(brandService.existsBrandById(1L)).willReturn(true);
+        ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", 100000, 50, 0, now, now);
+        given(brandService.existsBrand(1L)).willReturn(true);
         given(productService.registerProduct(eq(1L), eq(command))).willReturn(expectedResult);
 
         // when
@@ -51,7 +51,7 @@ class ProductFacadeTest {
     void 존재하지_않는_브랜드로_상품을_생성하면_예외가_발생한다() {
         // given
         ProductCreateCommand command = new ProductCreateCommand(999L, "운동화", 100000, 50);
-        given(brandService.existsBrandById(999L)).willReturn(false);
+        given(brandService.existsBrand(999L)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> productFacade.registerProduct(command))
@@ -63,8 +63,8 @@ class ProductFacadeTest {
         // given
         ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", 50000, 30);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", 50000, 30, now, now);
-        given(brandService.existsBrandById(2L)).willReturn(true);
+        ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", 50000, 30, 0, now, now);
+        given(brandService.existsBrand(2L)).willReturn(true);
         given(productService.modifyProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedResult);
 
         // when
@@ -79,7 +79,7 @@ class ProductFacadeTest {
     void 존재하지_않는_브랜드로_상품을_수정하면_예외가_발생한다() {
         // given
         ProductUpdateCommand command = new ProductUpdateCommand(999L, "슬리퍼", 50000, 30);
-        given(brandService.existsBrandById(999L)).willReturn(false);
+        given(brandService.existsBrand(999L)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> productFacade.modifyProduct(1L, command))

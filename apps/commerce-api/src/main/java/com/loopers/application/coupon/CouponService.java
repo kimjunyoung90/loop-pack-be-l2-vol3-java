@@ -69,6 +69,14 @@ public class CouponService {
 	}
 
 	@Transactional
+	public void deleteCoupon(Long couponId) {
+		Coupon coupon = couponRepository.findById(couponId)
+				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
+
+		coupon.delete();
+	}
+
+	@Transactional
 	public UserCouponResult issueCoupon(Long userId, Long couponId) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
@@ -79,6 +87,19 @@ public class CouponService {
 
 		UserCoupon userCoupon = coupon.issue(userId);
 		return UserCouponResult.from(userCouponRepository.save(userCoupon));
+	}
+
+	@Transactional(readOnly = true)
+	public List<UserCouponResult> getUserCoupons(Long userId) {
+		return userCouponRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()
+				.map(UserCouponResult::from)
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public Page<UserCouponResult> getIssuedCoupons(Long couponId, Pageable pageable) {
+		return userCouponRepository.findAllByCouponIdAndDeletedAtIsNull(couponId, pageable)
+				.map(UserCouponResult::from);
 	}
 
 	@Transactional
@@ -94,26 +115,5 @@ public class CouponService {
 		UserCoupon userCoupon = userCouponRepository.findByIdAndDeletedAtIsNull(userCouponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
 		userCoupon.restore();
-	}
-
-	@Transactional(readOnly = true)
-	public List<UserCouponResult> getUserCoupons(Long userId) {
-		return userCouponRepository.findAllByUserIdAndDeletedAtIsNull(userId).stream()
-				.map(UserCouponResult::from)
-				.toList();
-	}
-
-	@Transactional(readOnly = true)
-	public Page<UserCouponResult> getUserCouponsByCouponId(Long couponId, Pageable pageable) {
-		return userCouponRepository.findAllByCouponIdAndDeletedAtIsNull(couponId, pageable)
-				.map(UserCouponResult::from);
-	}
-
-	@Transactional
-	public void deleteCoupon(Long couponId) {
-		Coupon coupon = couponRepository.findById(couponId)
-				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
-
-		coupon.delete();
 	}
 }

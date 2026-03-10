@@ -15,7 +15,14 @@ public class LikeFacade {
 
     @Transactional
     public LikeResult like(Long userId, Long productId) {
-        productService.findProduct(productId);
-        return likeService.like(userId, productId);
+        LikeResult result = likeService.like(userId, productId);
+        productService.incrementLikeCount(productId);
+        return result;
+    }
+
+    @Transactional
+    public void unlike(Long userId, Long productId) {
+        likeService.unlike(userId, productId);
+        productService.decrementLikeCount(productId);
     }
 }

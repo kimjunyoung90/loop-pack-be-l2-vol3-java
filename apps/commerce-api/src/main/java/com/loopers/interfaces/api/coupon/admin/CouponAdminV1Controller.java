@@ -106,7 +106,7 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<IssuedCouponListResponse> issuedCoupons = couponService.getUserCouponsByCouponId(couponId, PageRequest.of(page, size))
+        Page<IssuedCouponListResponse> issuedCoupons = couponService.getIssuedCoupons(couponId, PageRequest.of(page, size))
                 .map(IssuedCouponListResponse::from);
         return ApiResponse.success(issuedCoupons);
     }

@@ -125,7 +125,7 @@ class LikeV1ControllerTest {
         given(mockUser.getId()).willReturn(1L);
         given(mockUser.getLoginId()).willReturn("loginId");
         given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
-        willDoNothing().given(likeService).unlike(eq(1L), eq(1L));
+        willDoNothing().given(likeFacade).unlike(eq(1L), eq(1L));
 
         // when & then
         mockMvc.perform(delete("/api/v1/likes/products/1")
@@ -142,7 +142,7 @@ class LikeV1ControllerTest {
         given(mockUser.getLoginId()).willReturn("loginId");
         given(userService.authenticateUser("loginId", "password1!")).willReturn(mockUser);
         willThrow(new CoreException(ErrorType.NOT_FOUND, "좋아요를 찾을 수 없습니다."))
-                .given(likeService).unlike(eq(1L), eq(999L));
+                .given(likeFacade).unlike(eq(1L), eq(999L));
 
         // when & then
         mockMvc.perform(delete("/api/v1/likes/products/999")

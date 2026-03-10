@@ -17,9 +17,13 @@ public interface ProductRepository {
 
     Optional<Product> findByIdAndDeletedAtIsNull(Long productId);
 
-    int deductStock(Long productId, int quantity);
+    Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId);
 
-    int restoreStock(Long productId, int quantity);
+    int incrementLikeCount(Long productId);
+
+    int decrementLikeCount(Long productId);
+
+    Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
 
     Product save(Product product);
 }

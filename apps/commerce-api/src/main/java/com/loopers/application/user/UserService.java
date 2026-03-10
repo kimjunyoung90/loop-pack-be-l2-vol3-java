@@ -19,7 +19,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserResult createUser(UserCreateCommand command) {
+    public UserResult signUp(UserCreateCommand command) {
 
         if(userRepository.existsByLoginId(command.loginId())){
             throw new CoreException(ErrorType.CONFLICT, "이미 사용 중인 로그인 ID입니다.");
@@ -45,6 +45,18 @@ public class UserService {
         return UserResult.fromWithMaskedName(user);
     }
 
+    @Transactional(readOnly = true)
+    public User authenticateUser(String loginId, String password) {
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new CoreException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다."));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new CoreException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다.");
+        }
+
+        return user;
+    }
+
     @Transactional
     public void changePassword(String loginId, String newPassword) {
         User user = userRepository.findByLoginId(loginId)
@@ -57,17 +69,5 @@ public class UserService {
 
         // 비밀번호 암호화 후 저장
         user.changePassword(newPassword, user.getBirthDate(), passwordEncoder);
-    }
-
-    @Transactional(readOnly = true)
-    public User authenticateUser(String loginId, String password) {
-        User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new CoreException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다."));
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new CoreException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다.");
-        }
-
-        return user;
     }
 }

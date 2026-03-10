@@ -16,7 +16,7 @@ public interface UserV1ApiSpec {
         summary = "회원가입",
         description = "새로운 사용자를 등록합니다."
     )
-    ApiResponse<UserCreateResponse> createUser(UserCreateRequest request);
+    ApiResponse<UserCreateResponse> signUp(UserCreateRequest request);
 
     @Operation(
         summary = "내 정보 조회",

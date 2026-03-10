@@ -44,22 +44,6 @@ public class OrderService {
         return OrderResult.from(orderRepository.save(order));
     }
 
-    @Transactional
-    public OrderResult cancelOrder(Long userId, Long orderId) {
-        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
-
-        order.cancel(userId);
-
-        return OrderResult.from(order);
-    }
-
-    @Transactional(readOnly = true)
-    public Order findOrder(Long orderId) {
-        return orderRepository.findByIdAndDeletedAtIsNull(orderId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
-    }
-
     @Transactional(readOnly = true)
     public OrderResult getOrder(Long orderId) {
         Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
@@ -81,5 +65,15 @@ public class OrderService {
     public Page<OrderResult> getOrders(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         return orderRepository.findAllByUserId(userId, startDate, endDate, pageable)
                 .map(OrderResult::from);
+    }
+
+    @Transactional
+    public OrderResult cancelOrder(Long userId, Long orderId) {
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
+
+        order.cancel(userId);
+
+        return OrderResult.from(order);
     }
 }

@@ -1,13 +1,18 @@
 package com.loopers.application.product;
 
 import com.loopers.application.brand.BrandService;
+import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.like.LikeService;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.application.product.result.ProductWithBrandResult;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +24,27 @@ public class ProductFacade {
     private final BrandService brandService;
     private final LikeService likeService;
 
+    @Transactional(readOnly = true)
+    public ProductWithBrandResult getProduct(Long productId) {
+        ProductResult product = productService.getProduct(productId);
+        BrandResult brand = brandService.getBrand(product.brandId());
+        return ProductWithBrandResult.from(product, brand.name());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductWithBrandResult> getProducts(Long brandId, ProductSortType sortType, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, sortType.getSort());
+        Page<ProductResult> products = productService.getProducts(brandId, pageable);
+
+        return products.map(product -> {
+            BrandResult brand = brandService.getBrand(product.brandId());
+            return ProductWithBrandResult.from(product, brand.name());
+        });
+    }
+
     @Transactional
     public ProductResult registerProduct(ProductCreateCommand command) {
-        if (!brandService.existsBrandById(command.brandId())) {
+        if (!brandService.existsBrand(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }
         return productService.registerProduct(command.brandId(), command);
@@ -29,7 +52,7 @@ public class ProductFacade {
 
     @Transactional
     public ProductResult modifyProduct(Long productId, ProductUpdateCommand command) {
-        if (!brandService.existsBrandById(command.brandId())) {
+        if (!brandService.existsBrand(command.brandId())) {
             throw new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다.");
         }
         return productService.modifyProduct(productId, command.brandId(), command);
@@ -37,7 +60,7 @@ public class ProductFacade {
 
     @Transactional
     public void deleteProduct(Long productId) {
-        likeService.deleteLikesByProductId(productId);
+        likeService.deleteLikes(productId);
         productService.deleteProduct(productId);
     }
 }

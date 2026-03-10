@@ -35,17 +35,30 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public ProductResult getProduct(Long productId) {
+        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+
+        return ProductResult.from(product);
+    }
+
+    @Transactional(readOnly = true)
     public Page<ProductResult> getProducts(Pageable pageable) {
         return productRepository.findAllByDeletedAtIsNull(pageable)
                 .map(ProductResult::from);
     }
 
     @Transactional(readOnly = true)
-    public ProductResult getProduct(Long productId) {
-        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+    public Page<ProductResult> getProducts(Long brandId, Pageable pageable) {
+        return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable)
+                .map(ProductResult::from);
+    }
 
-        return ProductResult.from(product);
+    @Transactional(readOnly = true)
+    public List<ProductResult> getProducts(Long brandId) {
+        return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId).stream()
+                .map(ProductResult::from)
+                .toList();
     }
 
     @Transactional
@@ -59,6 +72,37 @@ public class ProductService {
     }
 
     @Transactional
+    public ProductResult deductStock(Long productId, int quantity) {
+        Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+        product.deductStock(quantity);
+        return ProductResult.from(product);
+    }
+
+    @Transactional
+    public void restoreStock(Long productId, int quantity) {
+        Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+        product.restoreStock(quantity);
+    }
+
+    @Transactional
+    public void incrementLikeCount(Long productId) {
+        int updatedCount = productRepository.incrementLikeCount(productId);
+        if (updatedCount == 0) {
+            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
+        }
+    }
+
+    @Transactional
+    public void decrementLikeCount(Long productId) {
+        int updatedCount = productRepository.decrementLikeCount(productId);
+        if (updatedCount == 0) {
+            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
+        }
+    }
+
+    @Transactional
     public void deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
@@ -66,43 +110,10 @@ public class ProductService {
         product.delete();
     }
 
-    @Transactional(readOnly = true)
-    public List<Product> findProductsByBrandId(Long brandId) {
-        return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId);
-    }
-
     @Transactional
-    public void deleteProductsByBrandId(Long brandId) {
+    public void deleteProducts(Long brandId) {
         List<Product> products = productRepository.findAllByBrandId(brandId);
         products.forEach(Product::delete);
-    }
-
-    @Transactional
-    public ProductResult deductStock(Long productId, int quantity) {
-        int updatedCount = productRepository.deductStock(productId, quantity);
-
-		Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-
-		if (updatedCount == 0) {
-			throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
-		}
-
-        return ProductResult.from(product);
-    }
-
-    @Transactional
-    public void restoreStock(Long productId, int quantity) {
-        int updatedCount = productRepository.restoreStock(productId, quantity);
-        if (updatedCount == 0) {
-            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public Product findProduct(Long productId) {
-        return productRepository.findByIdAndDeletedAtIsNull(productId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
     }
 
 }

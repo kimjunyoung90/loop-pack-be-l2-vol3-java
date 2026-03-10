@@ -1,8 +1,8 @@
 package com.loopers.interfaces.api.like;
 
 import com.loopers.application.like.LikeFacade;
-import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.like.LikeService;
+import com.loopers.application.like.result.LikeResult;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.like.response.LikeCreateResponse;
 import com.loopers.interfaces.api.like.response.LikeListResponse;
@@ -42,7 +42,7 @@ public class LikeV1Controller implements LikeV1ApiSpec {
             @LoginUser AuthUser authUser,
             @PathVariable Long productId
     ) {
-        likeService.unlike(authUser.id(), productId);
+        likeFacade.unlike(authUser.id(), productId);
         return ApiResponse.success(null);
     }
 

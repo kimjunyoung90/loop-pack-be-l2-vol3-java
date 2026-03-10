@@ -2,7 +2,7 @@ package com.loopers.application.brand;
 
 import com.loopers.application.like.LikeService;
 import com.loopers.application.product.ProductService;
-import com.loopers.domain.product.Product;
+import com.loopers.application.product.result.ProductResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +19,9 @@ public class BrandFacade {
 
     @Transactional
     public void deleteBrand(Long brandId) {
-        List<Product> products = productService.findProductsByBrandId(brandId);
-        products.forEach(product -> likeService.deleteLikesByProductId(product.getId()));
-		productService.deleteProductsByBrandId(brandId);
+        List<ProductResult> products = productService.getProducts(brandId);
+        products.forEach(product -> likeService.deleteLikes(product.id()));
+		productService.deleteProducts(brandId);
 		brandService.deleteBrand(brandId);
 	}
 }

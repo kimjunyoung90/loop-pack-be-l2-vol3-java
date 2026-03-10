@@ -41,13 +41,23 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public int deductStock(Long productId, int quantity) {
-        return productJpaRepository.deductStock(productId, quantity);
+    public Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId) {
+        return productJpaRepository.findByIdWithLockAndDeletedAtIsNull(productId);
     }
 
     @Override
-    public int restoreStock(Long productId, int quantity) {
-        return productJpaRepository.restoreStock(productId, quantity);
+    public int incrementLikeCount(Long productId) {
+        return productJpaRepository.incrementLikeCount(productId);
+    }
+
+    @Override
+    public int decrementLikeCount(Long productId) {
+        return productJpaRepository.decrementLikeCount(productId);
+    }
+
+    @Override
+    public Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable) {
+        return productJpaRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable);
     }
 
     @Override

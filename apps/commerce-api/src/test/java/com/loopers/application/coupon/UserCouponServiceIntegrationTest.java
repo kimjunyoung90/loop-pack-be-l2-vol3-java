@@ -84,7 +84,7 @@ class UserCouponServiceIntegrationTest {
         couponService.issueCoupon(3L, coupon2.id());
 
         // when
-        Page<UserCouponResult> result = couponService.getUserCouponsByCouponId(coupon1.id(), PageRequest.of(0, 20));
+        Page<UserCouponResult> result = couponService.getIssuedCoupons(coupon1.id(), PageRequest.of(0, 20));
 
         // then
         assertThat(result.getTotalElements()).isEqualTo(2);

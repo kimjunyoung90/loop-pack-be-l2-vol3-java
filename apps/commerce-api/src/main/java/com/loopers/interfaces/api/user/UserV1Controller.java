@@ -23,11 +23,11 @@ public class UserV1Controller implements UserV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<UserCreateResponse> createUser(@Valid @RequestBody UserCreateRequest request) {
+    public ApiResponse<UserCreateResponse> signUp(@Valid @RequestBody UserCreateRequest request) {
         UserCreateCommand command = new UserCreateCommand(
                 request.loginId(), request.password(), request.name(), request.birthDate(), request.email()
         );
-        UserResult userResult = userService.createUser(command);
+        UserResult userResult = userService.signUp(command);
         return ApiResponse.success(UserCreateResponse.from(userResult));
     }
 

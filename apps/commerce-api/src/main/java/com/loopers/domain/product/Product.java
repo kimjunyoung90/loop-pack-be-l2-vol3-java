@@ -27,12 +27,16 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private int stock;
 
+    @Column(nullable = false)
+    private int likeCount;
+
     @Builder
     private Product(Long brandId, String name, int price, int stock) {
         this.brandId = brandId;
         this.name = name;
         this.price = price;
         this.stock = stock;
+        this.likeCount = 0;
         guard();
     }
 
@@ -42,6 +46,17 @@ public class Product extends BaseEntity {
         this.price = price;
         this.stock = stock;
         guard();
+    }
+
+    public void deductStock(int quantity) {
+        if (this.stock < quantity) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
+        }
+        this.stock -= quantity;
+    }
+
+    public void restoreStock(int quantity) {
+        this.stock += quantity;
     }
 
     @Override
