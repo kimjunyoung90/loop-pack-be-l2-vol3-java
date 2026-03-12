@@ -6,6 +6,7 @@ import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.product.admin.request.ProductCreateRequest;
 import com.loopers.interfaces.api.product.admin.request.ProductUpdateRequest;
 import com.loopers.interfaces.api.product.admin.response.ProductCreateResponse;
@@ -15,7 +16,8 @@ import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 @AdminOnly
@@ -40,13 +42,12 @@ public class ProductAdminV1Controller implements ProductAdminV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<ProductDetailResponse>> getProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+    public ApiResponse<PageResponse<ProductDetailResponse>> getProducts(
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<ProductDetailResponse> products = productService.getProducts(PageRequest.of(page, size))
+        Page<ProductDetailResponse> products = productService.getProducts(pageable)
                 .map(ProductDetailResponse::from);
-        return ApiResponse.success(products);
+        return ApiResponse.success(PageResponse.from(products));
     }
 
     @GetMapping("/{productId}")

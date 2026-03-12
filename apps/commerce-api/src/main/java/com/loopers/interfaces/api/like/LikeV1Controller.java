@@ -4,6 +4,7 @@ import com.loopers.application.like.LikeFacade;
 import com.loopers.application.like.LikeService;
 import com.loopers.application.like.result.LikeResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.like.response.LikeCreateResponse;
 import com.loopers.interfaces.api.like.response.LikeListResponse;
 import com.loopers.support.auth.AuthUser;
@@ -11,6 +12,7 @@ import com.loopers.support.auth.LoginUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,11 +50,11 @@ public class LikeV1Controller implements LikeV1ApiSpec {
 
     @GetMapping("/products")
     @Override
-    public ApiResponse<Page<LikeListResponse>> getLikes(
+    public ApiResponse<PageResponse<LikeListResponse>> getLikes(
             @LoginUser AuthUser authUser,
-            Pageable pageable
+            @PageableDefault(size = 20) Pageable pageable
     ) {
         Page<LikeResult> likes = likeService.getLikes(authUser.id(), pageable);
-        return ApiResponse.success(likes.map(LikeListResponse::from));
+        return ApiResponse.success(PageResponse.from(likes.map(LikeListResponse::from)));
     }
 }

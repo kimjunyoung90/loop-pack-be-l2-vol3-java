@@ -5,6 +5,7 @@ import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.coupon.admin.request.CouponCreateRequest;
 import com.loopers.interfaces.api.coupon.admin.request.CouponUpdateRequest;
 import com.loopers.interfaces.api.coupon.admin.response.CouponCreateResponse;
@@ -15,7 +16,8 @@ import com.loopers.support.auth.AdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,13 +55,12 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @GetMapping
     @Override
-    public ApiResponse<Page<CouponDetailResponse>> getCoupons(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+    public ApiResponse<PageResponse<CouponDetailResponse>> getCoupons(
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<CouponDetailResponse> coupons = couponService.getCoupons(PageRequest.of(page, size))
+        Page<CouponDetailResponse> coupons = couponService.getCoupons(pageable)
                 .map(CouponDetailResponse::from);
-        return ApiResponse.success(coupons);
+        return ApiResponse.success(PageResponse.from(coupons));
     }
 
     @GetMapping("/{couponId}")
@@ -101,13 +102,12 @@ public class CouponAdminV1Controller implements CouponAdminV1ApiSpec {
 
     @GetMapping("/{couponId}/issues")
     @Override
-    public ApiResponse<Page<IssuedCouponListResponse>> getIssuedCoupons(
+    public ApiResponse<PageResponse<IssuedCouponListResponse>> getIssuedCoupons(
             @PathVariable Long couponId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<IssuedCouponListResponse> issuedCoupons = couponService.getIssuedCoupons(couponId, PageRequest.of(page, size))
+        Page<IssuedCouponListResponse> issuedCoupons = couponService.getIssuedCoupons(couponId, pageable)
                 .map(IssuedCouponListResponse::from);
-        return ApiResponse.success(issuedCoupons);
+        return ApiResponse.success(PageResponse.from(issuedCoupons));
     }
 }

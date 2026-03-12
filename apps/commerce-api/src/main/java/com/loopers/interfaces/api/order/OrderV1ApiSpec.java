@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.order;
 
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.order.request.OrderCreateRequest;
 import com.loopers.interfaces.api.order.response.OrderCancelResponse;
 import com.loopers.interfaces.api.order.response.OrderCreateResponse;
@@ -8,7 +9,7 @@ import com.loopers.interfaces.api.order.response.OrderDetailResponse;
 import com.loopers.support.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 
@@ -37,6 +38,6 @@ public interface OrderV1ApiSpec {
         summary = "주문 목록 조회",
         description = "본인의 주문 목록을 기간별로 조회합니다."
     )
-    ApiResponse<Page<OrderDetailResponse>> getOrders(
-            AuthUser authUser, LocalDate startDate, LocalDate endDate, int page, int size);
+    ApiResponse<PageResponse<OrderDetailResponse>> getOrders(
+            AuthUser authUser, LocalDate startDate, LocalDate endDate, Pageable pageable);
 }

@@ -11,7 +11,6 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +31,7 @@ public class ProductFacade {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductWithBrandResult> getProducts(Long brandId, ProductSortType sortType, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, sortType.getSort());
+    public Page<ProductWithBrandResult> getProducts(Long brandId, Pageable pageable) {
         Page<ProductResult> products = productService.getProducts(brandId, pageable);
 
         return products.map(product -> {
