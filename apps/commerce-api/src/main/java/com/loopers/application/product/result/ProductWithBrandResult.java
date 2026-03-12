@@ -26,18 +26,4 @@ public record ProductWithBrandResult(
                 product.updatedAt()
         );
     }
-
-    public static ProductWithBrandResult from(ProductResult product, String brandName, int likeCount) {
-        return new ProductWithBrandResult(
-                product.id(),
-                product.brandId(),
-                brandName,
-                product.name(),
-                product.price(),
-                product.stock(),
-                likeCount,
-                product.createdAt(),
-                product.updatedAt()
-        );
-    }
 }

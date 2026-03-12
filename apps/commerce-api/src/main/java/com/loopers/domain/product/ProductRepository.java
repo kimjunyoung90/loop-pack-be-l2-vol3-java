@@ -21,6 +21,8 @@ public interface ProductRepository {
 
     Product save(Product product);
 
+    Optional<ProductWithLikeCount> findWithLikeCountByIdAndDeletedAtIsNull(Long productId);
+
     Page<ProductWithLikeCount> findAllWithLikeCountByDeletedAtIsNull(Pageable pageable);
 
     Page<ProductWithLikeCount> findAllWithLikeCountByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);

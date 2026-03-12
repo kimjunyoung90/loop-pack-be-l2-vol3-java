@@ -60,6 +60,27 @@ public class ProductRepositoryImpl implements ProductRepository {
 	}
 
 	@Override
+	public Optional<ProductWithLikeCount> findWithLikeCountByIdAndDeletedAtIsNull(Long productId) {
+		QProduct p = QProduct.product;
+		QProductLikeCount plc = QProductLikeCount.productLikeCount;
+
+		ProductWithLikeCount result = queryFactory
+				.select(Projections.constructor(ProductWithLikeCount.class,
+						p.id, p.brandId, p.name, p.price, p.stock,
+						plc.likeCount.coalesce(0), p.createdAt, p.updatedAt
+				))
+				.from(p)
+				.leftJoin(plc).on(p.id.eq(plc.productId))
+				.where(
+						p.id.eq(productId),
+						p.deletedAt.isNull()
+				)
+				.fetchOne();
+
+		return Optional.ofNullable(result);
+	}
+
+	@Override
 	public Page<ProductWithLikeCount> findAllWithLikeCountByDeletedAtIsNull(Pageable pageable) {
 		QProduct p = QProduct.product;
 		QProductLikeCount plc = QProductLikeCount.productLikeCount;

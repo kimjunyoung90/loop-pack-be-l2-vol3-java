@@ -43,6 +43,14 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public ProductWithLikeCountResult getProductWithLikeCount(Long productId) {
+        return ProductWithLikeCountResult.from(
+                productRepository.findWithLikeCountByIdAndDeletedAtIsNull(productId)
+                        .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."))
+        );
+    }
+
+    @Transactional(readOnly = true)
     public Page<ProductResult> getProducts(Pageable pageable) {
         return productRepository.findAllByDeletedAtIsNull(pageable)
                 .map(ProductResult::from);
