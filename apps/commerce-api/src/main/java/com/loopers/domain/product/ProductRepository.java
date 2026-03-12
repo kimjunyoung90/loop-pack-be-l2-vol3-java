@@ -19,7 +19,9 @@ public interface ProductRepository {
 
     Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId);
 
-    Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
-
     Product save(Product product);
+
+    Page<ProductWithLikeCount> findAllWithLikeCountByDeletedAtIsNull(Pageable pageable);
+
+    Page<ProductWithLikeCount> findAllWithLikeCountByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
 }

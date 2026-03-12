@@ -3,6 +3,7 @@ package com.loopers.application.product;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.application.product.result.ProductWithLikeCountResult;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.error.CoreException;
@@ -38,7 +39,6 @@ public class ProductService {
     public ProductResult getProduct(Long productId) {
         Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-
         return ProductResult.from(product);
     }
 
@@ -49,9 +49,15 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResult> getProducts(Long brandId, Pageable pageable) {
-        return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable)
-                .map(ProductResult::from);
+    public Page<ProductWithLikeCountResult> getProductsWithLikeCount(Pageable pageable) {
+        return productRepository.findAllWithLikeCountByDeletedAtIsNull(pageable)
+                .map(ProductWithLikeCountResult::from);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductWithLikeCountResult> getProductsWithLikeCount(Long brandId, Pageable pageable) {
+        return productRepository.findAllWithLikeCountByBrandIdAndDeletedAtIsNull(brandId, pageable)
+                .map(ProductWithLikeCountResult::from);
     }
 
     @Transactional(readOnly = true)

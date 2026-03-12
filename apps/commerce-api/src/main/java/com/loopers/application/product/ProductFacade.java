@@ -7,6 +7,7 @@ import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithBrandResult;
+import com.loopers.application.product.result.ProductWithLikeCountResult;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
@@ -36,17 +34,13 @@ public class ProductFacade {
 
     @Transactional(readOnly = true)
     public Page<ProductWithBrandResult> getProducts(Long brandId, Pageable pageable) {
-        Page<ProductResult> products = productService.getProducts(brandId, pageable);
-
-        List<Long> productIds = products.getContent().stream()
-                .map(ProductResult::id)
-                .toList();
-        Map<Long, Integer> likeCounts = likeService.getLikeCounts(productIds);
+        Page<ProductWithLikeCountResult> products = (brandId != null)
+                ? productService.getProductsWithLikeCount(brandId, pageable)
+                : productService.getProductsWithLikeCount(pageable);
 
         return products.map(product -> {
             BrandResult brand = brandService.getBrand(product.brandId());
-            int likeCount = likeCounts.getOrDefault(product.id(), 0);
-            return ProductWithBrandResult.from(product, brand.name(), likeCount);
+            return ProductWithBrandResult.from(product, brand.name());
         });
     }
 
