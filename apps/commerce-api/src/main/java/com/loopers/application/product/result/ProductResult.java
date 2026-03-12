@@ -10,7 +10,6 @@ public record ProductResult(
         String name,
         int price,
         int stock,
-        int likeCount,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -21,7 +20,6 @@ public record ProductResult(
                 product.getName(),
                 product.getPrice(),
                 product.getStock(),
-                product.getLikeCount(),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

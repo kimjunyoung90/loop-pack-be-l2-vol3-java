@@ -19,10 +19,6 @@ public interface ProductRepository {
 
     Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId);
 
-    int incrementLikeCount(Long productId);
-
-    int decrementLikeCount(Long productId);
-
     Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
 
     Product save(Product product);

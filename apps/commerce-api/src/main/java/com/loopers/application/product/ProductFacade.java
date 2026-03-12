@@ -15,6 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+
 @RequiredArgsConstructor
 @Component
 public class ProductFacade {
@@ -27,16 +30,23 @@ public class ProductFacade {
     public ProductWithBrandResult getProduct(Long productId) {
         ProductResult product = productService.getProduct(productId);
         BrandResult brand = brandService.getBrand(product.brandId());
-        return ProductWithBrandResult.from(product, brand.name());
+        int likeCount = likeService.getLikeCount(productId);
+        return ProductWithBrandResult.from(product, brand.name(), likeCount);
     }
 
     @Transactional(readOnly = true)
     public Page<ProductWithBrandResult> getProducts(Long brandId, Pageable pageable) {
         Page<ProductResult> products = productService.getProducts(brandId, pageable);
 
+        List<Long> productIds = products.getContent().stream()
+                .map(ProductResult::id)
+                .toList();
+        Map<Long, Integer> likeCounts = likeService.getLikeCounts(productIds);
+
         return products.map(product -> {
             BrandResult brand = brandService.getBrand(product.brandId());
-            return ProductWithBrandResult.from(product, brand.name());
+            int likeCount = likeCounts.getOrDefault(product.id(), 0);
+            return ProductWithBrandResult.from(product, brand.name(), likeCount);
         });
     }
 

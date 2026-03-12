@@ -87,22 +87,6 @@ public class ProductService {
     }
 
     @Transactional
-    public void incrementLikeCount(Long productId) {
-        int updatedCount = productRepository.incrementLikeCount(productId);
-        if (updatedCount == 0) {
-            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
-        }
-    }
-
-    @Transactional
-    public void decrementLikeCount(Long productId) {
-        int updatedCount = productRepository.decrementLikeCount(productId);
-        if (updatedCount == 0) {
-            throw new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다.");
-        }
-    }
-
-    @Transactional
     public void deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));

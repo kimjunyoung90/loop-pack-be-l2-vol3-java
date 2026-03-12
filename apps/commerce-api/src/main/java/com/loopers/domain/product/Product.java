@@ -27,16 +27,12 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private int stock;
 
-    @Column(nullable = false)
-    private int likeCount;
-
     @Builder
     private Product(Long brandId, String name, int price, int stock) {
         this.brandId = brandId;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.likeCount = 0;
         guard();
     }
 
