@@ -18,17 +18,14 @@ public abstract class RedisCacheRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper cacheObjectMapper;
-    private final Duration ttl;
 
     protected RedisCacheRepository(
             RedisTemplate<String, String> redisTemplate,
-            ObjectMapper objectMapper,
-            Duration ttl) {
+            ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
         this.cacheObjectMapper = objectMapper.copy()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.cacheObjectMapper.addMixIn(BaseEntity.class, EntityCacheMixin.class);
-        this.ttl = ttl;
     }
 
     @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -51,10 +48,10 @@ public abstract class RedisCacheRepository {
         }
     }
 
-    protected void putToCache(String key, Object value) {
+    protected void putToCache(String key, Object value, Duration ttl) {
         try {
             String json = cacheObjectMapper.writeValueAsString(value);
-            safeSet(key, json);
+            safeSet(key, json, ttl);
         } catch (JsonProcessingException e) {
             log.warn("캐시 직렬화 실패: key={}", key, e);
         }
@@ -90,7 +87,7 @@ public abstract class RedisCacheRepository {
         }
     }
 
-    private void safeSet(String key, String value) {
+    private void safeSet(String key, String value, Duration ttl) {
         try {
             redisTemplate.opsForValue().set(key, value, ttl);
         } catch (Exception e) {

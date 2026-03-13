@@ -5,7 +5,6 @@ import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductCacheRepository;
 import com.loopers.domain.product.ProductWithLikeCount;
 import com.loopers.infrastructure.cache.RedisCacheRepository;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -26,9 +25,9 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
     private static final Duration TTL = Duration.ofHours(1);
 
     public ProductCacheRepositoryImpl(
-            @Qualifier("defaultRedisTemplate") RedisTemplate<String, String> redisTemplate,
+            RedisTemplate<String, String> redisTemplate,
             ObjectMapper objectMapper) {
-        super(redisTemplate, objectMapper, TTL);
+        super(redisTemplate, objectMapper);
     }
 
     // === 단건: Product ===
@@ -40,7 +39,7 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
 
     @Override
     public void putProduct(Long productId, Product product) {
-        putToCache(PRODUCT_KEY_PREFIX + productId, product);
+        putToCache(PRODUCT_KEY_PREFIX + productId, product, TTL);
     }
 
     @Override
@@ -58,7 +57,7 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
 
     @Override
     public void putProductWithLikeCount(Long productId, ProductWithLikeCount productWithLikeCount) {
-        putToCache(PRODUCT_KEY_PREFIX + productId + ":like", productWithLikeCount);
+        putToCache(PRODUCT_KEY_PREFIX + productId + ":like", productWithLikeCount, TTL);
     }
 
     // === 목록: Page<Product> ===
@@ -73,7 +72,7 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
     @Override
     public void putProducts(Pageable pageable, Page<Product> products) {
         String key = PRODUCTS_KEY_PREFIX + buildPageSuffix(pageable);
-        putToCache(key, new CachedProductPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()));
+        putToCache(key, new CachedProductPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()), TTL);
     }
 
     // === 목록: Page<ProductWithLikeCount> ===
@@ -88,7 +87,7 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
     @Override
     public void putProductsWithLikeCount(Pageable pageable, Page<ProductWithLikeCount> products) {
         String key = PRODUCTS_KEY_PREFIX + "like:" + buildPageSuffix(pageable);
-        putToCache(key, new CachedProductWithLikeCountPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()));
+        putToCache(key, new CachedProductWithLikeCountPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()), TTL);
     }
 
     @Override
@@ -101,7 +100,7 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
     @Override
     public void putProductsWithLikeCount(Long brandId, Pageable pageable, Page<ProductWithLikeCount> products) {
         String key = PRODUCTS_KEY_PREFIX + "like:brand:" + brandId + ":" + buildPageSuffix(pageable);
-        putToCache(key, new CachedProductWithLikeCountPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()));
+        putToCache(key, new CachedProductWithLikeCountPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()), TTL);
     }
 
     // === 전체 목록 캐시 무효화 ===
