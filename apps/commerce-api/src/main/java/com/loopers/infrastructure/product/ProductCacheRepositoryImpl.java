@@ -1,15 +1,10 @@
 package com.loopers.infrastructure.product;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.domain.BaseEntity;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductCacheRepository;
 import com.loopers.domain.product.ProductWithLikeCount;
-import lombok.extern.slf4j.Slf4j;
+import com.loopers.infrastructure.cache.RedisCacheRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,36 +13,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Repository
-public class ProductCacheRepositoryImpl implements ProductCacheRepository {
+public class ProductCacheRepositoryImpl extends RedisCacheRepository implements ProductCacheRepository {
 
     private static final String PRODUCT_KEY_PREFIX = "product:";
     private static final String PRODUCTS_KEY_PREFIX = "products:";
     private static final Duration TTL = Duration.ofHours(1);
 
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper cacheObjectMapper;
-
     public ProductCacheRepositoryImpl(
             @Qualifier("defaultRedisTemplate") RedisTemplate<String, String> redisTemplate,
             ObjectMapper objectMapper) {
-        this.redisTemplate = redisTemplate;
-        this.cacheObjectMapper = objectMapper.copy()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.cacheObjectMapper.addMixIn(BaseEntity.class, EntityCacheMixin.class);
+        super(redisTemplate, objectMapper, TTL);
     }
-
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    abstract static class EntityCacheMixin {}
 
     // === 단건: Product ===
 
@@ -63,12 +45,8 @@ public class ProductCacheRepositoryImpl implements ProductCacheRepository {
 
     @Override
     public void evictProduct(Long productId) {
-        try {
-            redisTemplate.delete(PRODUCT_KEY_PREFIX + productId);
-            redisTemplate.delete(PRODUCT_KEY_PREFIX + productId + ":like");
-        } catch (Exception e) {
-            log.warn("캐시 삭제 실패: productId={}", productId, e);
-        }
+        safeDelete(PRODUCT_KEY_PREFIX + productId);
+        safeDelete(PRODUCT_KEY_PREFIX + productId + ":like");
     }
 
     // === 단건: ProductWithLikeCount ===
@@ -130,47 +108,10 @@ public class ProductCacheRepositoryImpl implements ProductCacheRepository {
 
     @Override
     public void evictAllProductsCache() {
-        try {
-            Set<String> keys = redisTemplate.keys(PRODUCTS_KEY_PREFIX + "*");
-            if (keys != null && !keys.isEmpty()) {
-                redisTemplate.delete(keys);
-            }
-        } catch (Exception e) {
-            log.warn("목록 캐시 전체 삭제 실패", e);
-        }
+        safeDeleteByPattern(PRODUCTS_KEY_PREFIX + "*");
     }
 
     // === private helpers ===
-
-    private <T> Optional<T> getFromCache(String key, Class<T> type) {
-		try {
-			String json = redisTemplate.opsForValue().get(key);
-			if (json == null) {
-				return Optional.empty();
-			}
-			return Optional.of(cacheObjectMapper.readValue(json, type));
-		} catch (JsonProcessingException e) {
-			log.warn("캐시 역직렬화 실패: key={}", key, e);
-			try {
-				redisTemplate.delete(key);
-			} catch (Exception ignored) {
-				log.warn("캐시 삭제 실패: key={}", key, e);
-			}
-			return Optional.empty();
-		} catch (Exception e) {
-			log.warn("캐시 조회 실패: key={}", key, e);
-			return Optional.empty();
-		}
-    }
-
-    private void putToCache(String key, Object value) {
-        try {
-            String json = cacheObjectMapper.writeValueAsString(value);
-            redisTemplate.opsForValue().set(key, json, TTL);
-        } catch (Exception e) {
-            log.warn("캐시 저장 실패: key={}", key, e);
-        }
-    }
 
     private String buildPageSuffix(Pageable pageable) {
         String sort = pageable.getSort().stream()
