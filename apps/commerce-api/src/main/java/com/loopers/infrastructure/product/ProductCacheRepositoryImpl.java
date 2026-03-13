@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -62,8 +63,12 @@ public class ProductCacheRepositoryImpl implements ProductCacheRepository {
 
     @Override
     public void evictProduct(Long productId) {
-        redisTemplate.delete(PRODUCT_KEY_PREFIX + productId);
-        redisTemplate.delete(PRODUCT_KEY_PREFIX + productId + ":like");
+        try {
+            redisTemplate.delete(PRODUCT_KEY_PREFIX + productId);
+            redisTemplate.delete(PRODUCT_KEY_PREFIX + productId + ":like");
+        } catch (Exception e) {
+            log.warn("캐시 삭제 실패: productId={}", productId, e);
+        }
     }
 
     // === 단건: ProductWithLikeCount ===
@@ -125,34 +130,45 @@ public class ProductCacheRepositoryImpl implements ProductCacheRepository {
 
     @Override
     public void evictAllProductsCache() {
-        Set<String> keys = redisTemplate.keys(PRODUCTS_KEY_PREFIX + "*");
-        if (keys != null && !keys.isEmpty()) {
-            redisTemplate.delete(keys);
+        try {
+            Set<String> keys = redisTemplate.keys(PRODUCTS_KEY_PREFIX + "*");
+            if (keys != null && !keys.isEmpty()) {
+                redisTemplate.delete(keys);
+            }
+        } catch (Exception e) {
+            log.warn("목록 캐시 전체 삭제 실패", e);
         }
     }
 
     // === private helpers ===
 
     private <T> Optional<T> getFromCache(String key, Class<T> type) {
-        String json = redisTemplate.opsForValue().get(key);
-        if (json == null) {
-            return Optional.empty();
-        }
-        try {
-            return Optional.of(cacheObjectMapper.readValue(json, type));
-        } catch (JsonProcessingException e) {
-            log.warn("캐시 역직렬화 실패: key={}", key, e);
-            redisTemplate.delete(key);
-            return Optional.empty();
-        }
+		try {
+			String json = redisTemplate.opsForValue().get(key);
+			if (json == null) {
+				return Optional.empty();
+			}
+			return Optional.of(cacheObjectMapper.readValue(json, type));
+		} catch (JsonProcessingException e) {
+			log.warn("캐시 역직렬화 실패: key={}", key, e);
+			try {
+				redisTemplate.delete(key);
+			} catch (Exception ignored) {
+				log.warn("캐시 삭제 실패: key={}", key, e);
+			}
+			return Optional.empty();
+		} catch (Exception e) {
+			log.warn("캐시 조회 실패: key={}", key, e);
+			return Optional.empty();
+		}
     }
 
     private void putToCache(String key, Object value) {
         try {
             String json = cacheObjectMapper.writeValueAsString(value);
             redisTemplate.opsForValue().set(key, json, TTL);
-        } catch (JsonProcessingException e) {
-            log.warn("캐시 직렬화 실패: key={}", key, e);
+        } catch (Exception e) {
+            log.warn("캐시 저장 실패: key={}", key, e);
         }
     }
 
