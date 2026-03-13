@@ -186,7 +186,27 @@ public class Product extends BaseEntity {
 - Facade: 다중 도메인 조합 시 `@Transactional`
 - 도메인 엔티티에는 `@Transactional` 사용 금지
 
-## 10. 테스트
+## 10. 캐시 규칙
+
+### 캐시 키 네이밍 컨벤션
+- 형식: `{도메인}:{식별자 또는 조건}` (콜론 구분, kebab-case 없이 소문자)
+- 단건: `{도메인}:{id}` — 예: `product:1`
+- 목록: `{도메인}s:{필터}:page:{page}:size:{size}:sort:{sort}` — 예: `products:brand:3:page:0:size:20:sort:createdAt,desc`
+- 필터 없는 전체 목록: `{도메인}s:all:page:{page}:size:{size}:sort:{sort}` — 예: `products:all:page:0:size:20:sort:createdAt,desc`
+
+### 캐시 무효화 전략
+| 이벤트 | 단건 캐시 (`{도메인}:{id}`) | 목록 캐시 (`{도메인}s:...`) |
+|--------|---------------------------|---------------------------|
+| 등록 | 해당 없음 | 관련 목록 캐시 삭제 |
+| 수정 | 해당 키 삭제 | 관련 목록 캐시 삭제 |
+| 삭제 | 해당 키 삭제 | 관련 목록 캐시 삭제 |
+
+### 캐시 인프라
+- 캐시 구현체는 `infrastructure` 계층에 `{Domain}CacheManager`로 위치
+- TTL: 도메인 특성에 따라 결정 (기본 1시간)
+- 직렬화: JSON (Jackson ObjectMapper)
+
+## 11. 테스트
 - 테스트 코드 생성 시 test-generate 스킬을 따른다.
 - 메서드명: 한국어, 유비쿼터스 언어 기반
 - 구조: given-when-then
