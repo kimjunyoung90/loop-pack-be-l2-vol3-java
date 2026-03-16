@@ -65,35 +65,50 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductResult> getProducts(Pageable pageable) {
-        Page<Product> pages = productCacheRepository.getProducts(pageable)
-                .orElseGet(() -> {
-                    Page<Product> origin = productRepository.findAllByDeletedAtIsNull(pageable);
-                    productCacheRepository.putProducts(pageable, origin);
-                    return origin;
-                });
-        return pages.map(ProductResult::from);
+        if (pageable.getPageNumber() == 0) {
+            return productCacheRepository.getProducts(pageable)
+                    .orElseGet(() -> {
+                        Page<Product> origin = productRepository.findAllByDeletedAtIsNull(pageable);
+                        productCacheRepository.putProducts(pageable, origin);
+                        return origin;
+                    })
+                    .map(ProductResult::from);
+        }
+
+        return productRepository.findAllByDeletedAtIsNull(pageable)
+                .map(ProductResult::from);
     }
 
     @Transactional(readOnly = true)
     public Page<ProductWithLikeCountResult> getProductsWithLikeCount(Pageable pageable) {
-        Page<ProductWithLikeCount> pages = productCacheRepository.getProductsWithLikeCount(pageable)
-                .orElseGet(() -> {
-                    Page<ProductWithLikeCount> origin = productRepository.findAllWithLikeCountByDeletedAtIsNull(pageable);
-                    productCacheRepository.putProductsWithLikeCount(pageable, origin);
-                    return origin;
-                });
-        return pages.map(ProductWithLikeCountResult::from);
+        if (pageable.getPageNumber() == 0) {
+            return productCacheRepository.getProductsWithLikeCount(pageable)
+                    .orElseGet(() -> {
+                        Page<ProductWithLikeCount> origin = productRepository.findAllWithLikeCountByDeletedAtIsNull(pageable);
+                        productCacheRepository.putProductsWithLikeCount(pageable, origin);
+                        return origin;
+                    })
+                    .map(ProductWithLikeCountResult::from);
+        }
+
+        return productRepository.findAllWithLikeCountByDeletedAtIsNull(pageable)
+                .map(ProductWithLikeCountResult::from);
     }
 
     @Transactional(readOnly = true)
     public Page<ProductWithLikeCountResult> getProductsWithLikeCount(Long brandId, Pageable pageable) {
-        Page<ProductWithLikeCount> pages = productCacheRepository.getProductsWithLikeCount(brandId, pageable)
-                .orElseGet(() -> {
-                    Page<ProductWithLikeCount> origin = productRepository.findAllWithLikeCountByBrandIdAndDeletedAtIsNull(brandId, pageable);
-                    productCacheRepository.putProductsWithLikeCount(brandId, pageable, origin);
-                    return origin;
-                });
-        return pages.map(ProductWithLikeCountResult::from);
+        if (pageable.getPageNumber() == 0) {
+            return productCacheRepository.getProductsWithLikeCount(brandId, pageable)
+                    .orElseGet(() -> {
+                        Page<ProductWithLikeCount> origin = productRepository.findAllWithLikeCountByBrandIdAndDeletedAtIsNull(brandId, pageable);
+                        productCacheRepository.putProductsWithLikeCount(brandId, pageable, origin);
+                        return origin;
+                    })
+                    .map(ProductWithLikeCountResult::from);
+        }
+
+        return productRepository.findAllWithLikeCountByBrandIdAndDeletedAtIsNull(brandId, pageable)
+                .map(ProductWithLikeCountResult::from);
     }
 
     @Transactional(readOnly = true)
