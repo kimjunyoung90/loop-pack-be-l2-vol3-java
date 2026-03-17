@@ -19,11 +19,11 @@ public interface ProductRepository {
 
     Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId);
 
-    int incrementLikeCount(Long productId);
-
-    int decrementLikeCount(Long productId);
-
-    Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
-
     Product save(Product product);
+
+    Optional<ProductWithLikeCount> findWithLikeCountByIdAndDeletedAtIsNull(Long productId);
+
+    Page<ProductWithLikeCount> findAllWithLikeCountByDeletedAtIsNull(Pageable pageable);
+
+    Page<ProductWithLikeCount> findAllWithLikeCountByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
 }

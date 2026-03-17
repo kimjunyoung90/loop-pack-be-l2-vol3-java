@@ -7,6 +7,7 @@ import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithBrandResult;
+import com.loopers.application.product.result.ProductWithLikeCountResult;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +26,16 @@ public class ProductFacade {
 
     @Transactional(readOnly = true)
     public ProductWithBrandResult getProduct(Long productId) {
-        ProductResult product = productService.getProduct(productId);
+        ProductWithLikeCountResult product = productService.getProductWithLikeCount(productId);
         BrandResult brand = brandService.getBrand(product.brandId());
         return ProductWithBrandResult.from(product, brand.name());
     }
 
     @Transactional(readOnly = true)
     public Page<ProductWithBrandResult> getProducts(Long brandId, Pageable pageable) {
-        Page<ProductResult> products = productService.getProducts(brandId, pageable);
+        Page<ProductWithLikeCountResult> products = (brandId != null)
+                ? productService.getProductsWithLikeCount(brandId, pageable)
+                : productService.getProductsWithLikeCount(pageable);
 
         return products.map(product -> {
             BrandResult brand = brandService.getBrand(product.brandId());

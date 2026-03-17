@@ -3,6 +3,8 @@ package com.loopers.application.like;
 import com.loopers.application.like.result.LikeResult;
 import com.loopers.domain.like.ProductLike;
 import com.loopers.domain.like.ProductLikeRepository;
+import com.loopers.domain.like.ProductLikeCount;
+import com.loopers.domain.like.ProductLikeCountRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -11,11 +13,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @RequiredArgsConstructor
 @Service
 public class LikeService {
 
     private final ProductLikeRepository productLikeRepository;
+    private final ProductLikeCountRepository productLikesCountRepository;
 
     @Transactional
     public LikeResult like(Long userId, Long productId) {
@@ -47,5 +54,21 @@ public class LikeService {
     @Transactional
     public void deleteLikes(Long productId) {
         productLikeRepository.deleteByProductId(productId);
+    }
+
+    @Transactional(readOnly = true)
+    public int getLikeCount(Long productId) {
+        return productLikesCountRepository.findByProductId(productId)
+                .map(ProductLikeCount::getLikeCount)
+                .orElse(0);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> getLikeCounts(List<Long> productIds) {
+        return productLikesCountRepository.findByProductIdIn(productIds).stream()
+                .collect(Collectors.toMap(
+                        ProductLikeCount::getProductId,
+                        ProductLikeCount::getLikeCount
+                ));
     }
 }

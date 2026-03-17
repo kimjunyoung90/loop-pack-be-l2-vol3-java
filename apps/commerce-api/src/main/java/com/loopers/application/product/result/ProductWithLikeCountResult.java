@@ -1,11 +1,12 @@
 package com.loopers.application.product.result;
 
+import com.loopers.domain.product.ProductWithLikeCount;
+
 import java.time.ZonedDateTime;
 
-public record ProductWithBrandResult(
+public record ProductWithLikeCountResult(
         Long id,
         Long brandId,
-        String brandName,
         String name,
         int price,
         int stock,
@@ -13,11 +14,10 @@ public record ProductWithBrandResult(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static ProductWithBrandResult from(ProductWithLikeCountResult product, String brandName) {
-        return new ProductWithBrandResult(
+    public static ProductWithLikeCountResult from(ProductWithLikeCount product) {
+        return new ProductWithLikeCountResult(
                 product.id(),
                 product.brandId(),
-                brandName,
                 product.name(),
                 product.price(),
                 product.stock(),
