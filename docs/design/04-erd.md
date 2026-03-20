@@ -98,4 +98,22 @@ erDiagram
     brands ||--o{ products : ""
     orders ||--o{ order_items : ""
     coupons ||--o{ user_coupons : ""
+
+    payments {
+        bigint id PK
+        bigint order_id FK
+        bigint user_id FK
+        varchar card_type
+        varchar card_no
+        bigint amount
+        varchar transaction_key
+        varchar status
+        varchar failure_reason
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+
+    orders ||--o| payments : ""
+    users ||--o{ payments : ""
 ```

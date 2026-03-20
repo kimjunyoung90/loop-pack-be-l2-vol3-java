@@ -38,6 +38,10 @@
   - [쿠폰 수정 (관리자)](#쿠폰-수정-관리자)
   - [쿠폰 삭제 (관리자)](#쿠폰-삭제-관리자)
   - [쿠폰 발급 내역 조회 (관리자)](#쿠폰-발급-내역-조회-관리자)
+- [결제](#결제)
+  - [결제 요청 (정상)](#결제-요청-정상)
+  - [결제 요청 (실패)](#결제-요청-실패)
+  - [PG 콜백 수신](#pg-콜백-수신)
 
 ---
 
@@ -1186,3 +1190,219 @@ sequenceDiagram
     CS-->>-CC: 발급 내역
     CC-->>-Admin: 쿠폰 발급 내역 응답
 ```
+
+---
+
+## 결제
+
+결제 도메인은 외부 PG(Payment Gateway) 서버와 연동하여 결제를 처리한다. PG 서버 장애에 대비하여 서킷 브레이커(Circuit Breaker)를 적용하며, 결제 결과는 PG 서버의 콜백을 통해 최종 확정된다.
+
+| 구분 | 설명 |
+|------|------|
+| PaymentFacade | 트랜잭션 분리 오케스트레이션 (PG 호출을 트랜잭션 밖에서 수행) |
+| PaymentService | 결제 상태 변경(트랜잭션 단위), 콜백 처리 담당 |
+| PaymentGatewayClient | 도메인이 정의한 PG 연동 인터페이스 (DIP) |
+| PgPaymentGatewayClient | PaymentGatewayClient 구현체, 서킷 브레이커 적용 |
+
+> **인증 참고**: 콜백 엔드포인트(`POST /api/v1/payments/callback`)는 PG 서버에서 호출하므로 인증 헤더가 불필요하다.
+
+---
+
+### 결제 요청 (정상)
+
+사용자가 결제를 요청하면 PG 서버에 결제를 요청하고, PENDING 상태로 응답을 반환한다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant PC as PaymentController
+    participant PF as PaymentFacade
+    participant PS as PaymentService
+    participant P as Payment
+    participant PR as PaymentRepository
+    participant GC as PaymentGatewayClient<br/>(CircuitBreaker)
+    participant PG as PG 서버
+
+    User->>+PC: 결제 요청 (orderId, cardType, cardNo, amount)
+    PC->>+PF: requestPayment(command)
+
+    rect rgb(240, 248, 255)
+        Note over PS, PR: TX1: Payment 생성
+        PF->>+PS: createPendingPayment(command)
+        PS->>+P: 결제 생성 (status: PENDING)
+        P-->>-PS: 생성 완료
+        PS->>+PR: 결제 저장
+        PR-->>-PS: 저장 완료
+        PS-->>-PF: Payment
+    end
+
+    Note over PF, GC: 트랜잭션 밖: PG 호출
+    PF->>+GC: PG 결제 요청
+    GC->>+PG: POST /api/v1/payments
+    PG-->>-GC: { transactionKey, status: PENDING }
+    GC-->>-PF: PaymentGatewayResponse
+
+    rect rgb(240, 248, 255)
+        Note over PS, PR: TX2: transactionKey 할당
+        PF->>+PS: completePaymentRequest(paymentId, transactionKey)
+        PS->>+PR: 결제 조회
+        PR-->>-PS: 결제 정보
+        PS->>+P: assignTransactionKey(transactionKey)
+        P-->>-PS: 할당 완료
+        PS-->>-PF: PaymentResult (PENDING)
+    end
+
+    PF-->>-PC: PaymentResult (PENDING)
+    PC-->>-User: 결제 요청 응답 (PENDING)
+```
+
+**해석**:
+- 트랜잭션을 분리하여 PG 호출 동안 DB 커넥션을 점유하지 않는다.
+- TX1: Payment를 PENDING 상태로 저장 → 커밋. TX2: PG 응답에 따라 transactionKey 할당 → 커밋.
+- PG 연동은 도메인이 정의한 `PaymentGatewayClient` 인터페이스를 통해 이루어진다 (DIP).
+- PG 호출 실패 시에도 TX1이 이미 커밋되었으므로 PENDING 상태의 Payment가 DB에 남고, 이후 PG 콜백으로 최종 상태가 확정된다.
+
+---
+
+### 결제 요청 (실패)
+
+PG 서버 오류, 서킷 브레이커 OPEN, 타임아웃 등 다양한 실패 시나리오를 처리한다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant PC as PaymentController
+    participant PF as PaymentFacade
+    participant PS as PaymentService
+    participant P as Payment
+    participant PR as PaymentRepository
+    participant GC as PaymentGatewayClient<br/>(CircuitBreaker)
+    participant PG as PG 서버
+
+    User->>+PC: 결제 요청 (orderId, cardType, cardNo, amount)
+    PC->>+PF: requestPayment(command)
+
+    rect rgb(240, 248, 255)
+        Note over PS, PR: TX1: Payment 생성
+        PF->>+PS: createPendingPayment(command)
+        PS->>+P: 결제 생성 (status: PENDING)
+        P-->>-PS: 생성 완료
+        PS->>+PR: 결제 저장
+        PR-->>-PS: 저장 완료
+        PS-->>-PF: Payment
+    end
+
+    Note over PF, GC: 트랜잭션 밖: PG 호출
+    PF->>+GC: PG 결제 요청
+
+    alt PG 500 에러 (비정상 응답)
+        GC->>+PG: POST /api/v1/payments
+        PG-->>-GC: 500 에러
+        GC-->>PF: CoreException (PAYMENT_GATEWAY_ERROR)
+
+        rect rgb(255, 245, 238)
+            Note over PS, PR: TX2: reject
+            PF->>+PS: failPayment(paymentId, reason)
+            PS->>+PR: 결제 조회
+            PR-->>-PS: 결제 정보
+            PS->>P: reject(reason)
+            Note over P: status: FAILED
+            PS-->>-PF: PaymentResult
+        end
+
+        PF-->>PC: 예외
+        PC-->>User: 503 Service Unavailable
+
+    else 서킷 브레이커 OPEN
+        GC-->>PF: CoreException (서킷 브레이커 OPEN)
+
+        rect rgb(255, 245, 238)
+            Note over PS, PR: TX2: reject
+            PF->>+PS: failPayment(paymentId, reason)
+            PS->>+PR: 결제 조회
+            PR-->>-PS: 결제 정보
+            PS->>P: reject(reason)
+            Note over P: status: FAILED
+            PS-->>-PF: PaymentResult
+        end
+
+        PF-->>PC: 예외
+        PC-->>User: 503 Service Unavailable
+
+    else 타임아웃
+        GC->>+PG: POST /api/v1/payments
+        PG-->>-GC: 응답 없음 (타임아웃)
+        GC-->>-PF: CoreException (TIMEOUT)
+
+        rect rgb(255, 245, 238)
+            Note over PS, PR: TX2: unknown
+            PF->>+PS: unknownPayment(paymentId)
+            PS->>+PR: 결제 조회
+            PR-->>-PS: 결제 정보
+            PS->>P: unknown()
+            Note over P: status: UNKNOWN
+            PS-->>-PF: PaymentResult
+        end
+
+        PF-->>PC: 예외
+        PC-->>User: 503 Service Unavailable
+    end
+
+    deactivate PF
+    deactivate PC
+```
+
+**해석**:
+- 트랜잭션이 분리되어 TX1(Payment 생성)은 PG 호출 전에 커밋된다. PG 호출 실패 시 TX2에서 상태를 변경하고 커밋한다.
+- PG 500 에러: `RestClientException` 발생 → TX2에서 `reject()` 호출 → FAILED 상태로 확정된다.
+- 서킷 브레이커 OPEN: `CallNotPermittedException` 발생 → PG 서버에 요청하지 않고 TX2에서 `reject()` → FAILED 상태로 확정된다.
+- 타임아웃: `ResourceAccessException` 발생 → TX2에서 `unknown()` 호출 → UNKNOWN 상태가 된다. PG에서 실제로 결제가 처리되었을 수 있으므로 FAILED가 아닌 UNKNOWN으로 처리한다.
+- 기존 단일 트랜잭션에서는 예외 발생 시 롤백되어 `reject()`/`unknown()` 상태가 DB에 반영되지 않는 문제가 있었으나, 트랜잭션 분리로 이 문제가 해결되었다.
+
+---
+
+### PG 콜백 수신
+
+PG 서버가 결제 처리 결과를 콜백으로 전달한다. transactionKey로 결제를 조회하여 최종 상태를 확정한다.
+
+```mermaid
+sequenceDiagram
+    participant PG as PG 서버
+    participant PC as PaymentController
+    participant PS as PaymentService
+    participant P as Payment
+    participant PR as PaymentRepository
+
+    PG->>+PC: POST /callback (transactionKey, status, reason)
+    PC->>+PS: handleCallback(command)
+
+    rect rgb(240, 248, 255)
+        Note over PS, PR: 트랜잭션
+        PS->>+PR: transactionKey로 결제 조회
+        PR-->>-PS: 결제 정보
+
+        opt 결제 미존재
+            PS-->>PC: 예외
+            PC-->>PG: 404 Not Found
+        end
+
+        alt status == SUCCESS
+            PS->>+P: approve()
+            Note over P: status: SUCCESS
+            P-->>-PS: 승인 완료
+        else status != SUCCESS
+            PS->>+P: reject(reason)
+            Note over P: status: FAILED
+            P-->>-PS: 거절 완료
+        end
+    end
+
+    PS-->>-PC: PaymentResult
+    PC-->>-PG: 200 OK
+```
+
+**해석**:
+- PG 서버에서 콜백으로 결제 결과를 전달하면, transactionKey로 결제를 조회하여 상태를 확정한다.
+- SUCCESS → `approve()` (PENDING/UNKNOWN → SUCCESS), 그 외 → `reject(reason)` (PENDING/UNKNOWN → FAILED).
+- 이미 최종 처리된 결제(SUCCESS 또는 FAILED)에 대한 콜백은 `approve()`/`reject()`에서 예외를 던져 멱등성을 보장한다.
+- 콜백 엔드포인트는 PG 서버에서 호출하므로 `@LoginUser` 인증이 적용되지 않는다.
