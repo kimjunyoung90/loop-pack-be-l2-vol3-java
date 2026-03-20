@@ -1224,11 +1224,11 @@ sequenceDiagram
     participant PG as PG 서버
 
     User->>+PC: 결제 요청 (orderId, cardType, cardNo, amount)
-    PC->>+PF: requestPayment(command)
+    PC->>+PF: 결제 요청
 
     rect rgb(240, 248, 255)
         Note over PS, PR: TX1: Payment 생성
-        PF->>+PS: createPendingPayment(command)
+        PF->>+PS: 결제 생성 (PENDING)
         PS->>+P: 결제 생성 (status: PENDING)
         P-->>-PS: 생성 완료
         PS->>+PR: 결제 저장
@@ -1244,10 +1244,10 @@ sequenceDiagram
 
     rect rgb(240, 248, 255)
         Note over PS, PR: TX2: transactionKey 할당
-        PF->>+PS: completePaymentRequest(paymentId, transactionKey)
+        PF->>+PS: 거래 키 할당
         PS->>+PR: 결제 조회
         PR-->>-PS: 결제 정보
-        PS->>+P: assignTransactionKey(transactionKey)
+        PS->>+P: 거래 키 할당
         P-->>-PS: 할당 완료
         PS-->>-PF: PaymentResult (PENDING)
     end
@@ -1280,11 +1280,11 @@ sequenceDiagram
     participant PG as PG 서버
 
     User->>+PC: 결제 요청 (orderId, cardType, cardNo, amount)
-    PC->>+PF: requestPayment(command)
+    PC->>+PF: 결제 요청
 
     rect rgb(240, 248, 255)
         Note over PS, PR: TX1: Payment 생성
-        PF->>+PS: createPendingPayment(command)
+        PF->>+PS: 결제 생성 (PENDING)
         PS->>+P: 결제 생성 (status: PENDING)
         P-->>-PS: 생성 완료
         PS->>+PR: 결제 저장
@@ -1301,11 +1301,11 @@ sequenceDiagram
         GC-->>PF: CoreException (PAYMENT_GATEWAY_ERROR)
 
         rect rgb(255, 245, 238)
-            Note over PS, PR: TX2: reject
-            PF->>+PS: failPayment(paymentId, reason)
+            Note over PS, PR: TX2: 결제 승인 실패
+            PF->>+PS: 결제 승인 실패
             PS->>+PR: 결제 조회
             PR-->>-PS: 결제 정보
-            PS->>P: reject(reason)
+            PS->>P: 결제 승인 실패
             Note over P: status: FAILED
             PS-->>-PF: PaymentResult
         end
@@ -1317,11 +1317,11 @@ sequenceDiagram
         GC-->>PF: CoreException (서킷 브레이커 OPEN)
 
         rect rgb(255, 245, 238)
-            Note over PS, PR: TX2: reject
-            PF->>+PS: failPayment(paymentId, reason)
+            Note over PS, PR: TX2: 결제 승인 실패
+            PF->>+PS: 결제 승인 실패
             PS->>+PR: 결제 조회
             PR-->>-PS: 결제 정보
-            PS->>P: reject(reason)
+            PS->>P: 결제 승인 실패
             Note over P: status: FAILED
             PS-->>-PF: PaymentResult
         end
@@ -1335,11 +1335,11 @@ sequenceDiagram
         GC-->>-PF: CoreException (TIMEOUT)
 
         rect rgb(255, 245, 238)
-            Note over PS, PR: TX2: unknown
-            PF->>+PS: unknownPayment(paymentId)
+            Note over PS, PR: TX2: 타임아웃 결제 중단
+            PF->>+PS: 타임아웃 결제 중단
             PS->>+PR: 결제 조회
             PR-->>-PS: 결제 정보
-            PS->>P: unknown()
+            PS->>P: 타임아웃 결제 중단
             Note over P: status: UNKNOWN
             PS-->>-PF: PaymentResult
         end
@@ -1354,10 +1354,10 @@ sequenceDiagram
 
 **해석**:
 - 트랜잭션이 분리되어 TX1(Payment 생성)은 PG 호출 전에 커밋된다. PG 호출 실패 시 TX2에서 상태를 변경하고 커밋한다.
-- PG 500 에러: `RestClientException` 발생 → TX2에서 `reject()` 호출 → FAILED 상태로 확정된다.
-- 서킷 브레이커 OPEN: `CallNotPermittedException` 발생 → PG 서버에 요청하지 않고 TX2에서 `reject()` → FAILED 상태로 확정된다.
-- 타임아웃: `ResourceAccessException` 발생 → TX2에서 `unknown()` 호출 → UNKNOWN 상태가 된다. PG에서 실제로 결제가 처리되었을 수 있으므로 FAILED가 아닌 UNKNOWN으로 처리한다.
-- 기존 단일 트랜잭션에서는 예외 발생 시 롤백되어 `reject()`/`unknown()` 상태가 DB에 반영되지 않는 문제가 있었으나, 트랜잭션 분리로 이 문제가 해결되었다.
+- PG 500 에러: `RestClientException` 발생 → TX2에서 결제 승인 실패 → FAILED 상태로 확정된다.
+- 서킷 브레이커 OPEN: `CallNotPermittedException` 발생 → PG 서버에 요청하지 않고 TX2에서 결제 승인 실패 → FAILED 상태로 확정된다.
+- 타임아웃: `ResourceAccessException` 발생 → TX2에서 타임아웃 결제 중단 → UNKNOWN 상태가 된다. PG에서 실제로 결제가 처리되었을 수 있으므로 FAILED가 아닌 UNKNOWN으로 처리한다.
+- 기존 단일 트랜잭션에서는 예외 발생 시 롤백되어 결제 승인 실패/타임아웃 결제 중단 상태가 DB에 반영되지 않는 문제가 있었으나, 트랜잭션 분리로 이 문제가 해결되었다.
 
 ---
 
@@ -1374,7 +1374,7 @@ sequenceDiagram
     participant PR as PaymentRepository
 
     PG->>+PC: POST /callback (transactionKey, status, reason)
-    PC->>+PS: handleCallback(command)
+    PC->>+PS: 콜백 처리
 
     rect rgb(240, 248, 255)
         Note over PS, PR: 트랜잭션
@@ -1387,11 +1387,11 @@ sequenceDiagram
         end
 
         alt status == SUCCESS
-            PS->>+P: approve()
+            PS->>+P: 결제 승인
             Note over P: status: SUCCESS
             P-->>-PS: 승인 완료
         else status != SUCCESS
-            PS->>+P: reject(reason)
+            PS->>+P: 결제 승인 실패
             Note over P: status: FAILED
             P-->>-PS: 거절 완료
         end
@@ -1403,6 +1403,6 @@ sequenceDiagram
 
 **해석**:
 - PG 서버에서 콜백으로 결제 결과를 전달하면, transactionKey로 결제를 조회하여 상태를 확정한다.
-- SUCCESS → `approve()` (PENDING/UNKNOWN → SUCCESS), 그 외 → `reject(reason)` (PENDING/UNKNOWN → FAILED).
-- 이미 최종 처리된 결제(SUCCESS 또는 FAILED)에 대한 콜백은 `approve()`/`reject()`에서 예외를 던져 멱등성을 보장한다.
+- SUCCESS → 결제 승인 (PENDING/UNKNOWN → SUCCESS), 그 외 → 결제 승인 실패 (PENDING/UNKNOWN → FAILED).
+- 이미 최종 처리된 결제(SUCCESS 또는 FAILED)에 대한 콜백은 결제 승인/결제 승인 실패 시 예외를 던져 멱등성을 보장한다.
 - 콜백 엔드포인트는 PG 서버에서 호출하므로 `@LoginUser` 인증이 적용되지 않는다.

@@ -78,7 +78,7 @@
 | 결제 요청 | PaymentRequest | 사용자가 주문에 대해 결제를 요청하는 행위 |
 | 결제 상태 | PaymentStatus | 결제의 진행 상태 (대기중, 알수없음, 성공, 실패) |
 | 결제 승인 | PaymentApproval | PG사에서 결제를 승인하여 성공 상태로 전이하는 행위 |
-| 결제 거절 | PaymentRejection | PG사에서 결제를 거절하여 실패 상태로 전이하는 행위 |
+| 결제 승인 실패 | PaymentApprovalFailure | PG사에서 결제 승인이 실패하여 실패 상태로 전이하는 행위 |
 | 거래 키 | TransactionKey | PG사에서 발급하는 결제 거래 고유 식별자 |
 | 카드 종류 | CardType | 결제에 사용하는 카드사 (삼성, KB, 현대) |
-| 결제 상태 불명 | PaymentUnknown | 타임아웃 등으로 PG 요청 도달 여부를 확인할 수 없는 상태 |
+| 타임아웃 결제 중단 | PaymentSuspensionByTimeout | 타임아웃으로 PG 요청 도달 여부를 확인할 수 없어 결제를 중단한 상태 |

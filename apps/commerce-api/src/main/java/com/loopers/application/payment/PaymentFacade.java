@@ -24,7 +24,7 @@ public class PaymentFacade {
 
     public PaymentResult requestPayment(PaymentCreateCommand command) {
         // TX1: Payment 생성 (PENDING) → 커밋
-        Payment payment = paymentService.createPendingPayment(command);
+        Payment payment = paymentService.requestPayment(command);
 
         // 트랜잭션 밖: PG 호출
         try {
@@ -44,22 +44,22 @@ public class PaymentFacade {
                 return paymentService.completePaymentRequest(payment.getId(), response.transactionKey());
             } else {
                 // TX2: reject → 커밋
-                paymentService.failPayment(payment.getId(), response.reason());
+                paymentService.failPaymentApproval(payment.getId(), response.reason());
                 throw new CoreException(ErrorType.PAYMENT_FAILED, response.reason());
             }
         } catch (CoreException e) {
             if (e.getErrorType() == ErrorType.PAYMENT_GATEWAY_ERROR) {
                 if ("TIMEOUT".equals(e.getCustomMessage())) {
                     // TX2: unknown → 커밋
-                    paymentService.unknownPayment(payment.getId());
+                    paymentService.suspendPaymentByTimeout(payment.getId());
                 } else {
                     // TX2: reject → 커밋
-                    paymentService.failPayment(payment.getId(), e.getMessage());
+                    paymentService.failPaymentApproval(payment.getId(), e.getMessage());
                 }
             }
             throw e;
         } catch (Exception e) {
-            paymentService.unknownPayment(payment.getId());
+            paymentService.suspendPaymentByTimeout(payment.getId());
             throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR, "결제 요청 중 알 수 없는 오류가 발생했습니다.");
         }
     }

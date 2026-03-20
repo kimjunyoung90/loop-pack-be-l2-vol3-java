@@ -19,7 +19,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
 
     @Transactional
-    public Payment createPendingPayment(PaymentCreateCommand command) {
+    public Payment requestPayment(PaymentCreateCommand command) {
         Payment payment = Payment.builder()
                 .orderId(command.orderId())
                 .userId(command.userId())
@@ -39,7 +39,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentResult failPayment(Long paymentId, String reason) {
+    public PaymentResult failPaymentApproval(Long paymentId, String reason) {
         Payment payment = paymentRepository.findByIdAndDeletedAtIsNull(paymentId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
         payment.reject(reason);
@@ -47,7 +47,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentResult unknownPayment(Long paymentId) {
+    public PaymentResult suspendPaymentByTimeout(Long paymentId) {
         Payment payment = paymentRepository.findByIdAndDeletedAtIsNull(paymentId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
         payment.unknown();
