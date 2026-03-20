@@ -139,8 +139,8 @@ classDiagram
         <<enumeration>>
         PENDING
         UNKNOWN
-        SUCCESS
-        FAILED
+        APPROVED
+        REJECTED
     }
 
     class CardType {

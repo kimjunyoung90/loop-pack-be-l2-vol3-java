@@ -1306,7 +1306,7 @@ sequenceDiagram
             PS->>+PR: 결제 조회
             PR-->>-PS: 결제 정보
             PS->>P: 결제 승인 실패
-            Note over P: status: FAILED
+            Note over P: status: REJECTED
             PS-->>-PF: PaymentResult
         end
 
@@ -1322,7 +1322,7 @@ sequenceDiagram
             PS->>+PR: 결제 조회
             PR-->>-PS: 결제 정보
             PS->>P: 결제 승인 실패
-            Note over P: status: FAILED
+            Note over P: status: REJECTED
             PS-->>-PF: PaymentResult
         end
 
@@ -1354,9 +1354,9 @@ sequenceDiagram
 
 **해석**:
 - 트랜잭션이 분리되어 TX1(Payment 생성)은 PG 호출 전에 커밋된다. PG 호출 실패 시 TX2에서 상태를 변경하고 커밋한다.
-- PG 500 에러: `RestClientException` 발생 → TX2에서 결제 승인 실패 → FAILED 상태로 확정된다.
-- 서킷 브레이커 OPEN: `CallNotPermittedException` 발생 → PG 서버에 요청하지 않고 TX2에서 결제 승인 실패 → FAILED 상태로 확정된다.
-- 타임아웃: `ResourceAccessException` 발생 → TX2에서 타임아웃 결제 중단 → UNKNOWN 상태가 된다. PG에서 실제로 결제가 처리되었을 수 있으므로 FAILED가 아닌 UNKNOWN으로 처리한다.
+- PG 500 에러: `RestClientException` 발생 → TX2에서 결제 승인 실패 → REJECTED 상태로 확정된다.
+- 서킷 브레이커 OPEN: `CallNotPermittedException` 발생 → PG 서버에 요청하지 않고 TX2에서 결제 승인 실패 → REJECTED 상태로 확정된다.
+- 타임아웃: `ResourceAccessException` 발생 → TX2에서 타임아웃 결제 중단 → UNKNOWN 상태가 된다. PG에서 실제로 결제가 처리되었을 수 있으므로 REJECTED가 아닌 UNKNOWN으로 처리한다.
 - 기존 단일 트랜잭션에서는 예외 발생 시 롤백되어 결제 승인 실패/타임아웃 결제 중단 상태가 DB에 반영되지 않는 문제가 있었으나, 트랜잭션 분리로 이 문제가 해결되었다.
 
 ---
@@ -1388,11 +1388,11 @@ sequenceDiagram
 
         alt status == SUCCESS
             PS->>+P: 결제 승인
-            Note over P: status: SUCCESS
+            Note over P: status: APPROVED
             P-->>-PS: 승인 완료
         else status != SUCCESS
             PS->>+P: 결제 승인 실패
-            Note over P: status: FAILED
+            Note over P: status: REJECTED
             P-->>-PS: 거절 완료
         end
     end
@@ -1403,6 +1403,6 @@ sequenceDiagram
 
 **해석**:
 - PG 서버에서 콜백으로 결제 결과를 전달하면, transactionKey로 결제를 조회하여 상태를 확정한다.
-- SUCCESS → 결제 승인 (PENDING/UNKNOWN → SUCCESS), 그 외 → 결제 승인 실패 (PENDING/UNKNOWN → FAILED).
-- 이미 최종 처리된 결제(SUCCESS 또는 FAILED)에 대한 콜백은 결제 승인/결제 승인 실패 시 예외를 던져 멱등성을 보장한다.
+- SUCCESS → 결제 승인 (PENDING/UNKNOWN → APPROVED), 그 외 → 결제 승인 실패 (PENDING/UNKNOWN → REJECTED).
+- 이미 최종 처리된 결제(APPROVED 또는 REJECTED)에 대한 콜백은 결제 승인/결제 승인 실패 시 예외를 던져 멱등성을 보장한다.
 - 콜백 엔드포인트는 PG 서버에서 호출하므로 `@LoginUser` 인증이 적용되지 않는다.

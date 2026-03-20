@@ -55,6 +55,7 @@ public class PgPaymentGatewayClient implements PaymentGatewayClient {
         throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR, "TIMEOUT");
     }
 
+	//RestClient 에서 발생하는 예외 중 최상위 예외 처리 fallback(최종 방어선)
     private PaymentGatewayResponse requestPaymentFallback(PaymentGatewayRequest request, RestClientException e) {
         throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR);
     }

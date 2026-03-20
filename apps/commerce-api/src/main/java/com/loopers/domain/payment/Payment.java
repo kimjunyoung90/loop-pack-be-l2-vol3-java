@@ -57,17 +57,17 @@ public class Payment extends BaseEntity {
     }
 
     public void approve() {
-        if (this.status == PaymentStatus.SUCCESS || this.status == PaymentStatus.FAILED) {
+        if (this.status == PaymentStatus.APPROVED || this.status == PaymentStatus.REJECTED) {
             throw new CoreException(ErrorType.CONFLICT, "이미 최종 처리된 결제입니다.");
         }
-        this.status = PaymentStatus.SUCCESS;
+        this.status = PaymentStatus.APPROVED;
     }
 
     public void reject(String reason) {
-        if (this.status == PaymentStatus.SUCCESS || this.status == PaymentStatus.FAILED) {
+        if (this.status == PaymentStatus.APPROVED || this.status == PaymentStatus.REJECTED) {
             throw new CoreException(ErrorType.CONFLICT, "이미 최종 처리된 결제입니다.");
         }
-        this.status = PaymentStatus.FAILED;
+        this.status = PaymentStatus.REJECTED;
         this.failureReason = reason;
     }
 
