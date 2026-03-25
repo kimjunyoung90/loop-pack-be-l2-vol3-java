@@ -6,6 +6,7 @@ import com.loopers.application.payment.result.PaymentResult;
 import com.loopers.domain.payment.CardType;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentRepository;
+import com.loopers.domain.payment.PgCallbackStatus;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +60,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findByTransactionKeyAndDeletedAtIsNull(command.transactionKey())
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
 
-        if ("SUCCESS".equals(command.status())) {
+        if (command.status() == PgCallbackStatus.SUCCESS) {
             payment.approve();
         } else {
             payment.reject(command.reason());

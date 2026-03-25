@@ -5,6 +5,7 @@ import com.loopers.application.payment.PaymentService;
 import com.loopers.application.payment.command.PaymentCallbackCommand;
 import com.loopers.application.payment.command.PaymentCreateCommand;
 import com.loopers.application.payment.result.PaymentResult;
+import com.loopers.domain.payment.PgCallbackStatus;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.payment.request.PaymentCallbackRequest;
 import com.loopers.interfaces.api.payment.request.PaymentCreateRequest;
@@ -54,7 +55,7 @@ public class PaymentV1Controller implements PaymentV1ApiSpec {
                         request.cardType(),
                         request.cardNo(),
                         request.amount(),
-                        request.status(),
+                        PgCallbackStatus.valueOf(request.status()),
                         request.reason()
                 )
         );
