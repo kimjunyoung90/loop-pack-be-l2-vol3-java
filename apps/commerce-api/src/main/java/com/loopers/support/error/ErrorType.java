@@ -17,6 +17,7 @@ public enum ErrorType {
 
     /** 결제 에러 */
     PAYMENT_GATEWAY_ERROR(HttpStatus.SERVICE_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(), "결제 서비스가 일시적으로 불안정합니다."),
+    PAYMENT_GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, HttpStatus.GATEWAY_TIMEOUT.getReasonPhrase(), "결제 서비스 응답 시간이 초과되었습니다."),
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(), "결제에 실패했습니다.");
 
     private final HttpStatus status;
