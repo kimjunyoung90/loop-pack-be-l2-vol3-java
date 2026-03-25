@@ -6,7 +6,7 @@ import com.loopers.application.payment.result.PaymentResult;
 import com.loopers.domain.payment.CardType;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentRepository;
-import com.loopers.domain.payment.PgCallbackStatus;
+import com.loopers.domain.payment.PaymentStatus;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
 
     @Transactional
-    public Payment requestPayment(PaymentCreateCommand command) {
+    public PaymentResult requestPayment(PaymentCreateCommand command) {
         Payment payment = Payment.builder()
                 .orderId(command.orderId())
                 .userId(command.userId())
@@ -28,7 +28,8 @@ public class PaymentService {
                 .cardNo(command.cardNo())
                 .amount(command.amount())
                 .build();
-        return paymentRepository.save(payment);
+        paymentRepository.save(payment);
+        return PaymentResult.from(payment);
     }
 
     @Transactional
@@ -60,7 +61,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findByTransactionKeyAndDeletedAtIsNull(command.transactionKey())
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
 
-        if (command.status() == PgCallbackStatus.SUCCESS) {
+        if (command.status() == PaymentStatus.APPROVED) {
             payment.approve();
         } else {
             payment.reject(command.reason());

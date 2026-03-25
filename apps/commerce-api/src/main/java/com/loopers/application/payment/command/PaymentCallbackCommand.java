@@ -1,6 +1,6 @@
 package com.loopers.application.payment.command;
 
-import com.loopers.domain.payment.PgCallbackStatus;
+import com.loopers.domain.payment.PaymentStatus;
 
 public record PaymentCallbackCommand(
         String transactionKey,
@@ -8,7 +8,7 @@ public record PaymentCallbackCommand(
         String cardType,
         String cardNo,
         Long amount,
-        PgCallbackStatus status,
+        PaymentStatus status,
         String reason
 ) {
 }
