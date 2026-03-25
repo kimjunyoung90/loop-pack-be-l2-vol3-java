@@ -50,14 +50,12 @@ public class PaymentFacade {
                 throw new CoreException(ErrorType.PAYMENT_FAILED, response.reason());
             }
         } catch (CoreException e) {
-            if (e.getErrorType() == ErrorType.PAYMENT_GATEWAY_ERROR) {
-                if ("TIMEOUT".equals(e.getCustomMessage())) {
-                    // TX2: unknown → 커밋
-                    paymentService.suspendPaymentByTimeout(payment.getId());
-                } else {
-                    // TX2: reject → 커밋
-                    paymentService.failPaymentApproval(payment.getId(), e.getMessage());
-                }
+            if (e.getErrorType() == ErrorType.PAYMENT_GATEWAY_TIMEOUT) {
+                // TX2: unknown → 커밋
+                paymentService.suspendPaymentByTimeout(payment.getId());
+            } else if (e.getErrorType() == ErrorType.PAYMENT_GATEWAY_ERROR) {
+                // TX2: reject → 커밋
+                paymentService.failPaymentApproval(payment.getId(), e.getMessage());
             }
             throw e;
         } catch (Exception e) {

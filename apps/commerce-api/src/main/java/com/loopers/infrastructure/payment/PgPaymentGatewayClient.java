@@ -48,15 +48,17 @@ public class PgPaymentGatewayClient implements PaymentGatewayClient {
         return new PaymentGatewayResponse(data.transactionKey(), status, data.reason());
     }
 
+    //서킷 오픈
     private PaymentGatewayResponse requestPaymentFallback(PaymentGatewayRequest request, CallNotPermittedException e) {
         throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR, "서킷 브레이커가 OPEN 상태입니다.");
     }
 
+    //타임 아웃
     private PaymentGatewayResponse requestPaymentFallback(PaymentGatewayRequest request, ResourceAccessException e) {
-        throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR, "TIMEOUT");
+        throw new CoreException(ErrorType.PAYMENT_GATEWAY_TIMEOUT);
     }
 
-	//RestClient 에서 발생하는 예외 중 최상위 예외 처리 fallback(최종 방어선)
+	//예상치 못한 RestClient 오류(최종 방어선)
     private PaymentGatewayResponse requestPaymentFallback(PaymentGatewayRequest request, RestClientException e) {
         throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR);
     }
