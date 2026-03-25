@@ -4,6 +4,11 @@ public interface PaymentGatewayClient {
 
     PaymentGatewayResponse requestPayment(PaymentGatewayRequest request);
 
+    enum PgResponseStatus {
+        PENDING,
+        REJECTED
+    }
+
     record PaymentGatewayRequest(
             Long userId,
             String orderId,
@@ -16,7 +21,7 @@ public interface PaymentGatewayClient {
 
     record PaymentGatewayResponse(
             String transactionKey,
-            String status,
+            PgResponseStatus status,
             String reason
     ) {
     }

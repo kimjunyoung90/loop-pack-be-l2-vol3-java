@@ -44,7 +44,8 @@ public class PgPaymentGatewayClient implements PaymentGatewayClient {
         }
 
         PgPaymentResponse data = response.data();
-        return new PaymentGatewayResponse(data.transactionKey(), data.status(), data.reason());
+        PgResponseStatus status = PgResponseStatus.valueOf(data.status());
+        return new PaymentGatewayResponse(data.transactionKey(), status, data.reason());
     }
 
     private PaymentGatewayResponse requestPaymentFallback(PaymentGatewayRequest request, CallNotPermittedException e) {

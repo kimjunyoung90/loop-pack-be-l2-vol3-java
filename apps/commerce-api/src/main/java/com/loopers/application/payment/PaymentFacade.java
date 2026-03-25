@@ -4,6 +4,7 @@ import com.loopers.application.payment.command.PaymentCreateCommand;
 import com.loopers.application.payment.result.PaymentResult;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.payment.PaymentGatewayClient;
+import com.loopers.domain.payment.PaymentGatewayClient.PgResponseStatus;
 import com.loopers.domain.payment.PaymentGatewayClient.PaymentGatewayRequest;
 import com.loopers.domain.payment.PaymentGatewayClient.PaymentGatewayResponse;
 import com.loopers.support.error.CoreException;
@@ -23,10 +24,10 @@ public class PaymentFacade {
     private String callbackUrl;
 
     public PaymentResult requestPayment(PaymentCreateCommand command) {
-        // TX1: Payment 생성 (PENDING) → 커밋
+        //1. Payment 생성(TX1)
         Payment payment = paymentService.requestPayment(command);
 
-        // 트랜잭션 밖: PG 호출
+        //2. PG 호출(트랜잭션 밖)
         try {
             PaymentGatewayResponse response = paymentGatewayClient.requestPayment(
                     new PaymentGatewayRequest(
@@ -39,7 +40,8 @@ public class PaymentFacade {
                     )
             );
 
-            if ("PENDING".equals(response.status())) {
+			//3. PG 응답(TX2)
+            if (response.status() == PgResponseStatus.PENDING) {
                 // TX2: transactionKey 할당 → 커밋
                 return paymentService.completePaymentRequest(payment.getId(), response.transactionKey());
             } else {
