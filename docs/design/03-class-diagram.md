@@ -118,4 +118,40 @@ classDiagram
     Order "0..1" -- "0..1" UserCoupon : applies
     Coupon "1" -- "*" UserCoupon : issues
     UserCoupon ..> CouponStatus
+
+    class Payment {
+        -Long id
+        -Long orderId
+        -Long userId
+        -CardType cardType
+        -String cardNo
+        -Long amount
+        -String transactionKey
+        -PaymentStatus status
+        -String failureReason
+        +assignTransactionKey(transactionKey)
+        +approve()
+        +reject(reason)
+        +unknown()
+    }
+
+    class PaymentStatus {
+        <<enumeration>>
+        PENDING
+        UNKNOWN
+        APPROVED
+        REJECTED
+    }
+
+    class CardType {
+        <<enumeration>>
+        SAMSUNG
+        KB
+        HYUNDAI
+    }
+
+    Payment ..> PaymentStatus
+    Payment ..> CardType
+    Order "1" -- "0..1" Payment : pays
+    User "1" -- "*" Payment : requests
 ```
