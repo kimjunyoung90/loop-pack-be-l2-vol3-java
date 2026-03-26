@@ -18,13 +18,13 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class OrderStockEventHandlerTest {
+class OrderEventHandlerTest {
 
     @Mock
     private ProductService productService;
 
     @InjectMocks
-    private OrderStockEventHandler handler;
+    private OrderEventHandler handler;
 
     @Test
     void 주문_생성_이벤트를_수신하면_재고를_차감한다() {
@@ -70,7 +70,7 @@ class OrderStockEventHandlerTest {
     @Test
     void 주문_취소_이벤트를_수신하면_재고를_복원한다() {
         // given
-        OrderCancelledEvent event = new OrderCancelledEvent(List.of(
+        OrderCancelledEvent event = new OrderCancelledEvent(null, List.of(
                 new OrderCancelledEvent.ItemStock(1L, 2)
         ));
 
@@ -84,7 +84,7 @@ class OrderStockEventHandlerTest {
     @Test
     void 주문_취소_이벤트_수신_시_productId_오름차순으로_재고를_복원한다() {
         // given
-        OrderCancelledEvent event = new OrderCancelledEvent(List.of(
+        OrderCancelledEvent event = new OrderCancelledEvent(null, List.of(
                 new OrderCancelledEvent.ItemStock(2L, 3),
                 new OrderCancelledEvent.ItemStock(1L, 1)
         ));

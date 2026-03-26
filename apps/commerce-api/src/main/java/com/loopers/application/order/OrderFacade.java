@@ -58,16 +58,11 @@ public class OrderFacade {
         // 1. 주문을 취소한다.
         OrderResult orderResult = orderService.cancelOrder(userId, orderId);
 
-        // 2. 재고 복원 이벤트를 발행한다.
+        // 2. 주문 취소 이벤트를 발행한다. (재고 복원, 쿠폰 복원)
         List<OrderCancelledEvent.ItemStock> stockItems = orderResult.orderItems().stream()
                 .map(item -> new OrderCancelledEvent.ItemStock(item.productId(), item.quantity()))
                 .toList();
-        eventPublisher.publishEvent(new OrderCancelledEvent(stockItems));
-
-        // 3. 쿠폰을 복원한다. (쿠폰이 있는 경우)
-        if (orderResult.userCouponId() != null) {
-            couponService.restoreCoupon(orderResult.userCouponId());
-        }
+        eventPublisher.publishEvent(new OrderCancelledEvent(orderResult.userCouponId(), stockItems));
 
         return orderResult;
     }

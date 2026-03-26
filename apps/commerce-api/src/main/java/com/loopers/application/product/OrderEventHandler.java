@@ -11,7 +11,7 @@ import java.util.Comparator;
 
 @RequiredArgsConstructor
 @Component
-public class OrderStockEventHandler {
+public class OrderEventHandler {
 
 	private final ProductService productService;
 

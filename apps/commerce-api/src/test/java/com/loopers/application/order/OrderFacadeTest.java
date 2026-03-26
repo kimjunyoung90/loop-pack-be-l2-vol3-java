@@ -194,7 +194,7 @@ class OrderFacadeTest {
     // --- 쿠폰 적용 주문 취소 테스트 ---
 
     @Test
-    void 쿠폰이_적용된_주문을_취소하면_쿠폰이_복원된다() {
+    void 쿠폰이_적용된_주문을_취소하면_이벤트에_쿠폰ID가_포함된다() {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         OrderResult cancelledResult = new OrderResult(1L, 1L, 10L, "CANCELLED", 100000, 5000, 95000, List.of(
@@ -203,16 +203,16 @@ class OrderFacadeTest {
         given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledResult);
 
         // when
-        OrderResult result = orderFacade.cancelOrder(1L, 1L);
+        orderFacade.cancelOrder(1L, 1L);
 
         // then
-        assertThat(result.status()).isEqualTo("CANCELLED");
-        verify(eventPublisher).publishEvent(any(OrderCancelledEvent.class));
-        verify(couponService).restoreCoupon(10L);
+        ArgumentCaptor<OrderCancelledEvent> captor = ArgumentCaptor.forClass(OrderCancelledEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        assertThat(captor.getValue().userCouponId()).isEqualTo(10L);
     }
 
     @Test
-    void 쿠폰_미적용_주문을_취소하면_쿠폰_복원이_호출되지_않는다() {
+    void 쿠폰_미적용_주문을_취소하면_이벤트에_쿠폰ID가_null이다() {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         OrderResult cancelledResult = new OrderResult(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
@@ -224,6 +224,8 @@ class OrderFacadeTest {
         orderFacade.cancelOrder(1L, 1L);
 
         // then
-        verify(couponService, never()).restoreCoupon(any());
+        ArgumentCaptor<OrderCancelledEvent> captor = ArgumentCaptor.forClass(OrderCancelledEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        assertThat(captor.getValue().userCouponId()).isNull();
     }
 }
