@@ -1,8 +1,11 @@
 package com.loopers.application.payment;
 
+import com.loopers.application.payment.command.PaymentCallbackCommand;
 import com.loopers.application.payment.command.PaymentCreateCommand;
 import com.loopers.application.payment.result.PaymentResult;
 import com.loopers.domain.payment.PaymentGatewayClient;
+import com.loopers.domain.payment.event.PaymentApprovedEvent;
+import com.loopers.domain.payment.event.PaymentRejectedEvent;
 import com.loopers.domain.payment.PaymentGatewayClient.PgResponseStatus;
 import com.loopers.domain.payment.PaymentGatewayClient.PaymentGatewayRequest;
 import com.loopers.domain.payment.PaymentGatewayClient.PaymentGatewayResponse;
@@ -10,7 +13,9 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Component
@@ -18,6 +23,7 @@ public class PaymentFacade {
 
     private final PaymentService paymentService;
     private final PaymentGatewayClient paymentGatewayClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${pg.callback-url}")
     private String callbackUrl;
@@ -62,5 +68,21 @@ public class PaymentFacade {
             paymentService.suspendPaymentByTimeout(paymentId);
             throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR, "결제 요청 중 알 수 없는 오류가 발생했습니다.");
         }
+    }
+
+    @Transactional
+    public PaymentResult handleCallback(PaymentCallbackCommand command) {
+        // 1. 결제 상태를 업데이트한다.
+        PaymentResult paymentResult = paymentService.handleCallback(command);
+
+        if ("APPROVED".equals(paymentResult.status())) {
+            // 2-a. 결제 승인 이벤트를 발행한다.
+            eventPublisher.publishEvent(new PaymentApprovedEvent(paymentResult.orderId()));
+        } else {
+            // 2-b. 결제 거절 이벤트를 발행한다.
+            eventPublisher.publishEvent(new PaymentRejectedEvent(paymentResult.orderId(), paymentResult.userId()));
+        }
+
+        return paymentResult;
     }
 }

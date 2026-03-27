@@ -44,7 +44,7 @@ public class Order extends BaseEntity {
     private Order(Long userId, Long userCouponId) {
         this.userId = userId;
         this.userCouponId = userCouponId;
-        this.status = OrderStatus.COMPLETED;
+        this.status = OrderStatus.PENDING;
         this.totalAmount = 0;
         this.discountAmount = 0;
         this.finalAmount = 0;
@@ -86,6 +86,13 @@ public class Order extends BaseEntity {
                 .mapToInt(OrderItem::getTotalPrice)
                 .sum();
         this.finalAmount = Math.max(this.totalAmount - this.discountAmount, 0);
+    }
+
+    public void complete() {
+		if(this.status != OrderStatus.PENDING) {
+			throw new CoreException(ErrorType.BAD_REQUEST, "결제 대기 중인 주문만 완료할 수 있습니다.");
+		}
+		this.status = OrderStatus.COMPLETED;
     }
 
     public void cancel(Long userId) {
