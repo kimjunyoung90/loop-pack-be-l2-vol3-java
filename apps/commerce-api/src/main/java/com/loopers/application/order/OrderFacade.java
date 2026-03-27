@@ -13,7 +13,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -28,14 +27,18 @@ public class OrderFacade {
     @Transactional
     public OrderResult placeOrder(OrderCreateCommand command) {
         // 1. 주문 상품 정보를 조회한다.
-        List<OrderItemCommand> orderItemCommands = new ArrayList<>();
-        List<OrderPlacedEvent.ItemStock> stockItems = new ArrayList<>();
-        for (OrderCreateCommand.OrderItem item : command.orderItems()) {
-            ProductResult product = productService.getProduct(item.productId());
-            orderItemCommands.add(new OrderItemCommand(
-                    product.id(), product.name(), product.price(), item.quantity()));
-            stockItems.add(new OrderPlacedEvent.ItemStock(item.productId(), item.quantity()));
-        }
+        List<OrderItemCommand> orderItemCommands = command.orderItems().stream()
+                .map(item -> {
+                    ProductResult product = productService.getProduct(item.productId());
+                    return new OrderItemCommand(
+                            product.id(), product.name(), product.price(), item.quantity());
+                })
+                .toList();
+
+        // 2. 재고 차감 이벤트 아이템을 생성한다.
+        List<OrderPlacedEvent.ItemStock> stockItems = command.orderItems().stream()
+                .map(item -> new OrderPlacedEvent.ItemStock(item.productId(), item.quantity()))
+                .toList();
 
         // 2. 쿠폰을 적용한다. (쿠폰이 있는 경우)
         int discountAmount = 0;
