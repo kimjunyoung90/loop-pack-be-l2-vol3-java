@@ -40,18 +40,18 @@ public class OrderFacade {
                 .map(item -> new OrderPlacedEvent.ItemStock(item.productId(), item.quantity()))
                 .toList();
 
-        // 2. 쿠폰을 적용한다. (쿠폰이 있는 경우)
+        // 2. 쿠폰 할인 금액을 계산한다. (쿠폰이 있는 경우)
+        int totalAmount = OrderItemCommand.calculateTotalAmount(orderItemCommands);
         int discountAmount = 0;
         if (command.userCouponId() != null) {
-            int totalAmount = OrderItemCommand.calculateTotalAmount(orderItemCommands);
-            discountAmount = couponService.useCoupon(command.userCouponId(), command.userId(), totalAmount);
+            discountAmount = couponService.calculateDiscount(command.userCouponId(), command.userId(), totalAmount);
         }
 
         // 3. 주문을 생성한다.
         OrderResult orderResult = orderService.placeOrder(command.userId(), command.userCouponId(), orderItemCommands, discountAmount);
 
-        // 4. 재고 차감 이벤트를 발행한다.
-        eventPublisher.publishEvent(new OrderPlacedEvent(stockItems));
+        // 4. 주문 생성 이벤트를 발행한다. (재고 차감, 쿠폰 사용)
+        eventPublisher.publishEvent(new OrderPlacedEvent(stockItems, command.userCouponId(), command.userId(), totalAmount));
 
         return orderResult;
     }

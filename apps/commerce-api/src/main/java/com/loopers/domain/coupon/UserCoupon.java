@@ -98,7 +98,7 @@ public class UserCoupon extends BaseEntity {
         return Math.min(discount, totalAmount);
     }
 
-    public void use(Long userId, int totalAmount) {
+    public void validateUsable(Long userId, int totalAmount) {
         if (!this.userId.equals(userId)) {
             throw new CoreException(ErrorType.FORBIDDEN, "본인 소유의 쿠폰만 사용할 수 있습니다.");
         }
@@ -112,6 +112,10 @@ public class UserCoupon extends BaseEntity {
         if (minOrderAmount != null && totalAmount < minOrderAmount) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 금액이 쿠폰의 최소 주문 금액에 미달합니다.");
         }
+    }
+
+    public void use(Long userId, int totalAmount) {
+        validateUsable(userId, totalAmount);
         this.status = CouponStatus.USED;
     }
 

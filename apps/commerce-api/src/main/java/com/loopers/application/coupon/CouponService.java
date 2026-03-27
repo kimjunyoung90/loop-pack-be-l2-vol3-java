@@ -102,6 +102,14 @@ public class CouponService {
 				.map(UserCouponResult::from);
 	}
 
+	@Transactional(readOnly = true)
+	public int calculateDiscount(Long userCouponId, Long userId, int totalAmount) {
+		UserCoupon userCoupon = userCouponRepository.findByIdAndDeletedAtIsNull(userCouponId)
+				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
+		userCoupon.validateUsable(userId, totalAmount);
+		return userCoupon.calculateDiscount(totalAmount);
+	}
+
 	@Transactional
 	public int useCoupon(Long userCouponId, Long userId, int totalAmount) {
 		UserCoupon userCoupon = userCouponRepository.findByIdWithLockAndDeletedAtIsNull(userCouponId)
