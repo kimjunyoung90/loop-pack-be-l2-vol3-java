@@ -4,6 +4,7 @@ import com.loopers.application.payment.command.PaymentCallbackCommand;
 import com.loopers.application.payment.command.PaymentCreateCommand;
 import com.loopers.application.payment.result.PaymentResult;
 import com.loopers.domain.payment.PaymentGatewayClient;
+import com.loopers.domain.payment.PaymentStatus;
 import com.loopers.domain.payment.event.PaymentApprovedEvent;
 import com.loopers.domain.payment.event.PaymentRejectedEvent;
 import com.loopers.domain.payment.PaymentGatewayClient.PgResponseStatus;
@@ -75,7 +76,7 @@ public class PaymentFacade {
         // 1. 결제 상태를 업데이트한다.
         PaymentResult paymentResult = paymentService.handleCallback(command);
 
-        if ("APPROVED".equals(paymentResult.status())) {
+        if (PaymentStatus.APPROVED.name().equals(paymentResult.status())) {
             // 2-a. 결제 승인 이벤트를 발행한다.
             eventPublisher.publishEvent(new PaymentApprovedEvent(paymentResult.orderId()));
         } else {
