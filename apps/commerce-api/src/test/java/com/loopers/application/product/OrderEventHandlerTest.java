@@ -35,7 +35,7 @@ class OrderEventHandlerTest {
 
         OrderPlacedEvent event = new OrderPlacedEvent(List.of(
                 new OrderPlacedEvent.ItemStock(1L, 2)
-        ));
+        ), null, 1L, 100000);
 
         // when
         handler.handleOrderPlaced(event);
@@ -56,7 +56,7 @@ class OrderEventHandlerTest {
         OrderPlacedEvent event = new OrderPlacedEvent(List.of(
                 new OrderPlacedEvent.ItemStock(2L, 3),
                 new OrderPlacedEvent.ItemStock(1L, 1)
-        ));
+        ), null, 1L, 80000);
 
         // when
         handler.handleOrderPlaced(event);
