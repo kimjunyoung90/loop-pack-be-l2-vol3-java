@@ -6,9 +6,12 @@ import com.loopers.application.brand.result.BrandResult;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.brand.BrandCacheRepository;
 import com.loopers.domain.brand.BrandRepository;
+import com.loopers.domain.brand.event.BrandDeletedEvent;
+import com.loopers.domain.brand.event.BrandModifiedEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ public class BrandService {
 
 	private final BrandRepository brandRepository;
 	private final BrandCacheRepository brandCacheRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional
 	public BrandResult registerBrand(BrandCreateCommand command) {
@@ -57,7 +61,7 @@ public class BrandService {
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
 		brand.changeName(command.name());
-		brandCacheRepository.evictBrand(brandId);
+		eventPublisher.publishEvent(new BrandModifiedEvent(brandId));
 		return BrandResult.from(brand);
 	}
 
@@ -67,6 +71,6 @@ public class BrandService {
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
 
 		brand.delete();
-		brandCacheRepository.evictBrand(brandId);
+		eventPublisher.publishEvent(new BrandDeletedEvent(brandId));
 	}
 }
