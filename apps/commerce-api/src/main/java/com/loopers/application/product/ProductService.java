@@ -5,10 +5,14 @@ import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithLikeCountResult;
 import com.loopers.domain.product.*;
+import com.loopers.domain.product.event.ProductDeletedEvent;
+import com.loopers.domain.product.event.ProductModifiedEvent;
+import com.loopers.domain.product.event.ProductStockChangedEvent;
 import com.loopers.support.cache.CacheLockManager;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +29,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductCacheRepository productCacheRepository;
     private final CacheLockManager cacheLockManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ProductResult registerProduct(Long brandId, ProductCreateCommand command) {
@@ -135,8 +140,7 @@ public class ProductService {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         product.changeInfo(brandId, command.name(), command.price(), command.stock());
-        productCacheRepository.evictProduct(productId);
-        productCacheRepository.evictAllProductsCache();
+        eventPublisher.publishEvent(new ProductModifiedEvent(productId));
 
         return ProductResult.from(product);
     }
@@ -146,8 +150,7 @@ public class ProductService {
         Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
         product.deductStock(quantity);
-        productCacheRepository.evictProduct(productId);
-        productCacheRepository.evictAllProductsCache();
+        eventPublisher.publishEvent(new ProductStockChangedEvent(productId));
         return ProductResult.from(product);
     }
 
@@ -156,8 +159,7 @@ public class ProductService {
         Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
         product.restoreStock(quantity);
-        productCacheRepository.evictProduct(productId);
-        productCacheRepository.evictAllProductsCache();
+        eventPublisher.publishEvent(new ProductStockChangedEvent(productId));
     }
 
     @Transactional
@@ -165,18 +167,15 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
         product.delete();
-        productCacheRepository.evictProduct(productId);
-        productCacheRepository.evictAllProductsCache();
+        eventPublisher.publishEvent(ProductDeletedEvent.of(productId));
     }
 
     @Transactional
     public void deleteProducts(Long brandId) {
         List<Product> products = productRepository.findAllByBrandId(brandId);
-        products.forEach(product -> {
-            product.delete();
-            productCacheRepository.evictProduct(product.getId());
-        });
-        productCacheRepository.evictAllProductsCache();
+        List<Long> productIds = products.stream().map(Product::getId).toList();
+        products.forEach(Product::delete);
+        eventPublisher.publishEvent(new ProductDeletedEvent(productIds));
     }
 
     private Page<ProductWithLikeCount> fetchAndCacheProductsWithLikeCount(Long brandId, Pageable pageable) {
