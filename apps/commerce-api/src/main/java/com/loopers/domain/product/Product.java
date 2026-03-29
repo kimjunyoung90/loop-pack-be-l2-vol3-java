@@ -10,7 +10,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "products")
+@Table(name = "products", indexes = {
+        @Index(name = "idx_products_created_at", columnList = "created_at DESC"),
+        @Index(name = "idx_products_price", columnList = "price ASC"),
+        @Index(name = "idx_products_brand_created_at", columnList = "brand_id, created_at DESC"),
+        @Index(name = "idx_products_brand_price", columnList = "brand_id, price ASC")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product extends BaseEntity {
