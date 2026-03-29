@@ -5,6 +5,7 @@ import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithLikeCountResult;
 import com.loopers.domain.product.*;
+import com.loopers.support.cache.CacheLockManager;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductCacheRepository productCacheRepository;
+    private final CacheLockManager cacheLockManager;
 
     @Transactional
     public ProductResult registerProduct(Long brandId, ProductCreateCommand command) {
@@ -41,24 +43,32 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductResult getProduct(Long productId) {
         Product product = productCacheRepository.getProduct(productId)
-                .orElseGet(() -> {
-                    Product origin = productRepository.findByIdAndDeletedAtIsNull(productId)
-                            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-                    productCacheRepository.putProduct(productId, origin);
-                    return origin;
-                });
+                .orElseGet(() -> cacheLockManager.executeWithLock(
+                        "product:" + productId,
+                        () -> productCacheRepository.getProduct(productId),
+                        () -> {
+                            Product origin = productRepository.findByIdAndDeletedAtIsNull(productId)
+                                    .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+                            productCacheRepository.putProduct(productId, origin);
+                            return origin;
+                        }
+                ));
         return ProductResult.from(product);
     }
 
     @Transactional(readOnly = true)
     public ProductWithLikeCountResult getProductWithLikeCount(Long productId) {
         ProductWithLikeCount productWithLikeCount = productCacheRepository.getProductWithLikeCount(productId)
-                .orElseGet(() -> {
-                    ProductWithLikeCount origin = productRepository.findWithLikeCountByIdAndDeletedAtIsNull(productId)
-                            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-                    productCacheRepository.putProductWithLikeCount(productId, origin);
-                    return origin;
-                });
+                .orElseGet(() -> cacheLockManager.executeWithLock(
+                        "product:like:" + productId,
+                        () -> productCacheRepository.getProductWithLikeCount(productId),
+                        () -> {
+                            ProductWithLikeCount origin = productRepository.findWithLikeCountByIdAndDeletedAtIsNull(productId)
+                                    .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+                            productCacheRepository.putProductWithLikeCount(productId, origin);
+                            return origin;
+                        }
+                ));
         return ProductWithLikeCountResult.from(productWithLikeCount);
     }
 

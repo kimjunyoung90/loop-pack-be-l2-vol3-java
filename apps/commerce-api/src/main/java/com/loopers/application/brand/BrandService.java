@@ -8,6 +8,7 @@ import com.loopers.domain.brand.BrandCacheRepository;
 import com.loopers.domain.brand.BrandRepository;
 import com.loopers.domain.brand.event.BrandDeletedEvent;
 import com.loopers.domain.brand.event.BrandModifiedEvent;
+import com.loopers.support.cache.CacheLockManager;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class BrandService {
 	private final BrandRepository brandRepository;
 	private final BrandCacheRepository brandCacheRepository;
 	private final ApplicationEventPublisher eventPublisher;
+	private final CacheLockManager cacheLockManager;
 
 	@Transactional
 	public BrandResult registerBrand(BrandCreateCommand command) {
@@ -36,12 +38,18 @@ public class BrandService {
 
 	@Transactional(readOnly = true)
 	public BrandResult getBrand(Long brandId) {
-		return BrandResult.from(brandCacheRepository.getBrand(brandId).orElseGet(() -> {
-			Brand brand = brandRepository.findByIdAndDeletedAtIsNull(brandId)
-					.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
-			brandCacheRepository.putBrand(brandId, brand);
-			return brand;
-		}));
+		Brand brand = brandCacheRepository.getBrand(brandId)
+				.orElseGet(() -> cacheLockManager.executeWithLock(
+						"brand:" + brandId,
+						() -> brandCacheRepository.getBrand(brandId),
+						() -> {
+							Brand origin = brandRepository.findByIdAndDeletedAtIsNull(brandId)
+									.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
+							brandCacheRepository.putBrand(brandId, origin);
+							return origin;
+						}
+				));
+		return BrandResult.from(brand);
 	}
 
 	@Transactional(readOnly = true)
