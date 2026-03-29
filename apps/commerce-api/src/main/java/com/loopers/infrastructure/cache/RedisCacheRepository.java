@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 public abstract class RedisCacheRepository {
+
+    private static final double JITTER_RATE = 0.1;
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper cacheObjectMapper;
@@ -54,10 +57,16 @@ public abstract class RedisCacheRepository {
     protected void putToCache(String key, Object value, Duration ttl) {
         try {
             String json = cacheObjectMapper.writeValueAsString(value);
-            safeSet(key, json, ttl);
+            safeSet(key, json, applyJitter(ttl));
         } catch (JsonProcessingException e) {
             log.warn("캐시 직렬화 실패: key={}", key, e);
         }
+    }
+
+    private Duration applyJitter(Duration baseTtl) {
+        long baseSeconds = baseTtl.getSeconds();
+        long jitter = (long) (baseSeconds * JITTER_RATE * (ThreadLocalRandom.current().nextDouble() * 2 - 1));
+        return Duration.ofSeconds(Math.max(1, baseSeconds + jitter));
     }
 
     protected <T> List<T> multiGetFromCache(List<String> keys, Class<T> type) {
