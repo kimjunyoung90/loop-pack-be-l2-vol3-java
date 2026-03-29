@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -57,6 +60,28 @@ public abstract class RedisCacheRepository {
         }
     }
 
+    protected <T> List<T> multiGetFromCache(List<String> keys, Class<T> type) {
+        if (keys.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> jsonList = safeMultiGet(keys);
+        if (jsonList == null) {
+            return Collections.emptyList();
+        }
+        return jsonList.stream()
+                .filter(Objects::nonNull)
+                .map(json -> {
+                    try {
+                        return cacheObjectMapper.readValue(json, type);
+                    } catch (JsonProcessingException e) {
+                        log.warn("캐시 역직렬화 실패", e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     // === Redis 안전 연산 (Fail-Silent) ===
 
     protected void safeDelete(String key) {
@@ -75,6 +100,15 @@ public abstract class RedisCacheRepository {
             }
         } catch (Exception e) {
             log.warn("Redis 패턴 삭제 실패: pattern={}", pattern, e);
+        }
+    }
+
+    private List<String> safeMultiGet(List<String> keys) {
+        try {
+            return redisTemplate.opsForValue().multiGet(keys);
+        } catch (Exception e) {
+            log.warn("Redis 다건 조회 실패: keys={}", keys.size(), e);
+            return null;
         }
     }
 

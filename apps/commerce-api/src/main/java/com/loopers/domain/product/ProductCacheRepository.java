@@ -1,8 +1,8 @@
 package com.loopers.domain.product;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductCacheRepository {
@@ -14,16 +14,17 @@ public interface ProductCacheRepository {
 
     Optional<ProductWithLikeCount> getProductWithLikeCount(Long productId);
     void putProductWithLikeCount(Long productId, ProductWithLikeCount productWithLikeCount);
+    List<ProductWithLikeCount> multiGetProductsWithLikeCount(List<Long> productIds);
 
-    // 목록
-    Optional<Page<Product>> getProducts(Pageable pageable);
-    void putProducts(Pageable pageable, Page<Product> products);
+    // 목록 (Product - Admin용)
+    Optional<List<Product>> getProducts(Pageable pageable);
+    void putProducts(Pageable pageable, List<Product> products);
 
-    Optional<Page<ProductWithLikeCount>> getProductsWithLikeCount(Pageable pageable);
-    void putProductsWithLikeCount(Pageable pageable, Page<ProductWithLikeCount> products);
-
-    Optional<Page<ProductWithLikeCount>> getProductsWithLikeCount(Long brandId, Pageable pageable);
-    void putProductsWithLikeCount(Long brandId, Pageable pageable, Page<ProductWithLikeCount> products);
+    // 목록 (ID 리스트 캐싱)
+    Optional<CachedProductIds> getProductIds(Pageable pageable);
+    Optional<CachedProductIds> getProductIds(Long brandId, Pageable pageable);
+    void putProductIds(Pageable pageable, List<Long> productIds, long totalElements);
+    void putProductIds(Long brandId, Pageable pageable, List<Long> productIds, long totalElements);
 
     // 전체 목록 캐시 무효화
     void evictAllProductsCache();
