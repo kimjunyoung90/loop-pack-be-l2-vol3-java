@@ -16,13 +16,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class OrderEventHandlerTest {
+class CouponOrderEventHandlerTest {
 
     @Mock
     private CouponService couponService;
 
     @InjectMocks
-    private OrderEventHandler handler;
+    private CouponOrderEventHandler handler;
 
     // --- handleOrderPlaced ---
 

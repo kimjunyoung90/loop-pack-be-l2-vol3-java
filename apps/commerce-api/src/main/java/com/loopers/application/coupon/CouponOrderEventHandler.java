@@ -9,7 +9,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
 @Component
-public class OrderEventHandler {
+public class CouponOrderEventHandler {
 
     private final CouponService couponService;
 

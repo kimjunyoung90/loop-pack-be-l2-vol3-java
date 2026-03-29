@@ -18,13 +18,13 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class OrderEventHandlerTest {
+class ProductOrderEventHandlerTest {
 
     @Mock
     private ProductService productService;
 
     @InjectMocks
-    private OrderEventHandler handler;
+    private ProductOrderEventHandler handler;
 
     @Test
     void 주문_생성_이벤트를_수신하면_재고를_차감한다() {
