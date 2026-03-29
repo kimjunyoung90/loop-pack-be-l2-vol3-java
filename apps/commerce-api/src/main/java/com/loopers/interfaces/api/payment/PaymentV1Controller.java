@@ -1,7 +1,6 @@
 package com.loopers.interfaces.api.payment;
 
 import com.loopers.application.payment.PaymentFacade;
-import com.loopers.application.payment.PaymentService;
 import com.loopers.application.payment.command.PaymentCallbackCommand;
 import com.loopers.application.payment.command.PaymentCreateCommand;
 import com.loopers.application.payment.result.PaymentResult;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentV1Controller implements PaymentV1ApiSpec {
 
     private final PaymentFacade paymentFacade;
-    private final PaymentService paymentService;
 
     @PostMapping
     @Override
@@ -48,7 +46,7 @@ public class PaymentV1Controller implements PaymentV1ApiSpec {
     @PostMapping("/callback")
     @Override
     public ApiResponse<Object> handleCallback(@RequestBody PaymentCallbackRequest request) {
-        paymentService.handleCallback(
+        paymentFacade.handleCallback(
                 new PaymentCallbackCommand(
                         request.transactionKey(),
                         request.orderId(),

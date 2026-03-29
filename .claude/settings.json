@@ -1,5 +1,4 @@
 {
-  "enable_tool_search": true,
   "hooks": {
     "TaskCompleted": [
       {
@@ -12,5 +11,9 @@
         ]
       }
     ]
+  },
+  "enable_tool_search": true,
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true
   }
 }

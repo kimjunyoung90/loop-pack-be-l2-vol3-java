@@ -1,13 +1,11 @@
 package com.loopers.infrastructure.product;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.domain.product.CachedProductIds;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductCacheRepository;
 import com.loopers.domain.product.ProductWithLikeCount;
 import com.loopers.infrastructure.cache.RedisCacheRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -22,7 +20,8 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
 
     private static final String PRODUCT_KEY_PREFIX = "product:";
     private static final String PRODUCTS_KEY_PREFIX = "products:";
-    private static final Duration TTL = Duration.ofHours(1);
+    private static final Duration DETAIL_TTL = Duration.ofMinutes(5);
+    private static final Duration LIST_TTL = Duration.ofMinutes(1);
 
     public ProductCacheRepositoryImpl(
             RedisTemplate<String, String> redisTemplate,
@@ -39,7 +38,7 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
 
     @Override
     public void putProduct(Long productId, Product product) {
-        putToCache(PRODUCT_KEY_PREFIX + productId, product, TTL);
+        putToCache(PRODUCT_KEY_PREFIX + productId, product, DETAIL_TTL);
     }
 
     @Override
@@ -57,50 +56,58 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
 
     @Override
     public void putProductWithLikeCount(Long productId, ProductWithLikeCount productWithLikeCount) {
-        putToCache(PRODUCT_KEY_PREFIX + productId + ":like", productWithLikeCount, TTL);
+        putToCache(PRODUCT_KEY_PREFIX + productId + ":like", productWithLikeCount, DETAIL_TTL);
     }
 
-    // === 목록: Page<Product> ===
+    @Override
+    public List<ProductWithLikeCount> multiGetProductsWithLikeCount(List<Long> productIds) {
+        List<String> keys = productIds.stream()
+                .map(id -> PRODUCT_KEY_PREFIX + id + ":like")
+                .toList();
+        return multiGetFromCache(keys, ProductWithLikeCount.class);
+    }
+
+    // === 목록: Product (Admin용) ===
 
     @Override
-    public Optional<Page<Product>> getProducts(Pageable pageable) {
-        String key = PRODUCTS_KEY_PREFIX + buildPageSuffix(pageable);
+    public Optional<List<Product>> getProducts(Pageable pageable) {
+        String key = PRODUCTS_KEY_PREFIX + "admin:" + buildPageSuffix(pageable);
         return getFromCache(key, CachedProductPage.class)
-                .map(cached -> new PageImpl<>(cached.content, PageRequest.of(cached.page, cached.size), cached.totalElements));
+                .map(cached -> cached.content);
     }
 
     @Override
-    public void putProducts(Pageable pageable, Page<Product> products) {
+    public void putProducts(Pageable pageable, List<Product> products) {
+        String key = PRODUCTS_KEY_PREFIX + "admin:" + buildPageSuffix(pageable);
+        putToCache(key, new CachedProductPage(products), LIST_TTL);
+    }
+
+    record CachedProductPage(List<Product> content) {}
+
+    // === 목록: ID 리스트 캐싱 ===
+
+    @Override
+    public Optional<CachedProductIds> getProductIds(Pageable pageable) {
         String key = PRODUCTS_KEY_PREFIX + buildPageSuffix(pageable);
-        putToCache(key, new CachedProductPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()), TTL);
-    }
-
-    // === 목록: Page<ProductWithLikeCount> ===
-
-    @Override
-    public Optional<Page<ProductWithLikeCount>> getProductsWithLikeCount(Pageable pageable) {
-        String key = PRODUCTS_KEY_PREFIX + "like:" + buildPageSuffix(pageable);
-        return getFromCache(key, CachedProductWithLikeCountPage.class)
-                .map(cached -> new PageImpl<>(cached.content, PageRequest.of(cached.page, cached.size), cached.totalElements));
+        return getFromCache(key, CachedProductIds.class);
     }
 
     @Override
-    public void putProductsWithLikeCount(Pageable pageable, Page<ProductWithLikeCount> products) {
-        String key = PRODUCTS_KEY_PREFIX + "like:" + buildPageSuffix(pageable);
-        putToCache(key, new CachedProductWithLikeCountPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()), TTL);
+    public Optional<CachedProductIds> getProductIds(Long brandId, Pageable pageable) {
+        String key = PRODUCTS_KEY_PREFIX + "brand:" + brandId + ":" + buildPageSuffix(pageable);
+        return getFromCache(key, CachedProductIds.class);
     }
 
     @Override
-    public Optional<Page<ProductWithLikeCount>> getProductsWithLikeCount(Long brandId, Pageable pageable) {
-        String key = PRODUCTS_KEY_PREFIX + "like:brand:" + brandId + ":" + buildPageSuffix(pageable);
-        return getFromCache(key, CachedProductWithLikeCountPage.class)
-                .map(cached -> new PageImpl<>(cached.content, PageRequest.of(cached.page, cached.size), cached.totalElements));
+    public void putProductIds(Pageable pageable, List<Long> productIds, long totalElements) {
+        String key = PRODUCTS_KEY_PREFIX + buildPageSuffix(pageable);
+        putToCache(key, new CachedProductIds(productIds, totalElements), LIST_TTL);
     }
 
     @Override
-    public void putProductsWithLikeCount(Long brandId, Pageable pageable, Page<ProductWithLikeCount> products) {
-        String key = PRODUCTS_KEY_PREFIX + "like:brand:" + brandId + ":" + buildPageSuffix(pageable);
-        putToCache(key, new CachedProductWithLikeCountPage(products.getContent(), products.getTotalElements(), products.getNumber(), products.getSize()), TTL);
+    public void putProductIds(Long brandId, Pageable pageable, List<Long> productIds, long totalElements) {
+        String key = PRODUCTS_KEY_PREFIX + "brand:" + brandId + ":" + buildPageSuffix(pageable);
+        putToCache(key, new CachedProductIds(productIds, totalElements), LIST_TTL);
     }
 
     // === 전체 목록 캐시 무효화 ===
@@ -121,10 +128,4 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
         }
         return "page:" + pageable.getPageNumber() + ":size:" + pageable.getPageSize() + ":sort:" + sort;
     }
-
-    // === 캐시 직렬화용 레코드 ===
-
-    record CachedProductPage(List<Product> content, long totalElements, int page, int size) {}
-
-    record CachedProductWithLikeCountPage(List<ProductWithLikeCount> content, long totalElements, int page, int size) {}
 }

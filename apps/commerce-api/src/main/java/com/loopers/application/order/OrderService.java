@@ -68,6 +68,14 @@ public class OrderService {
     }
 
     @Transactional
+    public OrderResult completeOrder(Long orderId) {
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
+        order.complete();
+        return OrderResult.from(order);
+    }
+
+    @Transactional
     public OrderResult cancelOrder(Long userId, Long orderId) {
         Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
