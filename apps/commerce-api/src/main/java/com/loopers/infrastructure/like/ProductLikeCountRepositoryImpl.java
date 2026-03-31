@@ -15,6 +15,11 @@ public class ProductLikeCountRepositoryImpl implements ProductLikeCountRepositor
     private final ProductLikeCountJpaRepository productLikeCountJpaRepository;
 
     @Override
+    public ProductLikeCount save(ProductLikeCount productLikeCount) {
+        return productLikeCountJpaRepository.save(productLikeCount);
+    }
+
+    @Override
     public Optional<ProductLikeCount> findByProductId(Long productId) {
         return productLikeCountJpaRepository.findByProductId(productId);
     }

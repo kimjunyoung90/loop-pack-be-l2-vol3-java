@@ -30,6 +30,17 @@ public class ProductLikeCount extends BaseEntity {
         guard();
     }
 
+    public void increment() {
+        this.likeCount++;
+    }
+
+    public void decrement() {
+        if (this.likeCount <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "좋아요 수는 0 미만이 될 수 없습니다.");
+        }
+        this.likeCount--;
+    }
+
     @Override
     protected void guard() {
         if (productId == null) {

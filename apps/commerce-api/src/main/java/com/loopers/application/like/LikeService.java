@@ -5,9 +5,12 @@ import com.loopers.domain.like.ProductLike;
 import com.loopers.domain.like.ProductLikeRepository;
 import com.loopers.domain.like.ProductLikeCount;
 import com.loopers.domain.like.ProductLikeCountRepository;
+import com.loopers.domain.like.event.ProductLikedEvent;
+import com.loopers.domain.like.event.ProductUnlikedEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ public class LikeService {
 
     private final ProductLikeRepository productLikeRepository;
     private final ProductLikeCountRepository productLikesCountRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public LikeResult like(Long userId, Long productId) {
@@ -35,7 +39,9 @@ public class LikeService {
                 .userId(userId)
                 .productId(productId)
                 .build();
-        return LikeResult.from(productLikeRepository.save(productLike));
+        ProductLike saved = productLikeRepository.save(productLike);
+        eventPublisher.publishEvent(new ProductLikedEvent(productId));
+        return LikeResult.from(saved);
     }
 
     @Transactional(readOnly = true)
@@ -49,11 +55,29 @@ public class LikeService {
         ProductLike productLike = productLikeRepository.findByUserIdAndProductId(userId, productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "좋아요를 찾을 수 없습니다."));
         productLikeRepository.delete(productLike);
+        eventPublisher.publishEvent(new ProductUnlikedEvent(productId));
     }
 
     @Transactional
     public void deleteLikes(Long productId) {
         productLikeRepository.deleteByProductId(productId);
+    }
+
+    @Transactional
+    public void incrementLikeCount(Long productId) {
+        ProductLikeCount productLikeCount = productLikesCountRepository.findByProductId(productId)
+                .orElseGet(() -> ProductLikeCount.builder()
+                        .productId(productId)
+                        .likeCount(0)
+                        .build());
+        productLikeCount.increment();
+        productLikesCountRepository.save(productLikeCount);
+    }
+
+    @Transactional
+    public void decrementLikeCount(Long productId) {
+        productLikesCountRepository.findByProductId(productId)
+                .ifPresent(ProductLikeCount::decrement);
     }
 
     @Transactional(readOnly = true)
