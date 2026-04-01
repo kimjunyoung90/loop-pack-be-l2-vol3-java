@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,16 +23,24 @@ public class OutboxEventPublisher {
     private final OutboxEventRepository outboxEventRepository;
     private final KafkaTemplate<Object, Object> kafkaTemplate;
 
-    // TODO(human): Outbox 폴링 → Kafka 발행 → 상태 변경 로직을 구현하세요.
-    //
-    // 요구사항:
-    // - PENDING 상태의 OutboxEvent를 조회
-    // - 각 이벤트를 Kafka 토픽으로 전송 (토픽명: TOPIC_PREFIX + eventType, key: aggregateId)
-    // - 전송 성공 시 markPublished() 호출
-    // - 실패 시 로그를 남기고 다음 이벤트 계속 처리
-    //
-    // 힌트:
-    // - @Scheduled(fixedDelay = 3000) 으로 3초마다 폴링
-    // - kafkaTemplate.send(topic, key, payload) 사용
-    // - 전송 결과는 CompletableFuture로 반환됨
+    @Scheduled(fixedDelay = 3000)
+    @Transactional
+    public void publish() {
+        List<OutboxEvent> outboxEvents = outboxEventRepository.findAllByStatus(OutboxStatus.PENDING);
+        outboxEvents.forEach(outboxEvent -> {
+            try {
+                kafkaTemplate.send(
+                        TOPIC_PREFIX + outboxEvent.getEventType(),
+                        String.valueOf(outboxEvent.getAggregateId()),
+                        outboxEvent.getPayload()
+                ).get();
+                outboxEvent.markPublished();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Outbox 이벤트 발행 중 인터럽트 발생. id={}", outboxEvent.getId(), e);
+            } catch (ExecutionException e) {
+                log.error("Outbox 이벤트 발행 실패. id={}", outboxEvent.getId(), e);
+            }
+        });
+    }
 }
