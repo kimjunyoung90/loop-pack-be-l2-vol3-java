@@ -13,6 +13,8 @@ public record CouponResult(
         int discountValue,
         Integer minOrderAmount,
         LocalDate expiredAt,
+        int totalQuantity,
+        int issuedQuantity,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -24,6 +26,8 @@ public record CouponResult(
                 coupon.getDiscountValue(),
                 coupon.getMinOrderAmount(),
                 coupon.getExpiredAt(),
+                coupon.getTotalQuantity(),
+                coupon.getIssuedQuantity(),
                 coupon.getCreatedAt(),
                 coupon.getUpdatedAt()
         );

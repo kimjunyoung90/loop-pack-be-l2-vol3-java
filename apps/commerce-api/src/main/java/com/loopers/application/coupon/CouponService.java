@@ -5,6 +5,7 @@ import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.domain.coupon.Coupon;
+import com.loopers.domain.coupon.CouponQuantityRepository;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.coupon.UserCouponRepository;
@@ -13,6 +14,7 @@ import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +24,12 @@ import java.util.List;
 @Service
 public class CouponService {
 
+	private static final String COUPON_ISSUE_TOPIC = "coupon-issue.request";
+
 	private final CouponRepository couponRepository;
 	private final UserCouponRepository userCouponRepository;
+	private final CouponQuantityRepository couponQuantityRepository;
+	private final KafkaTemplate<Object, Object> kafkaTemplate;
 
 	@Transactional
 	public CouponResult registerCoupon(CouponCreateCommand command) {
@@ -33,6 +39,7 @@ public class CouponService {
 				.discountValue(command.discountValue())
 				.minOrderAmount(command.minOrderAmount())
 				.expiredAt(command.expiredAt())
+				.totalQuantity(command.totalQuantity())
 				.build();
 
 		return CouponResult.from(couponRepository.save(coupon));
@@ -62,7 +69,8 @@ public class CouponService {
 				command.discountType(),
 				command.discountValue(),
 				command.minOrderAmount(),
-				command.expiredAt()
+				command.expiredAt(),
+				command.totalQuantity()
 		);
 
 		return CouponResult.from(coupon);
@@ -76,17 +84,30 @@ public class CouponService {
 		coupon.delete();
 	}
 
-	@Transactional
-	public UserCouponResult issueCoupon(Long userId, Long couponId) {
+	public void requestIssueCoupon(Long userId, Long couponId) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
-		if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
-			throw new CoreException(ErrorType.CONFLICT, "이미 발급받은 쿠폰입니다.");
+		long issuedCount = couponQuantityRepository.increment(couponId);
+		if (issuedCount > coupon.getTotalQuantity()) {
+			throw new CoreException(ErrorType.BAD_REQUEST, "쿠폰 발급 수량이 모두 소진되었습니다.");
 		}
 
+		String payload = "{\"userId\":" + userId + ",\"couponId\":" + couponId + "}";
+		kafkaTemplate.send(COUPON_ISSUE_TOPIC, String.valueOf(couponId), payload);
+	}
+
+	@Transactional
+	public void issueCoupon(Long userId, Long couponId) {
+		if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
+			return;
+		}
+
+		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
+				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
+
 		UserCoupon userCoupon = coupon.issue(userId);
-		return UserCouponResult.from(userCouponRepository.save(userCoupon));
+		userCouponRepository.save(userCoupon);
 	}
 
 	@Transactional(readOnly = true)

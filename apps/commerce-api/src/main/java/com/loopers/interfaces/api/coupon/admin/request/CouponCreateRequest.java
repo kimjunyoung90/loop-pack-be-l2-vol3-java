@@ -15,6 +15,8 @@ public record CouponCreateRequest(
         Integer discountValue,
         Integer minOrderAmount,
         @NotNull
-        LocalDate expiredAt
+        LocalDate expiredAt,
+        @NotNull
+        Integer totalQuantity
 ) {
 }
