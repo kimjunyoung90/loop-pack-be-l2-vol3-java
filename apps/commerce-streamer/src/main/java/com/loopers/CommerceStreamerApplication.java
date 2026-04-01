@@ -20,5 +20,3 @@ public class CommerceStreamerApplication {
         SpringApplication.run(CommerceStreamerApplication.class, args);
     }
 }
-
-

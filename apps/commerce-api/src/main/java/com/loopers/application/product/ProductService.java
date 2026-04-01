@@ -7,6 +7,7 @@ import com.loopers.domain.product.*;
 import com.loopers.domain.product.event.ProductDeletedEvent;
 import com.loopers.domain.product.event.ProductModifiedEvent;
 import com.loopers.domain.product.event.ProductStockChangedEvent;
+import com.loopers.domain.product.event.ProductViewedEvent;
 import com.loopers.support.cache.CacheLockManager;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -57,6 +58,7 @@ public class ProductService {
                             return origin;
                         }
                 ));
+        eventPublisher.publishEvent(new ProductViewedEvent(productId));
         return ProductResult.from(product);
     }
 
