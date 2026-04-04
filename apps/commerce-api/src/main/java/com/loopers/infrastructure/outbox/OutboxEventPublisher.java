@@ -45,9 +45,11 @@ public class OutboxEventPublisher {
             outboxEvent.markPublished();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.error("Outbox 이벤트 발행 중 인터럽트 발생. id={}", outboxEvent.getId(), e);
+            outboxEvent.incrementRetryCount();
+            log.error("Outbox 이벤트 발행 중 인터럽트 발생. id={}, retryCount={}", outboxEvent.getId(), outboxEvent.getRetryCount(), e);
         } catch (ExecutionException e) {
-            log.error("Outbox 이벤트 발행 실패. id={}", outboxEvent.getId(), e);
+            outboxEvent.incrementRetryCount();
+            log.error("Outbox 이벤트 발행 실패. id={}, retryCount={}", outboxEvent.getId(), outboxEvent.getRetryCount(), e);
         }
     }
 }

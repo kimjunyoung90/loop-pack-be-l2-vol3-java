@@ -32,17 +32,30 @@ public class OutboxEvent extends BaseEntity {
     @Column(name = "status", nullable = false)
     private OutboxStatus status;
 
+    @Column(name = "retry_count", nullable = false)
+    private int retryCount;
+
+    private static final int MAX_RETRY_COUNT = 3;
+
     @Builder
     private OutboxEvent(String topic, String messageKey, String payload) {
         this.topic = topic;
         this.messageKey = messageKey;
         this.payload = payload;
         this.status = OutboxStatus.PENDING;
+        this.retryCount = 0;
         guard();
     }
 
     public void markPublished() {
         this.status = OutboxStatus.PUBLISHED;
+    }
+
+    public void incrementRetryCount() {
+        this.retryCount++;
+        if (this.retryCount >= MAX_RETRY_COUNT) {
+            this.status = OutboxStatus.FAILED;
+        }
     }
 
     @Override
