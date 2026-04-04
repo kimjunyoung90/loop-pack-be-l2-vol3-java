@@ -13,7 +13,7 @@ public record ProductWithBrandResult(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
-    public static ProductWithBrandResult from(ProductWithLikeCountResult product, String brandName) {
+    public static ProductWithBrandResult from(ProductResult product, String brandName) {
         return new ProductWithBrandResult(
                 product.id(),
                 product.brandId(),

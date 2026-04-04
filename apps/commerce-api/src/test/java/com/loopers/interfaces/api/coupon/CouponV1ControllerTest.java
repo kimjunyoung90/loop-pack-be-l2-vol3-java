@@ -2,8 +2,10 @@ package com.loopers.interfaces.api.coupon;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.coupon.CouponService;
+import com.loopers.application.coupon.result.CouponIssueRequestResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.application.user.UserService;
+import com.loopers.domain.coupon.CouponRequestStatus;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
@@ -16,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -54,15 +57,14 @@ class CouponV1ControllerTest {
     }
 
     @Test
-    void 쿠폰_발급_시_발급된_쿠폰_정보를_반환한다() throws Exception {
+    void 쿠폰_발급_요청_시_PENDING_상태의_발급요청을_반환한다() throws Exception {
         // given
         setupAuthUser();
-        LocalDate expiredAt = LocalDate.now().plusDays(30);
-        UserCouponResult result = new UserCouponResult(
-                1L, 1L, 1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000,
-                "AVAILABLE", expiredAt, null, null
+        ZonedDateTime now = ZonedDateTime.now();
+        CouponIssueRequestResult result = new CouponIssueRequestResult(
+                1L, 1L, 1L, CouponRequestStatus.PENDING, null, now, now
         );
-        given(couponService.issueCoupon(any(), any())).willReturn(result);
+        given(couponService.requestIssueCoupon(eq(1L), eq(1L))).willReturn(result);
 
         // when & then
         mockMvc.perform(post("/api/v1/coupons/1/issues")
@@ -70,10 +72,7 @@ class CouponV1ControllerTest {
                         .header(LOGIN_PW_HEADER, "password1!"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.couponName").value("신규 쿠폰"))
-                .andExpect(jsonPath("$.data.discountType").value("FIXED"))
-                .andExpect(jsonPath("$.data.discountValue").value(3000))
-                .andExpect(jsonPath("$.data.status").value("AVAILABLE"));
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
     }
 
     @Test

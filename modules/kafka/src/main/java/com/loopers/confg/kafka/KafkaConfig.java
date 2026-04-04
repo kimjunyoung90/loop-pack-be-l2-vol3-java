@@ -1,5 +1,7 @@
 package com.loopers.confg.kafka;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -9,9 +11,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.converter.BatchMessagingMessageConverter;
 import org.springframework.kafka.support.converter.ByteArrayJsonMessageConverter;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,12 +28,12 @@ import java.util.Map;
 public class KafkaConfig {
     public static final String BATCH_LISTENER = "BATCH_LISTENER_DEFAULT";
 
-    public static final int MAX_POLLING_SIZE = 3000; // read 3000 msg
-    public static final int FETCH_MIN_BYTES = (1024 * 1024); // 1mb
-    public static final int FETCH_MAX_WAIT_MS = 5 * 1000; // broker waiting time = 5s
-    public static final int SESSION_TIMEOUT_MS = 60 * 1000; // session timeout = 1m
-    public static final int HEARTBEAT_INTERVAL_MS = 20 * 1000; // heartbeat interval = 20s ( 1/3 of session_timeout )
-    public static final int MAX_POLL_INTERVAL_MS = 2 * 60 * 1000; // max poll interval = 2m
+    public static final int MAX_POLLING_SIZE = 3000;
+    public static final int FETCH_MIN_BYTES = (1024 * 1024);
+    public static final int FETCH_MAX_WAIT_MS = 5 * 1000;
+    public static final int SESSION_TIMEOUT_MS = 60 * 1000;
+    public static final int HEARTBEAT_INTERVAL_MS = 20 * 1000;
+    public static final int MAX_POLL_INTERVAL_MS = 2 * 60 * 1000;
 
     @Bean
     public ProducerFactory<Object, Object> producerFactory(KafkaProperties kafkaProperties) {
@@ -51,10 +57,21 @@ public class KafkaConfig {
         return new ByteArrayJsonMessageConverter(objectMapper);
     }
 
+    @Bean
+    public CommonErrorHandler kafkaErrorHandler(KafkaTemplate<Object, Object> kafkaTemplate) {
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate,
+                (record, ex) -> new org.apache.kafka.common.TopicPartition(record.topic() + ".DLT", 0));
+
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 2));
+        errorHandler.addNotRetryableExceptions(JsonParseException.class, JsonMappingException.class);
+        return errorHandler;
+    }
+
     @Bean(name = BATCH_LISTENER)
     public ConcurrentKafkaListenerContainerFactory<Object, Object> defaultBatchListenerContainerFactory(
             KafkaProperties kafkaProperties,
-            ByteArrayJsonMessageConverter converter
+            ByteArrayJsonMessageConverter converter,
+            CommonErrorHandler kafkaErrorHandler
     ) {
         Map<String, Object> consumerConfig = new HashMap<>(kafkaProperties.buildConsumerProperties());
         consumerConfig.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLLING_SIZE);
@@ -66,10 +83,11 @@ public class KafkaConfig {
 
         ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(consumerConfig));
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL); // 수동 커밋
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.setBatchMessageConverter(new BatchMessagingMessageConverter(converter));
         factory.setConcurrency(3);
         factory.setBatchListener(true);
+        factory.setCommonErrorHandler(kafkaErrorHandler);
         return factory;
     }
 }

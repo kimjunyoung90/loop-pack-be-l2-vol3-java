@@ -36,25 +36,34 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private LocalDate expiredAt;
 
+    @Column(nullable = false)
+    private int totalQuantity;
+
+    @Column(nullable = false)
+    private int issuedQuantity;
+
     @Builder
-    private Coupon(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt) {
+    private Coupon(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt, int totalQuantity) {
         this.name = name;
         this.discountType = discountType;
         this.discountValue = discountValue;
         this.minOrderAmount = minOrderAmount;
         this.expiredAt = expiredAt;
+        this.totalQuantity = totalQuantity;
+        this.issuedQuantity = 0;
         guard();
         if (expiredAt != null && expiredAt.isBefore(LocalDate.now())) {
             throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 현재 시점 이후여야 합니다.");
         }
     }
 
-    public void changeInfo(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt) {
+    public void changeInfo(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt, int totalQuantity) {
         this.name = name;
         this.discountType = discountType;
         this.discountValue = discountValue;
         this.minOrderAmount = minOrderAmount;
         this.expiredAt = expiredAt;
+        this.totalQuantity = totalQuantity;
         guard();
         if (expiredAt != null && expiredAt.isBefore(LocalDate.now())) {
             throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 현재 시점 이후여야 합니다.");
@@ -81,6 +90,9 @@ public class Coupon extends BaseEntity {
         if (expiredAt == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "유효기간은 필수입니다.");
         }
+        if (totalQuantity <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "발급 수량은 0보다 커야 합니다.");
+        }
     }
 
     public UserCoupon issue(Long userId) {
@@ -96,6 +108,10 @@ public class Coupon extends BaseEntity {
         if (expiredAt.isBefore(LocalDate.now())) {
             throw new CoreException(ErrorType.BAD_REQUEST, "만료된 쿠폰은 발급할 수 없습니다.");
         }
+        if (issuedQuantity >= totalQuantity) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "쿠폰 발급 수량이 모두 소진되었습니다.");
+        }
+        this.issuedQuantity++;
         return UserCoupon.builder()
                 .userId(userId)
                 .couponId(this.getId())

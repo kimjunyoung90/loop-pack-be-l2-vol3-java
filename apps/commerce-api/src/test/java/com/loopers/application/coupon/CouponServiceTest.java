@@ -2,11 +2,14 @@ package com.loopers.application.coupon;
 
 import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.domain.coupon.Coupon;
+import com.loopers.domain.coupon.CouponIssueRequestRepository;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.domain.coupon.UserCouponRepository;
+import com.loopers.application.outbox.OutboxEventService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +32,15 @@ class CouponServiceTest {
     @Mock
     private UserCouponRepository userCouponRepository;
 
+    @Mock
+    private CouponIssueRequestRepository couponIssueRequestRepository;
+
+    @Mock
+    private OutboxEventService outboxEventService;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @InjectMocks
     private CouponService couponService;
 
@@ -46,7 +58,7 @@ class CouponServiceTest {
     void 존재하지_않는_쿠폰_수정_시_NOT_FOUND_예외가_발생한다() {
         // given
         given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
-        CouponUpdateCommand command = new CouponUpdateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
+        CouponUpdateCommand command = new CouponUpdateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7), 100);
 
         // when & then
         assertThatThrownBy(() -> couponService.modifyCoupon(1L, command))
@@ -64,32 +76,14 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_쿠폰_발급_시_예외가_발생한다() {
+    void 존재하지_않는_발급요청으로_쿠폰_발급_시_무시된다() {
         // given
-        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+        given(couponIssueRequestRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> couponService.issueCoupon(1L, 1L))
-                .isInstanceOf(CoreException.class)
-                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
-    }
+        // when
+        couponService.issueCoupon(1L, 1L, 1L);
 
-    @Test
-    void 이미_발급받은_쿠폰을_다시_발급하면_예외가_발생한다() {
-        // given
-        Coupon coupon = Coupon.builder()
-                .name("테스트 쿠폰")
-                .discountType(DiscountType.FIXED)
-                .discountValue(1000)
-                .expiredAt(LocalDate.now().plusDays(7))
-                .build();
-        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(coupon));
-        given(userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(1L, 1L)).willReturn(true);
-
-        // when & then
-        assertThatThrownBy(() -> couponService.issueCoupon(1L, 1L))
-                .isInstanceOf(CoreException.class)
-                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.CONFLICT));
+        // then - 예외 없이 정상 종료 (요청을 찾을 수 없으면 무시)
     }
 
     @Test

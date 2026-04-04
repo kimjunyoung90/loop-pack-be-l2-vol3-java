@@ -38,9 +38,10 @@ class CouponConcurrencyIntegrationTest {
         // given
         Long userId = 99999L;
         CouponResult coupon = couponService.registerCoupon(
-                new CouponCreateCommand("동시성 테스트 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7))
+                new CouponCreateCommand("동시성 테스트 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7), 100)
         );
-        UserCouponResult issued = couponService.issueCoupon(userId, coupon.id());
+        couponService.issueCoupon(userId, coupon.id());
+        var issued = couponService.getUserCoupons(userId).getFirst();
 
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

@@ -13,6 +13,8 @@ public record CouponUpdateResponse(
         int discountValue,
         Integer minOrderAmount,
         LocalDate expiredAt,
+        int totalQuantity,
+        int issuedQuantity,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -24,6 +26,8 @@ public record CouponUpdateResponse(
                 result.discountValue(),
                 result.minOrderAmount(),
                 result.expiredAt(),
+                result.totalQuantity(),
+                result.issuedQuantity(),
                 result.createdAt(),
                 result.updatedAt()
         );

@@ -9,6 +9,7 @@ public record CouponCreateCommand(
         DiscountType discountType,
         int discountValue,
         Integer minOrderAmount,
-        LocalDate expiredAt
+        LocalDate expiredAt,
+        int totalQuantity
 ) {
 }

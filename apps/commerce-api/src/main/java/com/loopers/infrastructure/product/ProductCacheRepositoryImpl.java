@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.domain.product.CachedProductIds;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductCacheRepository;
-import com.loopers.domain.product.ProductWithLikeCount;
 import com.loopers.infrastructure.cache.RedisCacheRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -44,45 +43,15 @@ public class ProductCacheRepositoryImpl extends RedisCacheRepository implements 
     @Override
     public void evictProduct(Long productId) {
         safeDelete(PRODUCT_KEY_PREFIX + productId);
-        safeDelete(PRODUCT_KEY_PREFIX + productId + ":like");
-    }
-
-    // === 단건: ProductWithLikeCount ===
-
-    @Override
-    public Optional<ProductWithLikeCount> getProductWithLikeCount(Long productId) {
-        return getFromCache(PRODUCT_KEY_PREFIX + productId + ":like", ProductWithLikeCount.class);
     }
 
     @Override
-    public void putProductWithLikeCount(Long productId, ProductWithLikeCount productWithLikeCount) {
-        putToCache(PRODUCT_KEY_PREFIX + productId + ":like", productWithLikeCount, DETAIL_TTL);
-    }
-
-    @Override
-    public List<ProductWithLikeCount> multiGetProductsWithLikeCount(List<Long> productIds) {
+    public List<Product> multiGetProducts(List<Long> productIds) {
         List<String> keys = productIds.stream()
-                .map(id -> PRODUCT_KEY_PREFIX + id + ":like")
+                .map(id -> PRODUCT_KEY_PREFIX + id)
                 .toList();
-        return multiGetFromCache(keys, ProductWithLikeCount.class);
+        return multiGetFromCache(keys, Product.class);
     }
-
-    // === 목록: Product (Admin용) ===
-
-    @Override
-    public Optional<List<Product>> getProducts(Pageable pageable) {
-        String key = PRODUCTS_KEY_PREFIX + "admin:" + buildPageSuffix(pageable);
-        return getFromCache(key, CachedProductPage.class)
-                .map(cached -> cached.content);
-    }
-
-    @Override
-    public void putProducts(Pageable pageable, List<Product> products) {
-        String key = PRODUCTS_KEY_PREFIX + "admin:" + buildPageSuffix(pageable);
-        putToCache(key, new CachedProductPage(products), LIST_TTL);
-    }
-
-    record CachedProductPage(List<Product> content) {}
 
     // === 목록: ID 리스트 캐싱 ===
 

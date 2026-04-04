@@ -11,14 +11,7 @@ public interface ProductCacheRepository {
     Optional<Product> getProduct(Long productId);
     void putProduct(Long productId, Product product);
     void evictProduct(Long productId);
-
-    Optional<ProductWithLikeCount> getProductWithLikeCount(Long productId);
-    void putProductWithLikeCount(Long productId, ProductWithLikeCount productWithLikeCount);
-    List<ProductWithLikeCount> multiGetProductsWithLikeCount(List<Long> productIds);
-
-    // 목록 (Product - Admin용)
-    Optional<List<Product>> getProducts(Pageable pageable);
-    void putProducts(Pageable pageable, List<Product> products);
+    List<Product> multiGetProducts(List<Long> productIds);
 
     // 목록 (ID 리스트 캐싱)
     Optional<CachedProductIds> getProductIds(Pageable pageable);

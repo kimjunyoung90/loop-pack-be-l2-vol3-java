@@ -31,7 +31,7 @@ class ProductOrderEventHandlerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.deductStock(1L, 2))
-                .willReturn(new ProductResult(1L, 1L, "운동화", 50000, 8, now, now));
+                .willReturn(new ProductResult(1L, 1L, "운동화", 50000, 8, 0, now, now));
 
         OrderPlacedEvent event = new OrderPlacedEvent(List.of(
                 new OrderPlacedEvent.ItemStock(1L, 2)
@@ -49,9 +49,9 @@ class ProductOrderEventHandlerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.deductStock(1L, 1))
-                .willReturn(new ProductResult(1L, 1L, "운동화", 50000, 9, now, now));
+                .willReturn(new ProductResult(1L, 1L, "운동화", 50000, 9, 0, now, now));
         given(productService.deductStock(2L, 3))
-                .willReturn(new ProductResult(2L, 1L, "티셔츠", 30000, 7, now, now));
+                .willReturn(new ProductResult(2L, 1L, "티셔츠", 30000, 7, 0, now, now));
 
         OrderPlacedEvent event = new OrderPlacedEvent(List.of(
                 new OrderPlacedEvent.ItemStock(2L, 3),

@@ -1,8 +1,8 @@
 package com.loopers.interfaces.api.coupon;
 
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.coupon.response.CouponIssueRequestResponse;
 import com.loopers.interfaces.api.coupon.response.MyCouponListResponse;
-import com.loopers.interfaces.api.coupon.response.CouponIssueResponse;
 import com.loopers.support.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,10 +13,16 @@ import java.util.List;
 public interface CouponV1ApiSpec {
 
     @Operation(
-            summary = "쿠폰 발급",
-            description = "사용자에게 쿠폰을 발급합니다."
+            summary = "쿠폰 발급 요청",
+            description = "선착순 쿠폰 발급을 요청합니다. 실제 발급은 비동기로 처리됩니다."
     )
-    ApiResponse<CouponIssueResponse> issueCoupon(AuthUser authUser, Long couponId);
+    ApiResponse<CouponIssueRequestResponse> issueCoupon(AuthUser authUser, Long couponId);
+
+    @Operation(
+            summary = "쿠폰 발급 요청 상태 조회",
+            description = "쿠폰 발급 요청의 처리 상태를 조회합니다."
+    )
+    ApiResponse<CouponIssueRequestResponse> getIssueRequest(AuthUser authUser, Long issueRequestId);
 
     @Operation(
             summary = "내 쿠폰 목록 조회",

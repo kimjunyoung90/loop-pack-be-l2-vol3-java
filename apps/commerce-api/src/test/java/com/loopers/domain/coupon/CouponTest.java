@@ -226,7 +226,7 @@ class CouponTest {
 
         // when
         LocalDate newExpiredAt = LocalDate.now().plusDays(30);
-        coupon.changeInfo("수정된 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt);
+        coupon.changeInfo("수정된 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt, 100);
 
         // then
         assertThat(coupon.getName()).isEqualTo("수정된 쿠폰");
@@ -298,7 +298,7 @@ class CouponTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> coupon.changeInfo("", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7)))
+        assertThatThrownBy(() -> coupon.changeInfo("", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7), 100))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }

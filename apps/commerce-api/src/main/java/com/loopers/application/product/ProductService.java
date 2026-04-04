@@ -3,11 +3,11 @@ package com.loopers.application.product;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
-import com.loopers.application.product.result.ProductWithLikeCountResult;
 import com.loopers.domain.product.*;
 import com.loopers.domain.product.event.ProductDeletedEvent;
 import com.loopers.domain.product.event.ProductModifiedEvent;
 import com.loopers.domain.product.event.ProductStockChangedEvent;
+import com.loopers.domain.product.event.ProductViewedEvent;
 import com.loopers.support.cache.CacheLockManager;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -45,7 +45,7 @@ public class ProductService {
         return ProductResult.from(saved);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ProductResult getProduct(Long productId) {
         Product product = productCacheRepository.getProduct(productId)
                 .orElseGet(() -> cacheLockManager.executeWithLock(
@@ -58,73 +58,43 @@ public class ProductService {
                             return origin;
                         }
                 ));
+        eventPublisher.publishEvent(new ProductViewedEvent(productId));
         return ProductResult.from(product);
     }
 
     @Transactional(readOnly = true)
-    public ProductWithLikeCountResult getProductWithLikeCount(Long productId) {
-        ProductWithLikeCount productWithLikeCount = productCacheRepository.getProductWithLikeCount(productId)
-                .orElseGet(() -> cacheLockManager.executeWithLock(
-                        "product:like:" + productId,
-                        () -> productCacheRepository.getProductWithLikeCount(productId),
-                        () -> {
-                            ProductWithLikeCount origin = productRepository.findWithLikeCountByIdAndDeletedAtIsNull(productId)
-                                    .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
-                            productCacheRepository.putProductWithLikeCount(productId, origin);
-                            return origin;
-                        }
-                ));
-        return ProductWithLikeCountResult.from(productWithLikeCount);
-    }
-
-    @Transactional(readOnly = true)
     public Page<ProductResult> getProducts(Pageable pageable) {
-        Page<Product> page = productRepository.findAllByDeletedAtIsNull(pageable);
-        return page.map(ProductResult::from);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ProductWithLikeCountResult> getProductsWithLikeCount(Pageable pageable) {
         if (pageable.getPageNumber() == 0) {
-			Optional<CachedProductIds> productIds = productCacheRepository.getProductIds(pageable);
-			Page<ProductWithLikeCount> productWithLikeCounts;
+            Optional<CachedProductIds> productIds = productCacheRepository.getProductIds(pageable);
             if (productIds.isEmpty()) {
-                productWithLikeCounts = fetchAndCacheProductsWithLikeCount(null, pageable);
-            } else {
-                List<ProductWithLikeCount> cached = productCacheRepository.multiGetProductsWithLikeCount(productIds.get().productIds());
-                if (cached.size() == productIds.get().productIds().size()) {
-                    productWithLikeCounts = new PageImpl<>(cached, pageable, productIds.get().totalElements());
-                } else {
-                    productWithLikeCounts = fetchAndCacheProductsWithLikeCount(null, pageable);
-                }
+                return fetchAndCacheProducts(null, pageable).map(ProductResult::from);
             }
-			return productWithLikeCounts.map(ProductWithLikeCountResult::from);
+            List<Product> cached = productCacheRepository.multiGetProducts(productIds.get().productIds());
+            if (cached.size() == productIds.get().productIds().size()) {
+                return new PageImpl<>(cached, pageable, productIds.get().totalElements())
+                        .map(ProductResult::from);
+            }
+            return fetchAndCacheProducts(null, pageable).map(ProductResult::from);
         }
-
-        return productRepository.findAllWithLikeCountByDeletedAtIsNull(pageable)
-                .map(ProductWithLikeCountResult::from);
+        return productRepository.findAllByDeletedAtIsNull(pageable).map(ProductResult::from);
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductWithLikeCountResult> getProductsWithLikeCount(Long brandId, Pageable pageable) {
+    public Page<ProductResult> getProducts(Long brandId, Pageable pageable) {
         if (pageable.getPageNumber() == 0) {
             Optional<CachedProductIds> productIds = productCacheRepository.getProductIds(brandId, pageable);
-            Page<ProductWithLikeCount> productWithLikeCounts;
             if (productIds.isEmpty()) {
-                productWithLikeCounts = fetchAndCacheProductsWithLikeCount(brandId, pageable);
-            } else {
-                List<ProductWithLikeCount> cached = productCacheRepository.multiGetProductsWithLikeCount(productIds.get().productIds());
-                if (cached.size() == productIds.get().productIds().size()) {
-                    productWithLikeCounts = new PageImpl<>(cached, pageable, productIds.get().totalElements());
-                } else {
-                    productWithLikeCounts = fetchAndCacheProductsWithLikeCount(brandId, pageable);
-                }
+                return fetchAndCacheProducts(brandId, pageable).map(ProductResult::from);
             }
-            return productWithLikeCounts.map(ProductWithLikeCountResult::from);
+            List<Product> cached = productCacheRepository.multiGetProducts(productIds.get().productIds());
+            if (cached.size() == productIds.get().productIds().size()) {
+                return new PageImpl<>(cached, pageable, productIds.get().totalElements())
+                        .map(ProductResult::from);
+            }
+            return fetchAndCacheProducts(brandId, pageable).map(ProductResult::from);
         }
-
-        return productRepository.findAllWithLikeCountByBrandIdAndDeletedAtIsNull(brandId, pageable)
-                .map(ProductWithLikeCountResult::from);
+        return productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable)
+                .map(ProductResult::from);
     }
 
     @Transactional(readOnly = true)
@@ -163,6 +133,20 @@ public class ProductService {
     }
 
     @Transactional
+    public void incrementLikeCount(Long productId) {
+        Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+        product.incrementLikeCount();
+    }
+
+    @Transactional
+    public void decrementLikeCount(Long productId) {
+        Product product = productRepository.findByIdWithLockAndDeletedAtIsNull(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+        product.decrementLikeCount();
+    }
+
+    @Transactional
     public void deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
@@ -178,13 +162,13 @@ public class ProductService {
         eventPublisher.publishEvent(new ProductDeletedEvent(productIds));
     }
 
-    private Page<ProductWithLikeCount> fetchAndCacheProductsWithLikeCount(Long brandId, Pageable pageable) {
-        Page<ProductWithLikeCount> page = (brandId != null)
-                ? productRepository.findAllWithLikeCountByBrandIdAndDeletedAtIsNull(brandId, pageable)
-                : productRepository.findAllWithLikeCountByDeletedAtIsNull(pageable);
+    private Page<Product> fetchAndCacheProducts(Long brandId, Pageable pageable) {
+        Page<Product> page = (brandId != null)
+                ? productRepository.findAllByBrandIdAndDeletedAtIsNull(brandId, pageable)
+                : productRepository.findAllByDeletedAtIsNull(pageable);
 
         List<Long> ids = page.getContent().stream()
-                .map(ProductWithLikeCount::id)
+                .map(Product::getId)
                 .toList();
 
         if (brandId != null) {
@@ -193,7 +177,7 @@ public class ProductService {
             productCacheRepository.putProductIds(pageable, ids, page.getTotalElements());
         }
 
-        page.forEach(p -> productCacheRepository.putProductWithLikeCount(p.id(), p));
+        page.forEach(p -> productCacheRepository.putProduct(p.getId(), p));
 
         return page;
     }

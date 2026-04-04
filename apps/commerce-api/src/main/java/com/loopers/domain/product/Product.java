@@ -32,12 +32,16 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private int stock;
 
+    @Column(name = "like_count", nullable = false)
+    private int likeCount;
+
     @Builder
     private Product(Long brandId, String name, int price, int stock) {
         this.brandId = brandId;
         this.name = name;
         this.price = price;
         this.stock = stock;
+        this.likeCount = 0;
         guard();
     }
 
@@ -58,6 +62,17 @@ public class Product extends BaseEntity {
 
     public void restoreStock(int quantity) {
         this.stock += quantity;
+    }
+
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decrementLikeCount() {
+        if (this.likeCount <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "좋아요 수는 0 미만이 될 수 없습니다.");
+        }
+        this.likeCount--;
     }
 
     @Override

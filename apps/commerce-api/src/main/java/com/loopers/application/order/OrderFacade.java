@@ -23,8 +23,8 @@ public class OrderFacade {
     private final OrderService orderService;
     private final CouponService couponService;
     private final ApplicationEventPublisher eventPublisher;
-
-    @Transactional
+	
+	@Transactional
     public OrderResult placeOrder(OrderCreateCommand command) {
         // 1. 주문 상품 정보를 조회한다.
         List<OrderItemCommand> orderItemCommands = command.orderItems().stream()

@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface ProductRepository {
     Page<Product> findAllByDeletedAtIsNull(Pageable pageable);
 
+    Page<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
+
     List<Product> findAllByBrandId(Long brandId);
 
     List<Product> findAllByBrandIdAndDeletedAtIsNull(Long brandId);
@@ -20,10 +22,4 @@ public interface ProductRepository {
     Optional<Product> findByIdWithLockAndDeletedAtIsNull(Long productId);
 
     Product save(Product product);
-
-    Optional<ProductWithLikeCount> findWithLikeCountByIdAndDeletedAtIsNull(Long productId);
-
-    Page<ProductWithLikeCount> findAllWithLikeCountByDeletedAtIsNull(Pageable pageable);
-
-    Page<ProductWithLikeCount> findAllWithLikeCountByBrandIdAndDeletedAtIsNull(Long brandId, Pageable pageable);
 }

@@ -150,8 +150,9 @@ class OrderFacadeIntegrationTest {
         // 쿠폰 생성 + 발급
         int discountValue = 5000;
         CouponResult couponResult = couponService.registerCoupon(
-                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, discountValue, null, LocalDate.now().plusDays(7)));
-        UserCouponResult userCouponResult = couponService.issueCoupon(userResult.id(), couponResult.id());
+                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, discountValue, null, LocalDate.now().plusDays(7), 100));
+        couponService.issueCoupon(userResult.id(), couponResult.id());
+        var userCouponResult = couponService.getUserCoupons(userResult.id()).getFirst();
 
         // 쿠폰 적용 주문 생성
         int expectedTotalAmount = productPrice * orderQuantity;
@@ -191,8 +192,9 @@ class OrderFacadeIntegrationTest {
 
         // 쿠폰 생성 + 발급
         CouponResult couponResult = couponService.registerCoupon(
-                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, 5000, null, LocalDate.now().plusDays(7)));
-        UserCouponResult userCouponResult = couponService.issueCoupon(userResult.id(), couponResult.id());
+                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, 5000, null, LocalDate.now().plusDays(7), 100));
+        couponService.issueCoupon(userResult.id(), couponResult.id());
+        var userCouponResult = couponService.getUserCoupons(userResult.id()).getFirst();
 
         // 쿠폰 적용 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
