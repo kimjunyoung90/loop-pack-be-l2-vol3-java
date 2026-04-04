@@ -52,7 +52,7 @@ public class OutboxEvent extends BaseEntity {
         this.status = OutboxStatus.PUBLISHED;
     }
 
-    public void incrementRetryCount() {
+    public void recordFailure() {
         this.retryCount++;
         if (this.retryCount >= MAX_RETRY_COUNT) {
             this.status = OutboxStatus.FAILED;
