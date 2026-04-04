@@ -4,6 +4,7 @@ import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderService;
 import com.loopers.application.order.command.OrderCreateCommand;
 import com.loopers.application.order.result.OrderResult;
+import com.loopers.application.queue.QueueService;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.order.request.OrderCreateRequest;
@@ -29,11 +30,13 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
     private final OrderFacade orderFacade;
     private final OrderService orderService;
+    private final QueueService queueService;
 
     @Override
     @PostMapping
     public ApiResponse<OrderCreateResponse> placeOrder(
             @LoginUser AuthUser authUser,
+            @RequestHeader("X-Entry-Token") String entryToken,
             @Valid @RequestBody OrderCreateRequest request) {
         OrderCreateCommand command = new OrderCreateCommand(
                 authUser.id(),
@@ -46,6 +49,7 @@ public class OrderV1Controller implements OrderV1ApiSpec {
                         .toList()
         );
 
+        queueService.validateAndConsumeToken(entryToken, authUser.id());
         OrderResult orderResult = orderFacade.placeOrder(command);
         return ApiResponse.success(OrderCreateResponse.from(orderResult));
     }

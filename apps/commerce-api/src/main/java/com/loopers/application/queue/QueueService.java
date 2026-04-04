@@ -1,0 +1,74 @@
+package com.loopers.application.queue;
+
+import com.loopers.application.queue.result.QueuePositionResult;
+import com.loopers.application.queue.result.QueueTokenResult;
+import com.loopers.domain.queue.QueuePosition;
+import com.loopers.domain.queue.QueueRepository;
+import com.loopers.domain.queue.QueueStatus;
+import com.loopers.domain.queue.QueueToken;
+import com.loopers.infrastructure.queue.QueueProperties;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@RequiredArgsConstructor
+@Service
+public class QueueService {
+
+	private final QueueRepository queueRepository;
+	private final QueueProperties queueProperties;
+
+	public QueueTokenResult enterQueue(Long userId) {
+		if (queueRepository.isAlreadyQueued(userId)) {
+			Long rank = queueRepository.getRank(userId);
+			long position = rank != null ? rank + 1 : 0;
+			return new QueueTokenResult(position, calculateEstimatedWait(position));
+		}
+
+		queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
+
+		Long rank = queueRepository.getRank(userId);
+		long position = rank != null ? rank + 1 : 0;
+		return new QueueTokenResult(position, calculateEstimatedWait(position));
+	}
+
+	public QueuePositionResult getQueuePosition(Long userId) {
+		Long rank = queueRepository.getRank(userId);
+		if (rank != null) {
+			long position = rank + 1;
+			long estimatedWaitSeconds = calculateEstimatedWait(position);
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds);
+			return QueuePositionResult.from(queuePosition, null);
+		}
+
+		String token = queueRepository.findTokenByUserId(userId).orElse(null);
+		if (token != null) {
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0);
+			return QueuePositionResult.from(queuePosition, token);
+		}
+
+		QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0);
+		return QueuePositionResult.from(queuePosition, null);
+	}
+
+	public void validateAndConsumeToken(String token, Long userId) {
+		String storedToken = queueRepository.findTokenByUserId(userId)
+				.orElseThrow(() -> new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND));
+
+		if (!storedToken.equals(token)) {
+			throw new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND);
+		}
+
+		queueRepository.removeToken(userId);
+	}
+
+	private long calculateEstimatedWait(long position) {
+		int batchSize = queueProperties.scheduler().batchSize();
+		long intervalMs = queueProperties.scheduler().intervalMs();
+		double secondsPerBatch = intervalMs / 1000.0;
+		return (long) Math.ceil((double) position / batchSize * secondsPerBatch);
+	}
+}
