@@ -1,5 +1,6 @@
 package com.loopers.domain.queue;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface QueueRepository {
@@ -10,7 +11,9 @@ public interface QueueRepository {
 
     Long getRank(Long token);
 
-    void popAndAllow(int count);
+    List<Long> popFromQueue(int count);
+
+    void issueToken(Long userId, String token);
 
     void removeToken(Long userId);
 

@@ -10,9 +10,9 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.loopers.config.redis.RedisConfig.REDIS_TEMPLATE_MASTER;
 
@@ -52,17 +52,20 @@ public class QueueCacheManager implements QueueRepository {
 	}
 
 	@Override
-	public void popAndAllow(int count) {
+	public List<Long> popFromQueue(int count) {
 		Set<ZSetOperations.TypedTuple<String>> popped = redisTemplate.opsForZSet()
 				.popMin(WAITING_QUEUE_KEY, count);
-		if (popped != null && !popped.isEmpty()) {
-			for (ZSetOperations.TypedTuple<String> tuple : popped) {
-				String userId = tuple.getValue();
-				String token = UUID.randomUUID().toString();
-				redisTemplate.opsForValue().set(entryTokenKey(Long.parseLong(userId)), token, tokenTtl);
-			}
-			log.info("대기열에서 {}명을 허용 상태로 이동했습니다.", popped.size());
+		if (popped == null || popped.isEmpty()) {
+			return List.of();
 		}
+		return popped.stream()
+				.map(tuple -> Long.parseLong(tuple.getValue()))
+				.toList();
+	}
+
+	@Override
+	public void issueToken(Long userId, String token) {
+		redisTemplate.opsForValue().set(entryTokenKey(userId), token, tokenTtl);
 	}
 
 	@Override
