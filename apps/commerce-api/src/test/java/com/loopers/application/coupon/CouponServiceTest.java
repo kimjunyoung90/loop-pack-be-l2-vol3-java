@@ -2,6 +2,7 @@ package com.loopers.application.coupon;
 
 import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.domain.coupon.Coupon;
+import com.loopers.domain.coupon.CouponIssueRequestRepository;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.domain.coupon.UserCouponRepository;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -28,6 +30,12 @@ class CouponServiceTest {
 
     @Mock
     private UserCouponRepository userCouponRepository;
+
+    @Mock
+    private CouponIssueRequestRepository couponIssueRequestRepository;
+
+    @Mock
+    private KafkaTemplate<Object, Object> kafkaTemplate;
 
     @InjectMocks
     private CouponService couponService;
@@ -64,32 +72,14 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_쿠폰_발급_시_예외가_발생한다() {
+    void 존재하지_않는_발급요청으로_쿠폰_발급_시_무시된다() {
         // given
-        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
+        given(couponIssueRequestRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> couponService.issueCoupon(1L, 1L))
-                .isInstanceOf(CoreException.class)
-                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
-    }
+        // when
+        couponService.issueCoupon(1L, 1L, 1L);
 
-    @Test
-    void 이미_발급받은_쿠폰을_다시_발급하면_예외가_발생한다() {
-        // given
-        Coupon coupon = Coupon.builder()
-                .name("테스트 쿠폰")
-                .discountType(DiscountType.FIXED)
-                .discountValue(1000)
-                .expiredAt(LocalDate.now().plusDays(7))
-                .build();
-        given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(coupon));
-        given(userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(1L, 1L)).willReturn(true);
-
-        // when & then
-        assertThatThrownBy(() -> couponService.issueCoupon(1L, 1L))
-                .isInstanceOf(CoreException.class)
-                .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.CONFLICT));
+        // then - 예외 없이 정상 종료 (요청을 찾을 수 없으면 무시)
     }
 
     @Test

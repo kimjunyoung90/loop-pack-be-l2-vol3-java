@@ -30,7 +30,8 @@ public class CouponIssueConsumer {
                 JsonNode node = objectMapper.readTree(record.value().toString());
                 Long userId = node.get("userId").asLong();
                 Long couponId = node.get("couponId").asLong();
-                couponService.issueCoupon(userId, couponId);
+                Long issueRequestId = node.get("issueRequestId").asLong();
+                couponService.issueCoupon(userId, couponId, issueRequestId);
             } catch (Exception e) {
                 log.error("쿠폰 발급 이벤트 처리 실패. record={}", record, e);
             }

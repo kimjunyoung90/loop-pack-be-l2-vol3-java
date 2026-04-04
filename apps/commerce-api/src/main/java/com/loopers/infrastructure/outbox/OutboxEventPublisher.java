@@ -11,12 +11,20 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Outbox 보상 스케줄러.
+ * 즉시 발행(OutboxImmediatePublisher)이 실패한 이벤트를 보상 처리한다.
+ * GRACE_PERIOD_SECONDS 이내의 이벤트는 즉시 발행 경로와의 경합을 피하기 위해 건너뛴다.
+ */
 @Slf4j
 @Component
 public class OutboxEventPublisher {
+
+    private static final int GRACE_PERIOD_SECONDS = 10;
 
     private final OutboxEventRepository outboxEventRepository;
     private final KafkaTemplate<Object, Object> kafkaTemplate;
@@ -30,9 +38,11 @@ public class OutboxEventPublisher {
         this.self = self;
     }
 
-    @Scheduled(fixedDelay = 3000)
+    @Scheduled(fixedDelay = 10000)
     public void publish() {
-        List<OutboxEvent> outboxEvents = outboxEventRepository.findAllByStatus(OutboxStatus.PENDING);
+        ZonedDateTime before = ZonedDateTime.now().minusSeconds(GRACE_PERIOD_SECONDS);
+        List<OutboxEvent> outboxEvents = outboxEventRepository.findAllByStatusAndCreatedAtBefore(
+                OutboxStatus.PENDING, before);
         outboxEvents.forEach(self::publishEvent);
     }
 

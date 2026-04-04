@@ -65,6 +65,10 @@ public class OutboxEvent extends BaseEntity {
         }
     }
 
+    public boolean isPending() {
+        return this.status == OutboxStatus.PENDING;
+    }
+
     public boolean isFailed() {
         return this.status == OutboxStatus.FAILED;
     }

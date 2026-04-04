@@ -2,11 +2,14 @@ package com.loopers.application.coupon;
 
 import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.command.CouponUpdateCommand;
+import com.loopers.application.coupon.result.CouponIssueRequestResult;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.domain.coupon.Coupon;
-import com.loopers.domain.coupon.CouponQuantityRepository;
+import com.loopers.domain.coupon.CouponIssueRequest;
+import com.loopers.domain.coupon.CouponIssueRequestRepository;
 import com.loopers.domain.coupon.CouponRepository;
+import com.loopers.domain.coupon.CouponRequestStatus;
 import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.coupon.UserCouponRepository;
 import com.loopers.support.error.CoreException;
@@ -28,7 +31,7 @@ public class CouponService {
 
 	private final CouponRepository couponRepository;
 	private final UserCouponRepository userCouponRepository;
-	private final CouponQuantityRepository couponQuantityRepository;
+	private final CouponIssueRequestRepository couponIssueRequestRepository;
 	private final KafkaTemplate<Object, Object> kafkaTemplate;
 
 	@Transactional
@@ -84,21 +87,59 @@ public class CouponService {
 		coupon.delete();
 	}
 
-	public void requestIssueCoupon(Long userId, Long couponId) {
+	@Transactional
+	public CouponIssueRequestResult requestIssueCoupon(Long userId, Long couponId) {
 		Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
-		if (!couponQuantityRepository.addIfAbsent(couponId, userId)) {
-			throw new CoreException(ErrorType.CONFLICT, "이미 발급 요청한 쿠폰입니다.");
+		if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
+			throw new CoreException(ErrorType.CONFLICT, "이미 발급된 쿠폰입니다.");
 		}
 
-		if (couponQuantityRepository.count(couponId) > coupon.getTotalQuantity()) {
-			couponQuantityRepository.remove(couponId, userId);
+		if (couponIssueRequestRepository.existsByUserIdAndCouponIdAndStatusAndDeletedAtIsNull(
+				userId, couponId, CouponRequestStatus.PENDING)) {
+			throw new CoreException(ErrorType.CONFLICT, "이미 발급 요청 중인 쿠폰입니다.");
+		}
+
+		if (coupon.getIssuedQuantity() >= coupon.getTotalQuantity()) {
 			throw new CoreException(ErrorType.BAD_REQUEST, "쿠폰 발급 수량이 모두 소진되었습니다.");
 		}
 
-		String payload = "{\"userId\":" + userId + ",\"couponId\":" + couponId + "}";
+		CouponIssueRequest issueRequest = couponIssueRequestRepository.save(
+				CouponIssueRequest.create(userId, couponId)
+		);
+
+		String payload = "{\"userId\":" + userId + ",\"couponId\":" + couponId
+				+ ",\"issueRequestId\":" + issueRequest.getId() + "}";
 		kafkaTemplate.send(COUPON_ISSUE_TOPIC, String.valueOf(couponId), payload);
+
+		return CouponIssueRequestResult.from(issueRequest);
+	}
+
+	@Transactional
+	public void issueCoupon(Long userId, Long couponId, Long issueRequestId) {
+		CouponIssueRequest issueRequest = couponIssueRequestRepository.findByIdAndDeletedAtIsNull(issueRequestId)
+				.orElse(null);
+
+		if (issueRequest == null || !issueRequest.isPending()) {
+			return;
+		}
+
+		if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
+			issueRequest.approve();
+			return;
+		}
+
+		try {
+			Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
+					.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
+
+			UserCoupon userCoupon = coupon.issue(userId);
+			userCouponRepository.save(userCoupon);
+			issueRequest.approve();
+		} catch (CoreException e) {
+			issueRequest.reject(e.getMessage());
+		}
 	}
 
 	@Transactional
@@ -112,6 +153,14 @@ public class CouponService {
 
 		UserCoupon userCoupon = coupon.issue(userId);
 		userCouponRepository.save(userCoupon);
+	}
+
+	@Transactional(readOnly = true)
+	public CouponIssueRequestResult getIssueRequest(Long issueRequestId) {
+		CouponIssueRequest issueRequest = couponIssueRequestRepository.findByIdAndDeletedAtIsNull(issueRequestId)
+				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "발급 요청을 찾을 수 없습니다."));
+
+		return CouponIssueRequestResult.from(issueRequest);
 	}
 
 	@Transactional(readOnly = true)

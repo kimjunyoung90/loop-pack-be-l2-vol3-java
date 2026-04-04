@@ -2,8 +2,10 @@ package com.loopers.interfaces.api.coupon;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.coupon.CouponService;
+import com.loopers.application.coupon.result.CouponIssueRequestResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.application.user.UserService;
+import com.loopers.domain.coupon.CouponRequestStatus;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
@@ -16,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -54,15 +57,22 @@ class CouponV1ControllerTest {
     }
 
     @Test
-    void 쿠폰_발급_요청_시_200_OK를_반환한다() throws Exception {
+    void 쿠폰_발급_요청_시_PENDING_상태의_발급요청을_반환한다() throws Exception {
         // given
         setupAuthUser();
+        ZonedDateTime now = ZonedDateTime.now();
+        CouponIssueRequestResult result = new CouponIssueRequestResult(
+                1L, 1L, 1L, CouponRequestStatus.PENDING, null, now, now
+        );
+        given(couponService.requestIssueCoupon(eq(1L), eq(1L))).willReturn(result);
 
         // when & then
         mockMvc.perform(post("/api/v1/coupons/1/issues")
                         .header(LOGIN_ID_HEADER, "testuser")
                         .header(LOGIN_PW_HEADER, "password1!"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
     }
 
     @Test

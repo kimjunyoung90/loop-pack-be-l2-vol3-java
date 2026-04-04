@@ -6,7 +6,9 @@ import com.loopers.domain.outbox.OutboxStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Repository
@@ -20,7 +22,12 @@ public class OutboxEventRepositoryImpl implements OutboxEventRepository {
     }
 
     @Override
-    public List<OutboxEvent> findAllByStatus(OutboxStatus status) {
-        return outboxEventJpaRepository.findAllByStatus(status);
+    public Optional<OutboxEvent> findById(Long id) {
+        return outboxEventJpaRepository.findById(id);
+    }
+
+    @Override
+    public List<OutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before) {
+        return outboxEventJpaRepository.findAllByStatusAndCreatedAtBefore(status, before);
     }
 }
