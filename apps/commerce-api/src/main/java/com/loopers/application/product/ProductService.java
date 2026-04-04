@@ -7,7 +7,6 @@ import com.loopers.domain.product.*;
 import com.loopers.domain.product.event.ProductDeletedEvent;
 import com.loopers.domain.product.event.ProductModifiedEvent;
 import com.loopers.domain.product.event.ProductStockChangedEvent;
-import com.loopers.domain.product.event.ProductViewedEvent;
 import com.loopers.support.cache.CacheLockManager;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -16,6 +15,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +26,13 @@ import java.util.Optional;
 @Service
 public class ProductService {
 
+    private static final String TOPIC_PRODUCT_VIEWED = "product-metrics.VIEWED";
+
     private final ProductRepository productRepository;
     private final ProductCacheRepository productCacheRepository;
     private final CacheLockManager cacheLockManager;
     private final ApplicationEventPublisher eventPublisher;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
 
     @Transactional
     public ProductResult registerProduct(Long brandId, ProductCreateCommand command) {
@@ -58,7 +61,7 @@ public class ProductService {
                             return origin;
                         }
                 ));
-        eventPublisher.publishEvent(new ProductViewedEvent(productId));
+		kafkaTemplate.send(TOPIC_PRODUCT_VIEWED, String.valueOf(productId), "{\"productId\":" + productId + "}");
         return ProductResult.from(product);
     }
 

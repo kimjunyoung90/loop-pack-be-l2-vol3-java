@@ -24,6 +24,18 @@ public class ProductMetricsService {
         metrics.decrementLikeCount();
     }
 
+    @Transactional
+    public void incrementViewCount(Long productId) {
+        ProductMetrics metrics = getOrCreate(productId);
+        metrics.incrementViewCount();
+    }
+
+    @Transactional
+    public void incrementSalesCount(Long productId, int quantity) {
+        ProductMetrics metrics = getOrCreate(productId);
+        metrics.incrementSalesCount(quantity);
+    }
+
     private ProductMetrics getOrCreate(Long productId) {
         return productMetricsRepository.findByProductId(productId)
                 .orElseGet(() -> productMetricsRepository.save(

@@ -44,4 +44,12 @@ public class ProductMetrics extends BaseEntity {
             this.likeCount--;
         }
     }
+
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
+
+    public void incrementSalesCount(int quantity) {
+        this.salesCount += quantity;
+    }
 }
