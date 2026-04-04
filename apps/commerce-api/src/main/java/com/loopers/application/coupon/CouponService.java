@@ -12,12 +12,15 @@ import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.CouponRequestStatus;
 import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.coupon.UserCouponRepository;
+import com.loopers.domain.outbox.OutboxEvent;
+import com.loopers.domain.outbox.OutboxEventRepository;
+import com.loopers.domain.outbox.OutboxPublishEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +35,8 @@ public class CouponService {
 	private final CouponRepository couponRepository;
 	private final UserCouponRepository userCouponRepository;
 	private final CouponIssueRequestRepository couponIssueRequestRepository;
-	private final KafkaTemplate<Object, Object> kafkaTemplate;
+	private final OutboxEventRepository outboxEventRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional
 	public CouponResult registerCoupon(CouponCreateCommand command) {
@@ -111,7 +115,12 @@ public class CouponService {
 
 		String payload = "{\"userId\":" + userId + ",\"couponId\":" + couponId
 				+ ",\"issueRequestId\":" + issueRequest.getId() + "}";
-		kafkaTemplate.send(COUPON_ISSUE_TOPIC, String.valueOf(couponId), payload);
+		OutboxEvent outboxEvent = outboxEventRepository.save(OutboxEvent.builder()
+				.topic(COUPON_ISSUE_TOPIC)
+				.messageKey(String.valueOf(couponId))
+				.payload(payload)
+				.build());
+		eventPublisher.publishEvent(new OutboxPublishEvent(outboxEvent.getId()));
 
 		return CouponIssueRequestResult.from(issueRequest);
 	}
