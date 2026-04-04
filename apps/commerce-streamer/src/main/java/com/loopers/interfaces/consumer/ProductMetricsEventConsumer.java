@@ -5,19 +5,18 @@ import com.loopers.confg.kafka.KafkaConfig;
 import com.loopers.domain.event.EventHandled;
 import com.loopers.domain.event.EventHandledRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 @Component
 public class ProductMetricsEventConsumer {
 
@@ -27,54 +26,73 @@ public class ProductMetricsEventConsumer {
     private final ProductMetricsService productMetricsService;
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
+    private final ProductMetricsEventConsumer self;
 
-	@KafkaListener(topics = {TOPIC_VIEWED}, containerFactory = KafkaConfig.BATCH_LISTENER)
-	public void consumeProductViewEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
-		for (ConsumerRecord<Object, Object> record : messages) {
-			try {
-				String eventId = extractEventId(record);
-				if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
-					continue;
-				}
+    public ProductMetricsEventConsumer(ProductMetricsService productMetricsService,
+                                       EventHandledRepository eventHandledRepository,
+                                       ObjectMapper objectMapper,
+                                       ProductMetricsEventConsumer self) {
+        this.productMetricsService = productMetricsService;
+        this.eventHandledRepository = eventHandledRepository;
+        this.objectMapper = objectMapper;
+        this.self = self;
+    }
 
-				Long productId = objectMapper.readTree(record.value().toString()).get("productId").asLong();
+    @KafkaListener(topics = {TOPIC_VIEWED}, containerFactory = KafkaConfig.BATCH_LISTENER)
+    public void consumeProductViewEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
+        for (ConsumerRecord<Object, Object> record : messages) {
+            try {
+                self.processViewEvent(record);
+            } catch (Exception e) {
+                log.error("조회 이벤트 처리 실패. record={}", record, e);
+            }
+        }
+        acknowledgment.acknowledge();
+    }
 
-				productMetricsService.incrementViewCount(productId);
+    @KafkaListener(topics = {TOPIC_ORDER_PLACED}, containerFactory = KafkaConfig.BATCH_LISTENER)
+    public void consumeOrderPlaceEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
+        for (ConsumerRecord<Object, Object> record : messages) {
+            try {
+                self.processOrderEvent(record);
+            } catch (Exception e) {
+                log.error("판매량 이벤트 처리 실패. record={}", record, e);
+            }
+        }
+        acknowledgment.acknowledge();
+    }
 
-				if (eventId != null) {
-					eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
-				}
-			} catch (Exception e) {
-				log.error("조회 이벤트 처리 실패. record={}", record, e);
-			}
-		}
-		acknowledgment.acknowledge();
-	}
+    @Transactional
+    public void processViewEvent(ConsumerRecord<Object, Object> record) throws Exception {
+        String eventId = extractEventId(record);
+        if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
+            return;
+        }
 
-	@KafkaListener(topics = {TOPIC_ORDER_PLACED}, containerFactory = KafkaConfig.BATCH_LISTENER)
-	public void consumeOrderPlaceEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
-		for (ConsumerRecord<Object, Object> record : messages) {
-			try {
+        Long productId = objectMapper.readTree(record.value().toString()).get("productId").asLong();
+        productMetricsService.incrementViewCount(productId);
 
-				String eventId = extractEventId(record);
-				if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
-					continue;
-				}
+        if (eventId != null) {
+            eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
+        }
+    }
 
-				var node = objectMapper.readTree(record.value().toString());
-				Long productId = node.get("productId").asLong();
-				int quantity = node.get("quantity").asInt();
+    @Transactional
+    public void processOrderEvent(ConsumerRecord<Object, Object> record) throws Exception {
+        String eventId = extractEventId(record);
+        if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
+            return;
+        }
 
-				productMetricsService.incrementSalesCount(productId, quantity);
-				if (eventId != null) {
-					eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
-				}
-			} catch (Exception e) {
-				log.error("판매량 이벤트 처리 실패. record={}", record, e);
-			}
-		}
-		acknowledgment.acknowledge();
-	}
+        var node = objectMapper.readTree(record.value().toString());
+        Long productId = node.get("productId").asLong();
+        int quantity = node.get("quantity").asInt();
+        productMetricsService.incrementSalesCount(productId, quantity);
+
+        if (eventId != null) {
+            eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
+        }
+    }
 
     private String extractEventId(ConsumerRecord<Object, Object> record) {
         Header header = record.headers().lastHeader("eventId");
