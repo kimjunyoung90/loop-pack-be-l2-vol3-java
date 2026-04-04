@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.BatchListenerFailedException;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,34 +24,30 @@ public class ProductMetricsEventConsumer {
 
     private static final String TOPIC_VIEWED = "product-metrics.VIEWED";
     private static final String TOPIC_ORDER_PLACED = "order-metrics.PLACED";
-    private static final String DLT_SUFFIX = ".DLT";
 
     private final ProductMetricsService productMetricsService;
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
-    private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final ProductMetricsEventConsumer self;
 
     public ProductMetricsEventConsumer(ProductMetricsService productMetricsService,
                                        EventHandledRepository eventHandledRepository,
                                        ObjectMapper objectMapper,
-                                       KafkaTemplate<Object, Object> kafkaTemplate,
                                        @Lazy ProductMetricsEventConsumer self) {
         this.productMetricsService = productMetricsService;
         this.eventHandledRepository = eventHandledRepository;
         this.objectMapper = objectMapper;
-        this.kafkaTemplate = kafkaTemplate;
         this.self = self;
     }
 
     @KafkaListener(topics = {TOPIC_VIEWED}, containerFactory = KafkaConfig.BATCH_LISTENER)
     public void consumeProductViewEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
-        for (ConsumerRecord<Object, Object> record : messages) {
+        for (int i = 0; i < messages.size(); i++) {
             try {
-                self.processViewEvent(record);
+                self.processViewEvent(messages.get(i));
             } catch (Exception e) {
-                log.error("조회 이벤트 처리 실패. DLQ로 전송. record={}", record, e);
-                sendToDlq(record);
+                log.error("조회 이벤트 처리 실패. record={}", messages.get(i), e);
+                throw new BatchListenerFailedException("조회 이벤트 처리 실패", e, i);
             }
         }
         acknowledgment.acknowledge();
@@ -59,12 +55,12 @@ public class ProductMetricsEventConsumer {
 
     @KafkaListener(topics = {TOPIC_ORDER_PLACED}, containerFactory = KafkaConfig.BATCH_LISTENER)
     public void consumeOrderPlaceEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
-        for (ConsumerRecord<Object, Object> record : messages) {
+        for (int i = 0; i < messages.size(); i++) {
             try {
-                self.processOrderEvent(record);
+                self.processOrderEvent(messages.get(i));
             } catch (Exception e) {
-                log.error("판매량 이벤트 처리 실패. DLQ로 전송. record={}", record, e);
-                sendToDlq(record);
+                log.error("판매량 이벤트 처리 실패. record={}", messages.get(i), e);
+                throw new BatchListenerFailedException("판매량 이벤트 처리 실패", e, i);
             }
         }
         acknowledgment.acknowledge();
@@ -99,14 +95,6 @@ public class ProductMetricsEventConsumer {
 
         if (eventId != null) {
             eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
-        }
-    }
-
-    private void sendToDlq(ConsumerRecord<Object, Object> record) {
-        try {
-            kafkaTemplate.send(record.topic() + DLT_SUFFIX, record.key(), record.value());
-        } catch (Exception dlqEx) {
-            log.error("DLQ 전송 실패. record={}", record, dlqEx);
         }
     }
 

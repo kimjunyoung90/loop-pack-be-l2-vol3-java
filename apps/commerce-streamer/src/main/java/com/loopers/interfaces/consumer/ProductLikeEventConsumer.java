@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.BatchListenerFailedException;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,34 +24,30 @@ public class ProductLikeEventConsumer {
 
     private static final String TOPIC_LIKED = "product-like.LIKED";
     private static final String TOPIC_UNLIKED = "product-like.UNLIKED";
-    private static final String DLT_SUFFIX = ".DLT";
 
     private final ProductMetricsService productMetricsService;
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
-    private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final ProductLikeEventConsumer self;
 
     public ProductLikeEventConsumer(ProductMetricsService productMetricsService,
                                     EventHandledRepository eventHandledRepository,
                                     ObjectMapper objectMapper,
-                                    KafkaTemplate<Object, Object> kafkaTemplate,
                                     @Lazy ProductLikeEventConsumer self) {
         this.productMetricsService = productMetricsService;
         this.eventHandledRepository = eventHandledRepository;
         this.objectMapper = objectMapper;
-        this.kafkaTemplate = kafkaTemplate;
         this.self = self;
     }
 
     @KafkaListener(topics = {TOPIC_LIKED, TOPIC_UNLIKED}, containerFactory = KafkaConfig.BATCH_LISTENER)
     public void consumeLikeEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
-        for (ConsumerRecord<Object, Object> record : messages) {
+        for (int i = 0; i < messages.size(); i++) {
             try {
-                self.processRecord(record);
+                self.processRecord(messages.get(i));
             } catch (Exception e) {
-                log.error("좋아요 이벤트 처리 실패. DLQ로 전송. record={}", record, e);
-                sendToDlq(record);
+                log.error("좋아요 이벤트 처리 실패. record={}", messages.get(i), e);
+                throw new BatchListenerFailedException("좋아요 이벤트 처리 실패", e, i);
             }
         }
         acknowledgment.acknowledge();
@@ -74,14 +70,6 @@ public class ProductLikeEventConsumer {
 
         if (eventId != null) {
             eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
-        }
-    }
-
-    private void sendToDlq(ConsumerRecord<Object, Object> record) {
-        try {
-            kafkaTemplate.send(record.topic() + DLT_SUFFIX, record.key(), record.value());
-        } catch (Exception dlqEx) {
-            log.error("DLQ 전송 실패. record={}", record, dlqEx);
         }
     }
 
