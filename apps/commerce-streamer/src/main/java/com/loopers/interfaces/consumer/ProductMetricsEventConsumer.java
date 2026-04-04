@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.listener.BatchListenerFailedException;
 import org.springframework.kafka.support.Acknowledgment;
@@ -45,6 +46,8 @@ public class ProductMetricsEventConsumer {
         for (int i = 0; i < messages.size(); i++) {
             try {
                 self.processViewEvent(messages.get(i));
+            } catch (DataIntegrityViolationException e) {
+                log.info("조회 이벤트 중복 처리 감지 (정상). record={}", messages.get(i));
             } catch (Exception e) {
                 log.error("조회 이벤트 처리 실패. record={}", messages.get(i), e);
                 throw new BatchListenerFailedException("조회 이벤트 처리 실패", e, i);
@@ -58,6 +61,8 @@ public class ProductMetricsEventConsumer {
         for (int i = 0; i < messages.size(); i++) {
             try {
                 self.processOrderEvent(messages.get(i));
+            } catch (DataIntegrityViolationException e) {
+                log.info("판매량 이벤트 중복 처리 감지 (정상). record={}", messages.get(i));
             } catch (Exception e) {
                 log.error("판매량 이벤트 처리 실패. record={}", messages.get(i), e);
                 throw new BatchListenerFailedException("판매량 이벤트 처리 실패", e, i);
