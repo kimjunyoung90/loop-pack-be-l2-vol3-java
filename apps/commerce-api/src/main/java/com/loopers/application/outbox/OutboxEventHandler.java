@@ -8,6 +8,7 @@ import com.loopers.domain.outbox.OutboxEventRepository;
 import com.loopers.domain.product.event.ProductViewedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -40,7 +41,8 @@ public class OutboxEventHandler {
                 .build());
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    @Transactional
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleProductViewed(ProductViewedEvent event) {
         outboxEventRepository.save(OutboxEvent.builder()
                 .topic(TOPIC_VIEWED)
