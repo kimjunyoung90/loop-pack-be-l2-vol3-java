@@ -41,8 +41,7 @@ public class OutboxEventHandler {
                 .build());
     }
 
-    @Transactional
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleProductViewed(ProductViewedEvent event) {
         outboxEventRepository.save(OutboxEvent.builder()
                 .topic(TOPIC_VIEWED)

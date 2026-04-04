@@ -45,7 +45,7 @@ public class ProductService {
         return ProductResult.from(saved);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ProductResult getProduct(Long productId) {
         Product product = productCacheRepository.getProduct(productId)
                 .orElseGet(() -> cacheLockManager.executeWithLock(
