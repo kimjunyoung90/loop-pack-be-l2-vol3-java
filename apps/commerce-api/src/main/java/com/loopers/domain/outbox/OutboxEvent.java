@@ -36,6 +36,7 @@ public class OutboxEvent extends BaseEntity {
     private int retryCount;
 
     private static final int MAX_RETRY_COUNT = 3;
+    private static final String DLT_SUFFIX = ".DLT";
 
     @Builder
     private OutboxEvent(String topic, String messageKey, String payload) {
@@ -56,6 +57,18 @@ public class OutboxEvent extends BaseEntity {
         if (this.retryCount >= MAX_RETRY_COUNT) {
             this.status = OutboxStatus.FAILED;
         }
+    }
+
+    public boolean isFailed() {
+        return this.status == OutboxStatus.FAILED;
+    }
+
+    public OutboxEvent createDeadLetterEvent() {
+        return OutboxEvent.builder()
+                .topic(this.topic + DLT_SUFFIX)
+                .messageKey(this.messageKey)
+                .payload(this.payload)
+                .build();
     }
 
     @Override

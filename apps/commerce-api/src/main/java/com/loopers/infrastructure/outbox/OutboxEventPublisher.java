@@ -45,11 +45,19 @@ public class OutboxEventPublisher {
             outboxEvent.markPublished();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            outboxEvent.incrementRetryCount();
+            handleRetry(outboxEvent);
             log.error("Outbox 이벤트 발행 중 인터럽트 발생. id={}, retryCount={}", outboxEvent.getId(), outboxEvent.getRetryCount(), e);
         } catch (ExecutionException e) {
-            outboxEvent.incrementRetryCount();
+            handleRetry(outboxEvent);
             log.error("Outbox 이벤트 발행 실패. id={}, retryCount={}", outboxEvent.getId(), outboxEvent.getRetryCount(), e);
+        }
+    }
+
+    private void handleRetry(OutboxEvent outboxEvent) {
+        outboxEvent.incrementRetryCount();
+        if (outboxEvent.isFailed()) {
+            outboxEventRepository.save(outboxEvent.createDeadLetterEvent());
+            log.warn("Outbox 이벤트 최대 재시도 초과. DLQ 이벤트 생성. id={}", outboxEvent.getId());
         }
     }
 }
