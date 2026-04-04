@@ -6,7 +6,7 @@ import com.loopers.domain.coupon.CouponIssueRequestRepository;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.domain.coupon.UserCouponRepository;
-import com.loopers.domain.outbox.OutboxEventRepository;
+import com.loopers.application.outbox.OutboxEventService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -37,10 +36,7 @@ class CouponServiceTest {
     private CouponIssueRequestRepository couponIssueRequestRepository;
 
     @Mock
-    private OutboxEventRepository outboxEventRepository;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private OutboxEventService outboxEventService;
 
     @Mock
     private ObjectMapper objectMapper;

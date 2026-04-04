@@ -12,15 +12,12 @@ import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.CouponRequestStatus;
 import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.coupon.UserCouponRepository;
-import com.loopers.domain.outbox.OutboxEvent;
-import com.loopers.domain.outbox.OutboxEventRepository;
-import com.loopers.domain.outbox.OutboxPublishEvent;
+import com.loopers.application.outbox.OutboxEventService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,8 +35,7 @@ public class CouponService {
 	private final CouponRepository couponRepository;
 	private final UserCouponRepository userCouponRepository;
 	private final CouponIssueRequestRepository couponIssueRequestRepository;
-	private final OutboxEventRepository outboxEventRepository;
-	private final ApplicationEventPublisher eventPublisher;
+	private final OutboxEventService outboxEventService;
 	private final ObjectMapper objectMapper;
 
 	@Transactional
@@ -119,12 +115,7 @@ public class CouponService {
 
 		String payload = writeJson(Map.of(
 				"userId", userId, "couponId", couponId, "issueRequestId", issueRequest.getId()));
-		OutboxEvent outboxEvent = outboxEventRepository.save(OutboxEvent.builder()
-				.topic(COUPON_ISSUE_TOPIC)
-				.messageKey(String.valueOf(couponId))
-				.payload(payload)
-				.build());
-		eventPublisher.publishEvent(new OutboxPublishEvent(outboxEvent.getId()));
+		outboxEventService.saveAndPublish(COUPON_ISSUE_TOPIC, String.valueOf(couponId), payload);
 
 		return CouponIssueRequestResult.from(issueRequest);
 	}
