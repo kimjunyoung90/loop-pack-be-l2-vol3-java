@@ -19,7 +19,7 @@ import java.util.List;
 @Component
 public class CouponIssueConsumer {
 
-    private static final String COUPON_ISSUE_TOPIC = "coupon-issue.request";
+    private static final String COUPON_ISSUE_TOPIC = "coupon-issue-requests";
 
     private final CouponService couponService;
     private final ObjectMapper objectMapper;

@@ -2,6 +2,7 @@ package com.loopers.application.product;
 
 import com.loopers.domain.event.EventHandled;
 import com.loopers.domain.event.EventHandledRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,8 +16,6 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class ProductLikeEventProcessor {
 
-    private static final String TOPIC_LIKED = "product-like.LIKED";
-
     private final ProductMetricsService productMetricsService;
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
@@ -28,9 +27,11 @@ public class ProductLikeEventProcessor {
             return;
         }
 
-        Long productId = objectMapper.readTree(record.value().toString()).get("productId").asLong();
+        JsonNode node = objectMapper.readTree(record.value().toString());
+        Long productId = node.get("productId").asLong();
+        String eventType = node.get("eventType").asText();
 
-        if (record.topic().equals(TOPIC_LIKED)) {
+        if ("PRODUCT_LIKED".equals(eventType)) {
             productMetricsService.incrementLikeCount(productId);
         } else {
             productMetricsService.decrementLikeCount(productId);

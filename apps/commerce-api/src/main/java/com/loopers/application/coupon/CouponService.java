@@ -30,7 +30,7 @@ import java.util.Map;
 @Service
 public class CouponService {
 
-	private static final String COUPON_ISSUE_TOPIC = "coupon-issue.request";
+	private static final String COUPON_ISSUE_TOPIC = "coupon-issue-requests";
 
 	private final CouponRepository couponRepository;
 	private final UserCouponRepository userCouponRepository;
