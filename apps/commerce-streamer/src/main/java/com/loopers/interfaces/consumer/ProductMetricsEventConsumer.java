@@ -28,21 +28,22 @@ public class ProductMetricsEventConsumer {
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
 
-    // TODO(human): ProductLikeEventConsumer를 참고하여 두 메서드에 멱등 처리를 추가하세요.
-    //
-    // 요구사항:
-    // 1. record에서 eventId 헤더를 추출 (extractEventId 메서드 활용)
-    // 2. eventId가 이미 처리되었으면 skip (eventHandledRepository.existsByEventId)
-    // 3. 비즈니스 로직 처리 후 eventId를 event_handled 테이블에 저장
-
 	@KafkaListener(topics = {TOPIC_VIEWED}, containerFactory = KafkaConfig.BATCH_LISTENER)
 	public void consumeProductViewEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
 		for (ConsumerRecord<Object, Object> record : messages) {
 			try {
+				String eventId = extractEventId(record);
+				if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
+					continue;
+				}
+
 				Long productId = objectMapper.readTree(record.value().toString()).get("productId").asLong();
 
 				productMetricsService.incrementViewCount(productId);
 
+				if (eventId != null) {
+					eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
+				}
 			} catch (Exception e) {
 				log.error("조회 이벤트 처리 실패. record={}", record, e);
 			}
@@ -54,12 +55,20 @@ public class ProductMetricsEventConsumer {
 	public void consumeOrderPlaceEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
 		for (ConsumerRecord<Object, Object> record : messages) {
 			try {
+
+				String eventId = extractEventId(record);
+				if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
+					continue;
+				}
+
 				var node = objectMapper.readTree(record.value().toString());
 				Long productId = node.get("productId").asLong();
 				int quantity = node.get("quantity").asInt();
 
 				productMetricsService.incrementSalesCount(productId, quantity);
-
+				if (eventId != null) {
+					eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
+				}
 			} catch (Exception e) {
 				log.error("판매량 이벤트 처리 실패. record={}", record, e);
 			}
