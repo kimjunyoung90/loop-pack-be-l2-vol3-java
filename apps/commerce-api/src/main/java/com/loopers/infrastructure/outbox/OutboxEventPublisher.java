@@ -5,6 +5,7 @@ import com.loopers.domain.outbox.OutboxEventRepository;
 import com.loopers.domain.outbox.OutboxStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class OutboxEventPublisher {
 
     public OutboxEventPublisher(OutboxEventRepository outboxEventRepository,
                                 KafkaTemplate<Object, Object> kafkaTemplate,
-                                OutboxEventPublisher self) {
+                                @Lazy OutboxEventPublisher self) {
         this.outboxEventRepository = outboxEventRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.self = self;

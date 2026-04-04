@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
@@ -35,7 +36,7 @@ public class ProductLikeEventConsumer {
                                     EventHandledRepository eventHandledRepository,
                                     ObjectMapper objectMapper,
                                     KafkaTemplate<Object, Object> kafkaTemplate,
-                                    ProductLikeEventConsumer self) {
+                                    @Lazy ProductLikeEventConsumer self) {
         this.productMetricsService = productMetricsService;
         this.eventHandledRepository = eventHandledRepository;
         this.objectMapper = objectMapper;

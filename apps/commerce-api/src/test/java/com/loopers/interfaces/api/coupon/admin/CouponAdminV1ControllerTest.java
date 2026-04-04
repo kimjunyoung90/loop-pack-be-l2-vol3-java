@@ -54,11 +54,11 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_생성_시_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponResult couponResult = new CouponResult(1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, null, null);
+        CouponResult couponResult = new CouponResult(1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, 100, 0, null, null);
         given(couponService.registerCoupon(any())).willReturn(couponResult);
 
         CouponCreateRequest request = new CouponCreateRequest(
-                "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt
+                "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, 100
         );
 
         // when & then
@@ -78,7 +78,7 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_생성_시_쿠폰명이_비어있으면_400을_반환한다() throws Exception {
         // given
         CouponCreateRequest request = new CouponCreateRequest(
-                "", DiscountType.FIXED, 3000, null, LocalDate.now().plusDays(7)
+                "", DiscountType.FIXED, 3000, null, LocalDate.now().plusDays(7), 100
         );
 
         // when & then
@@ -138,7 +138,7 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_목록_조회_시_페이징된_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.FIXED, 1000, null, expiredAt, null, null);
+        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.FIXED, 1000, null, expiredAt, 100, 0, null, null);
         given(couponService.getCoupons(any())).willReturn(new PageImpl<>(List.of(couponResult)));
 
         // when & then
@@ -153,7 +153,7 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_상세_조회_시_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.RATE, 10, 5000, expiredAt, null, null);
+        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.RATE, 10, 5000, expiredAt, 100, 0, null, null);
         given(couponService.getCoupon(1L)).willReturn(couponResult);
 
         // when & then
@@ -170,11 +170,11 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_수정_시_수정된_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponResult couponResult = new CouponResult(1L, "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, null, null);
+        CouponResult couponResult = new CouponResult(1L, "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, 100, 0, null, null);
         given(couponService.modifyCoupon(any(), any())).willReturn(couponResult);
 
         CouponUpdateRequest request = new CouponUpdateRequest(
-                "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt
+                "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, 100
         );
 
         // when & then
@@ -199,7 +199,7 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_수정_시_쿠폰명이_비어있으면_400을_반환한다() throws Exception {
         // given
         CouponUpdateRequest request = new CouponUpdateRequest(
-                "", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7)
+                "", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7), 100
         );
 
         // when & then

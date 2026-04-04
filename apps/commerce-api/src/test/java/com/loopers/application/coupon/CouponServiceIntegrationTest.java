@@ -32,7 +32,7 @@ class CouponServiceIntegrationTest {
         // 생성
         LocalDate expiredAt = LocalDate.now().plusDays(30);
         CouponCreateCommand createCommand = new CouponCreateCommand(
-                "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt
+                "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, 100
         );
         CouponResult created = couponService.registerCoupon(createCommand);
         assertThat(created.id()).isNotNull();
@@ -49,7 +49,7 @@ class CouponServiceIntegrationTest {
         // 수정
         LocalDate newExpiredAt = LocalDate.now().plusDays(60);
         CouponUpdateCommand updateCommand = new CouponUpdateCommand(
-                "수정 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt
+                "수정 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt, 100
         );
         CouponResult updated = couponService.modifyCoupon(created.id(), updateCommand);
         assertThat(updated.name()).isEqualTo("수정 쿠폰");
@@ -70,10 +70,10 @@ class CouponServiceIntegrationTest {
     void 삭제된_쿠폰은_목록에서_제외된다() {
         // given
         CouponResult coupon1 = couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
+                new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7), 100)
         );
         couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰2", DiscountType.RATE, 10, 5000, LocalDate.now().plusDays(14))
+                new CouponCreateCommand("쿠폰2", DiscountType.RATE, 10, 5000, LocalDate.now().plusDays(14), 100)
         );
         couponService.deleteCoupon(coupon1.id());
 
@@ -89,7 +89,7 @@ class CouponServiceIntegrationTest {
     void 삭제된_쿠폰_상세_조회_시_예외가_발생한다() {
         // given
         CouponResult created = couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7))
+                new CouponCreateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7), 100)
         );
         couponService.deleteCoupon(created.id());
 

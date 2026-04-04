@@ -54,26 +54,15 @@ class CouponV1ControllerTest {
     }
 
     @Test
-    void 쿠폰_발급_시_발급된_쿠폰_정보를_반환한다() throws Exception {
+    void 쿠폰_발급_요청_시_200_OK를_반환한다() throws Exception {
         // given
         setupAuthUser();
-        LocalDate expiredAt = LocalDate.now().plusDays(30);
-        UserCouponResult result = new UserCouponResult(
-                1L, 1L, 1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000,
-                "AVAILABLE", expiredAt, null, null
-        );
-        given(couponService.issueCoupon(any(), any())).willReturn(result);
 
         // when & then
         mockMvc.perform(post("/api/v1/coupons/1/issues")
                         .header(LOGIN_ID_HEADER, "testuser")
                         .header(LOGIN_PW_HEADER, "password1!"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.couponName").value("신규 쿠폰"))
-                .andExpect(jsonPath("$.data.discountType").value("FIXED"))
-                .andExpect(jsonPath("$.data.discountValue").value(3000))
-                .andExpect(jsonPath("$.data.status").value("AVAILABLE"));
+                .andExpect(status().isOk());
     }
 
     @Test

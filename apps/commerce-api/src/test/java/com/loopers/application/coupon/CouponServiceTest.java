@@ -46,7 +46,7 @@ class CouponServiceTest {
     void 존재하지_않는_쿠폰_수정_시_NOT_FOUND_예외가_발생한다() {
         // given
         given(couponRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
-        CouponUpdateCommand command = new CouponUpdateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7));
+        CouponUpdateCommand command = new CouponUpdateCommand("쿠폰", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7), 100);
 
         // when & then
         assertThatThrownBy(() -> couponService.modifyCoupon(1L, command))
