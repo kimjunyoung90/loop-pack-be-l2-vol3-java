@@ -9,9 +9,7 @@ import com.loopers.application.product.result.ProductResult;
 import com.loopers.domain.order.event.OrderCancelledEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +19,10 @@ import java.util.List;
 @Component
 public class OrderFacade {
 
-	private static final String TOPIC_ORDER_PLACED = "order-metrics.PLACED";
-	private final ProductService productService;
+    private final ProductService productService;
     private final OrderService orderService;
     private final CouponService couponService;
     private final ApplicationEventPublisher eventPublisher;
-	private final KafkaTemplate kafkaTemplate;
 	
 	@Transactional
     public OrderResult placeOrder(OrderCreateCommand command) {
@@ -56,9 +52,6 @@ public class OrderFacade {
 
         // 4. 주문 생성 이벤트를 발행한다. (재고 차감, 쿠폰 사용)
         eventPublisher.publishEvent(new OrderPlacedEvent(stockItems, command.userCouponId(), command.userId(), totalAmount));
-		stockItems.forEach(stockItem -> {
-			kafkaTemplate.send(TOPIC_ORDER_PLACED, String.valueOf(stockItem.productId()), "{\"productId\": " + stockItem.productId() + ",\"quantity\":"+ stockItem.quantity() + "}");
-		});
 
         return orderResult;
     }
