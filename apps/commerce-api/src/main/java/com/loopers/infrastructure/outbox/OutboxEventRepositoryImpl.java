@@ -30,4 +30,9 @@ public class OutboxEventRepositoryImpl implements OutboxEventRepository {
     public List<OutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before) {
         return outboxEventJpaRepository.findAllByStatusAndCreatedAtBefore(status, before);
     }
+
+    @Override
+    public void deleteAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before) {
+        outboxEventJpaRepository.deleteAllByStatusAndCreatedAtBefore(status, before);
+    }
 }

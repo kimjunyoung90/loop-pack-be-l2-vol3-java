@@ -11,4 +11,6 @@ public interface OutboxEventRepository {
     Optional<OutboxEvent> findById(Long id);
 
     List<OutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
+
+    void deleteAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
 }

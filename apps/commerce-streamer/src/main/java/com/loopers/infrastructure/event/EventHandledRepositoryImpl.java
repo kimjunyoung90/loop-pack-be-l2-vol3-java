@@ -5,6 +5,8 @@ import com.loopers.domain.event.EventHandledRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.ZonedDateTime;
+
 @RequiredArgsConstructor
 @Repository
 public class EventHandledRepositoryImpl implements EventHandledRepository {
@@ -19,5 +21,10 @@ public class EventHandledRepositoryImpl implements EventHandledRepository {
     @Override
     public EventHandled save(EventHandled eventHandled) {
         return eventHandledJpaRepository.save(eventHandled);
+    }
+
+    @Override
+    public void deleteAllByCreatedAtBefore(ZonedDateTime before) {
+        eventHandledJpaRepository.deleteAllByCreatedAtBefore(before);
     }
 }
