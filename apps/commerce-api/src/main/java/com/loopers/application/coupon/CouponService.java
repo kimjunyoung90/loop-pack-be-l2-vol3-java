@@ -17,7 +17,9 @@ import com.loopers.domain.outbox.OutboxEventRepository;
 import com.loopers.domain.outbox.OutboxPublishEvent;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -37,6 +40,7 @@ public class CouponService {
 	private final CouponIssueRequestRepository couponIssueRequestRepository;
 	private final OutboxEventRepository outboxEventRepository;
 	private final ApplicationEventPublisher eventPublisher;
+	private final ObjectMapper objectMapper;
 
 	@Transactional
 	public CouponResult registerCoupon(CouponCreateCommand command) {
@@ -113,8 +117,8 @@ public class CouponService {
 				CouponIssueRequest.create(userId, couponId)
 		);
 
-		String payload = "{\"userId\":" + userId + ",\"couponId\":" + couponId
-				+ ",\"issueRequestId\":" + issueRequest.getId() + "}";
+		String payload = writeJson(Map.of(
+				"userId", userId, "couponId", couponId, "issueRequestId", issueRequest.getId()));
 		OutboxEvent outboxEvent = outboxEventRepository.save(OutboxEvent.builder()
 				.topic(COUPON_ISSUE_TOPIC)
 				.messageKey(String.valueOf(couponId))
@@ -206,5 +210,10 @@ public class CouponService {
 		UserCoupon userCoupon = userCouponRepository.findByIdAndDeletedAtIsNull(userCouponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
 		userCoupon.restore();
+	}
+
+	@SneakyThrows
+	private String writeJson(Object value) {
+		return objectMapper.writeValueAsString(value);
 	}
 }
