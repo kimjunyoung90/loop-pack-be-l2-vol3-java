@@ -4,6 +4,7 @@ import com.loopers.domain.outbox.OutboxEvent;
 import com.loopers.domain.outbox.OutboxEventRepository;
 import com.loopers.domain.outbox.OutboxStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -37,11 +38,13 @@ public class OutboxEventPublisher {
     @Transactional
     public void publishEvent(OutboxEvent outboxEvent) {
         try {
-            kafkaTemplate.send(
+            ProducerRecord<Object, Object> record = new ProducerRecord<>(
                     outboxEvent.getTopic(),
                     outboxEvent.getMessageKey(),
                     outboxEvent.getPayload()
-            ).get();
+            );
+            record.headers().add("eventId", outboxEvent.getEventId().getBytes());
+            kafkaTemplate.send(record).get();
             outboxEvent.markPublished();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

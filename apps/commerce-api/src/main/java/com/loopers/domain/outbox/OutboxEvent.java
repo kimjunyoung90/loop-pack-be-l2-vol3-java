@@ -13,11 +13,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "outbox_events")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OutboxEvent extends BaseEntity {
+
+    @Column(name = "event_id", nullable = false, unique = true)
+    private String eventId;
 
     @Column(name = "topic", nullable = false)
     private String topic;
@@ -40,6 +45,7 @@ public class OutboxEvent extends BaseEntity {
 
     @Builder
     private OutboxEvent(String topic, String messageKey, String payload) {
+        this.eventId = UUID.randomUUID().toString();
         this.topic = topic;
         this.messageKey = messageKey;
         this.payload = payload;
