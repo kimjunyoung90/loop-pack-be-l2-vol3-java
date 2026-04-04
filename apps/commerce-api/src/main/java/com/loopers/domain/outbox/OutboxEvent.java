@@ -63,6 +63,10 @@ public class OutboxEvent extends BaseEntity {
         return this.status == OutboxStatus.FAILED;
     }
 
+    public boolean isDeadLetter() {
+        return this.topic.endsWith(DLT_SUFFIX);
+    }
+
     public OutboxEvent createDeadLetterEvent() {
         return OutboxEvent.builder()
                 .topic(this.topic + DLT_SUFFIX)

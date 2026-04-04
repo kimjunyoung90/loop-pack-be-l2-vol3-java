@@ -55,7 +55,7 @@ public class OutboxEventPublisher {
 
     private void handleRetry(OutboxEvent outboxEvent) {
         outboxEvent.incrementRetryCount();
-        if (outboxEvent.isFailed()) {
+        if (outboxEvent.isFailed() && !outboxEvent.isDeadLetter()) {
             outboxEventRepository.save(outboxEvent.createDeadLetterEvent());
             log.warn("Outbox 이벤트 최대 재시도 초과. DLQ 이벤트 생성. id={}", outboxEvent.getId());
         }
