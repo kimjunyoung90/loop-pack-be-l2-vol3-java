@@ -13,13 +13,20 @@ public class CouponQuantityRepositoryImpl implements CouponQuantityRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    @Override
-    public long increment(Long couponId) {
-        return redisTemplate.opsForValue().increment(KEY_PREFIX + couponId);
-    }
+	@Override
+	public boolean addIfAbsent(Long couponId, Long userId) {
+		Long result = redisTemplate.opsForSet().add(KEY_PREFIX + couponId, String.valueOf(userId));
+		return result != null && result > 0;
+	}
 
-    @Override
-    public void set(Long couponId, int quantity) {
-        redisTemplate.opsForValue().set(KEY_PREFIX + couponId, String.valueOf(quantity));
-    }
+	@Override
+	public long count(Long couponId) {
+		Long size = redisTemplate.opsForSet().size(KEY_PREFIX + couponId);
+		return size != null ? size : 0;
+	}
+
+	@Override
+	public void remove(Long couponId, Long userId) {
+		redisTemplate.opsForSet().remove(KEY_PREFIX + couponId, String.valueOf(userId));
+	}
 }

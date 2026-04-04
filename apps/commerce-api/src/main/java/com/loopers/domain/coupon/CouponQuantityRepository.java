@@ -2,7 +2,9 @@ package com.loopers.domain.coupon;
 
 public interface CouponQuantityRepository {
 
-    long increment(Long couponId);
+    boolean addIfAbsent(Long couponId, Long userId);
 
-    void set(Long couponId, int quantity);
+    long count(Long couponId);
+
+    void remove(Long couponId, Long userId);
 }
