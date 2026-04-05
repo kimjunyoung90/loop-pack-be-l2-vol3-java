@@ -5,7 +5,6 @@ import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithBrandResult;
-import com.loopers.domain.ranking.RankingCacheRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,8 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,25 +19,25 @@ import java.util.List;
 @Component
 public class RankingFacade {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-    private final RankingCacheRepository rankingCacheRepository;
+    private final RankingService rankingService;
     private final ProductService productService;
     private final BrandService brandService;
 
     @Transactional(readOnly = true)
     public Page<ProductWithBrandResult> getRankedProducts(String date, Pageable pageable) {
-        String resolvedDate = (date != null) ? date : LocalDate.now().format(DATE_FORMATTER);
         long offset = pageable.getOffset();
         int size = pageable.getPageSize();
 
-        List<Long> rankedProductIds = rankingCacheRepository.getTopRankedProductIds(resolvedDate, offset, size);
+		//1. 랭킹 상품 id 조회
+        List<Long> rankedProductIds = rankingService.getRankedProductIds(date, offset, size);
         if (rankedProductIds.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
-        long totalCount = rankingCacheRepository.getTotalCount(resolvedDate);
+		//2. 랭킹 토탈 카운트 조회
+        long totalCount = rankingService.getTotalCount(date);
 
+		//3. 상품 정보, 브랜드 정보 조회(랭킹 순 반환)
         List<ProductWithBrandResult> results = rankedProductIds.stream()
                 .map(productId -> {
                     ProductResult product = productService.getProduct(productId);
