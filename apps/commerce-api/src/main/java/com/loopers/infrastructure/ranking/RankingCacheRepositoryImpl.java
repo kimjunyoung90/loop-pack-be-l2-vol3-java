@@ -51,4 +51,16 @@ public class RankingCacheRepositoryImpl implements RankingCacheRepository {
             return 0;
         }
     }
+
+    @Override
+    public Long getRank(String date, Long productId) {
+        String key = KEY_PREFIX + date;
+        try {
+            Long rank = redisTemplate.opsForZSet().reverseRank(key, String.valueOf(productId));
+            return rank != null ? rank + 1 : null;
+        } catch (Exception e) {
+            log.warn("Redis 랭킹 순위 조회 실패: key={}, productId={}", key, productId, e);
+            return null;
+        }
+    }
 }

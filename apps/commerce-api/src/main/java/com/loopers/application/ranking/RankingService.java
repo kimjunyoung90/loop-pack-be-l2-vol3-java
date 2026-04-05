@@ -29,6 +29,11 @@ public class RankingService {
         return rankingCacheRepository.getTotalCount(resolvedDate);
     }
 
+    public Long getRank(Long productId) {
+        String today = LocalDate.now().format(DATE_FORMATTER);
+        return rankingCacheRepository.getRank(today, productId);
+    }
+
     private String resolveDate(String date) {
         return (date != null) ? date : LocalDate.now().format(DATE_FORMATTER);
     }

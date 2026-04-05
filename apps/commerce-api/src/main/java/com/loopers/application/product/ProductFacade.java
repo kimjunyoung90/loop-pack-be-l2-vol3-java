@@ -7,6 +7,7 @@ import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithBrandResult;
+import com.loopers.application.ranking.RankingService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +23,14 @@ public class ProductFacade {
     private final ProductService productService;
     private final BrandService brandService;
     private final LikeService likeService;
+    private final RankingService rankingService;
 
     @Transactional(readOnly = true)
     public ProductWithBrandResult getProduct(Long productId) {
         ProductResult product = productService.getProduct(productId);
         BrandResult brand = brandService.getBrand(product.brandId());
-        return ProductWithBrandResult.from(product, brand.name());
+        Long rank = rankingService.getRank(productId);
+        return ProductWithBrandResult.from(product, brand.name(), rank);
     }
 
     @Transactional(readOnly = true)
