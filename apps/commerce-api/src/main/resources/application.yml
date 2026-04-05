@@ -42,6 +42,13 @@ queue:
     batch-size: 50
   token:
     ttl-minutes: 30
+  polling:
+    default-interval-seconds: 10
+    tiers:
+      - max-position: 100
+        interval-seconds: 2
+      - max-position: 500
+        interval-seconds: 5
 
 resilience4j:
   circuitbreaker:

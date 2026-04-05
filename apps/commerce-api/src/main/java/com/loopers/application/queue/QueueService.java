@@ -26,14 +26,14 @@ public class QueueService {
 		if (queueRepository.isAlreadyQueued(userId)) {
 			Long rank = queueRepository.getRank(userId);
 			long position = rank != null ? rank + 1 : 0;
-			return new QueueTokenResult(position, calculateEstimatedWait(position));
+			return new QueueTokenResult(position, calculateEstimatedWait(position), calculatePollingInterval(position));
 		}
 
 		queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
 
 		Long rank = queueRepository.getRank(userId);
 		long position = rank != null ? rank + 1 : 0;
-		return new QueueTokenResult(position, calculateEstimatedWait(position));
+		return new QueueTokenResult(position, calculateEstimatedWait(position), calculatePollingInterval(position));
 	}
 
 	//대기 순번 반환
@@ -42,17 +42,18 @@ public class QueueService {
 		if (rank != null) {
 			long position = rank + 1;
 			long estimatedWaitSeconds = calculateEstimatedWait(position);
-			QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds);
+			long pollingInterval = calculatePollingInterval(position);
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds, pollingInterval);
 			return QueuePositionResult.from(queuePosition, null);
 		}
 
 		String token = queueRepository.findTokenByUserId(userId).orElse(null);
 		if (token != null) {
-			QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0);
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0, 0);
 			return QueuePositionResult.from(queuePosition, token);
 		}
 
-		QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0);
+		QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0, 0);
 		return QueuePositionResult.from(queuePosition, null);
 	}
 
@@ -67,6 +68,15 @@ public class QueueService {
 
 	public void removeToken(Long userId) {
 		queueRepository.removeToken(userId);
+	}
+
+	private long calculatePollingInterval(long position) {
+		for (QueueProperties.Polling.Tier tier : queueProperties.polling().tiers()) {
+			if (position <= tier.maxPosition()) {
+				return tier.intervalSeconds();
+			}
+		}
+		return queueProperties.polling().defaultIntervalSeconds();
 	}
 
 	private long calculateEstimatedWait(long position) {
