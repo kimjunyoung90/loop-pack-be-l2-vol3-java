@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,13 +39,14 @@ public class RankingFacade {
         long totalCount = rankingService.getTotalCount(date);
 
 		//3. 상품 정보, 브랜드 정보 조회(랭킹 순 반환)
-        List<ProductWithBrandResult> results = rankedProductIds.stream()
-                .map(productId -> {
-                    ProductResult product = productService.getProduct(productId);
-                    BrandResult brand = brandService.getBrand(product.brandId());
-                    return ProductWithBrandResult.from(product, brand.name());
-                })
-                .toList();
+        List<ProductWithBrandResult> results = new ArrayList<>();
+        for (int i = 0; i < rankedProductIds.size(); i++) {
+            Long productId = rankedProductIds.get(i);
+            ProductResult product = productService.getProduct(productId);
+            BrandResult brand = brandService.getBrand(product.brandId());
+            long rank = offset + i + 1;
+            results.add(ProductWithBrandResult.from(product, brand.name(), rank));
+        }
 
         return new PageImpl<>(results, pageable, totalCount);
     }
