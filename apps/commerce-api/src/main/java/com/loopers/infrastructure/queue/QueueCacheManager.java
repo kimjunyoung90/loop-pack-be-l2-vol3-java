@@ -24,6 +24,7 @@ public class QueueCacheManager implements QueueRepository {
 
 	private static final String WAITING_QUEUE_KEY = "queue:waiting";
 	private static final String ENTRY_TOKEN_KEY_PREFIX = "entry-token:";
+	private static final String ORDERABLE_AT_KEY_PREFIX = "orderable-at:";
 
 	private final RedisTemplate<String, String> redisTemplate;
 	private final Duration tokenTtl;
@@ -58,13 +59,15 @@ public class QueueCacheManager implements QueueRepository {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public List<Long> popAndIssueTokens(int count, List<String> tokens) {
+	public List<Long> popAndIssueTokens(int count, List<String> tokens, List<Long> orderableAts) {
 		List<String> keys = List.of(WAITING_QUEUE_KEY);
 		List<String> args = new ArrayList<>();
 		args.add(ENTRY_TOKEN_KEY_PREFIX);
+		args.add(ORDERABLE_AT_KEY_PREFIX);
 		args.add(String.valueOf(count));
 		args.add(String.valueOf(tokenTtl.getSeconds()));
 		args.addAll(tokens);
+		orderableAts.forEach(ts -> args.add(String.valueOf(ts)));
 
 		List<String> result = redisTemplate.execute(popAndIssueScript, keys, (Object[]) args.toArray(new String[0]));
 		if (result == null || result.isEmpty()) {
@@ -73,6 +76,12 @@ public class QueueCacheManager implements QueueRepository {
 		return result.stream()
 				.map(Long::parseLong)
 				.toList();
+	}
+
+	@Override
+	public Optional<Long> findOrderableAtByUserId(Long userId) {
+		String value = redisTemplate.opsForValue().get(ORDERABLE_AT_KEY_PREFIX + userId);
+		return Optional.ofNullable(value).map(Long::parseLong);
 	}
 
 	@Override

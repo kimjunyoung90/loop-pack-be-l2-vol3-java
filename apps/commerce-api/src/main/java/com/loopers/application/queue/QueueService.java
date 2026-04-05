@@ -43,17 +43,18 @@ public class QueueService {
 			long position = rank + 1;
 			long estimatedWaitSeconds = calculateEstimatedWait(position);
 			long pollingInterval = calculatePollingInterval(position);
-			QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds, pollingInterval);
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds, pollingInterval, 0);
 			return QueuePositionResult.from(queuePosition, null);
 		}
 
 		String token = queueRepository.findTokenByUserId(userId).orElse(null);
 		if (token != null) {
-			QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0, 0);
+			long orderableAfterSeconds = calculateOrderableAfterSeconds(userId);
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0, 0, orderableAfterSeconds);
 			return QueuePositionResult.from(queuePosition, token);
 		}
 
-		QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0, 0);
+		QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0, 0, 0);
 		return QueuePositionResult.from(queuePosition, null);
 	}
 
@@ -64,10 +65,22 @@ public class QueueService {
 		if (!storedToken.equals(token)) {
 			throw new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND);
 		}
+
+		queueRepository.findOrderableAtByUserId(userId).ifPresent(orderableAt -> {
+			if (System.currentTimeMillis() < orderableAt) {
+				throw new CoreException(ErrorType.BAD_REQUEST, "아직 주문 가능 시간이 아닙니다.");
+			}
+		});
 	}
 
 	public void removeToken(Long userId) {
 		queueRepository.removeToken(userId);
+	}
+
+	private long calculateOrderableAfterSeconds(Long userId) {
+		return queueRepository.findOrderableAtByUserId(userId)
+				.map(orderableAt -> Math.max(0, (orderableAt - System.currentTimeMillis()) / 1000))
+				.orElse(0L);
 	}
 
 	private long calculatePollingInterval(long position) {

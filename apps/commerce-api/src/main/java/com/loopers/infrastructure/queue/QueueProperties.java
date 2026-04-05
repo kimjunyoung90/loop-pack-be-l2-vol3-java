@@ -12,7 +12,9 @@ public record QueueProperties(
 ) {
     public record Scheduler(
             long intervalMs,
-            int batchSize
+            int batchSize,
+            long spreadIntervalMs,
+            long jitterMaxMs
     ) {
     }
 

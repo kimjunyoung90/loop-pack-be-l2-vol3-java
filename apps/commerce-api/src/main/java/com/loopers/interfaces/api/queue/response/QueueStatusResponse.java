@@ -7,7 +7,8 @@ public record QueueStatusResponse(
         String token,
         long position,
         long estimatedWaitSeconds,
-        long pollingIntervalSeconds
+        long pollingIntervalSeconds,
+        long orderableAfterSeconds
 ) {
     public static QueueStatusResponse from(QueuePositionResult result) {
         return new QueueStatusResponse(
@@ -15,7 +16,8 @@ public record QueueStatusResponse(
                 result.token(),
                 result.position(),
                 result.estimatedWaitSeconds(),
-                result.pollingIntervalSeconds()
+                result.pollingIntervalSeconds(),
+                result.orderableAfterSeconds()
         );
     }
 }

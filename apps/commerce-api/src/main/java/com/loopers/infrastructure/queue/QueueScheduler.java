@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -27,7 +28,17 @@ public class QueueScheduler {
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .toList();
 
-        List<Long> issuedUserIds = queueRepository.popAndIssueTokens(batchSize, tokens);
+        // 유저별 주문 가능 시각 계산 (Thundering Herd 완화)
+        long now = System.currentTimeMillis();
+        long spreadIntervalMs = queueProperties.scheduler().spreadIntervalMs();
+        long jitterMaxMs = queueProperties.scheduler().jitterMaxMs();
+        List<Long> orderableAts = IntStream.range(0, batchSize)
+                .mapToLong(i -> now + (spreadIntervalMs * i)
+                        + (jitterMaxMs > 0 ? ThreadLocalRandom.current().nextLong(jitterMaxMs) : 0))
+                .boxed()
+                .toList();
+
+        List<Long> issuedUserIds = queueRepository.popAndIssueTokens(batchSize, tokens, orderableAts);
 
         if (!issuedUserIds.isEmpty()) {
             log.info("대기열에서 {}명에게 입장 토큰을 발급했습니다.", issuedUserIds.size());

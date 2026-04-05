@@ -8,7 +8,8 @@ public record QueuePositionResult(
         String token,
         long position,
         long estimatedWaitSeconds,
-        long pollingIntervalSeconds
+        long pollingIntervalSeconds,
+        long orderableAfterSeconds
 ) {
     public static QueuePositionResult from(QueuePosition queuePosition, String token) {
         return new QueuePositionResult(
@@ -16,7 +17,8 @@ public record QueuePositionResult(
                 token,
                 queuePosition.position(),
                 queuePosition.estimatedWaitSeconds(),
-                queuePosition.pollingIntervalSeconds()
+                queuePosition.pollingIntervalSeconds(),
+                queuePosition.orderableAfterSeconds()
         );
     }
 }

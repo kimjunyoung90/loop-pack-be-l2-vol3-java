@@ -11,7 +11,9 @@ public interface QueueRepository {
 
     Long getRank(Long token);
 
-    List<Long> popAndIssueTokens(int count, List<String> tokens);
+    List<Long> popAndIssueTokens(int count, List<String> tokens, List<Long> orderableAts);
+
+    Optional<Long> findOrderableAtByUserId(Long userId);
 
     void removeToken(Long userId);
 

@@ -4,6 +4,7 @@ public record QueuePosition(
         QueueStatus status,
         long position,
         long estimatedWaitSeconds,
-        long pollingIntervalSeconds
+        long pollingIntervalSeconds,
+        long orderableAfterSeconds
 ) {
 }
