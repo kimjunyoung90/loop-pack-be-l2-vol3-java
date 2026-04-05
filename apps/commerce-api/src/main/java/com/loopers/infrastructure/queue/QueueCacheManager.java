@@ -5,14 +5,15 @@ import com.loopers.domain.queue.QueueToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.loopers.config.redis.RedisConfig.REDIS_TEMPLATE_MASTER;
 
@@ -26,6 +27,7 @@ public class QueueCacheManager implements QueueRepository {
 
 	private final RedisTemplate<String, String> redisTemplate;
 	private final Duration tokenTtl;
+	private final DefaultRedisScript<List> popAndIssueScript;
 
 	public QueueCacheManager(
 			@Qualifier(REDIS_TEMPLATE_MASTER) RedisTemplate<String, String> redisTemplate,
@@ -33,6 +35,9 @@ public class QueueCacheManager implements QueueRepository {
 	) {
 		this.redisTemplate = redisTemplate;
 		this.tokenTtl = Duration.ofMinutes(queueProperties.token().ttlMinutes());
+		this.popAndIssueScript = new DefaultRedisScript<>();
+		this.popAndIssueScript.setLocation(new ClassPathResource("scripts/pop-and-issue-tokens.lua"));
+		this.popAndIssueScript.setResultType(List.class);
 	}
 
 	@Override
@@ -52,20 +57,22 @@ public class QueueCacheManager implements QueueRepository {
 	}
 
 	@Override
-	public List<Long> popFromQueue(int count) {
-		Set<ZSetOperations.TypedTuple<String>> popped = redisTemplate.opsForZSet()
-				.popMin(WAITING_QUEUE_KEY, count);
-		if (popped == null || popped.isEmpty()) {
+	@SuppressWarnings("unchecked")
+	public List<Long> popAndIssueTokens(int count, List<String> tokens) {
+		List<String> keys = List.of(WAITING_QUEUE_KEY);
+		List<String> args = new ArrayList<>();
+		args.add(ENTRY_TOKEN_KEY_PREFIX);
+		args.add(String.valueOf(count));
+		args.add(String.valueOf(tokenTtl.getSeconds()));
+		args.addAll(tokens);
+
+		List<String> result = redisTemplate.execute(popAndIssueScript, keys, (Object[]) args.toArray(new String[0]));
+		if (result == null || result.isEmpty()) {
 			return List.of();
 		}
-		return popped.stream()
-				.map(tuple -> Long.parseLong(tuple.getValue()))
+		return result.stream()
+				.map(Long::parseLong)
 				.toList();
-	}
-
-	@Override
-	public void issueToken(Long userId, String token) {
-		redisTemplate.opsForValue().set(entryTokenKey(userId), token, tokenTtl);
 	}
 
 	@Override

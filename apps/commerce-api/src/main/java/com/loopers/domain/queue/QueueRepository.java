@@ -11,9 +11,7 @@ public interface QueueRepository {
 
     Long getRank(Long token);
 
-    List<Long> popFromQueue(int count);
-
-    void issueToken(Long userId, String token);
+    List<Long> popAndIssueTokens(int count, List<String> tokens);
 
     void removeToken(Long userId);
 
