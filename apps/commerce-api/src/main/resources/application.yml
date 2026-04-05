@@ -62,7 +62,7 @@ resilience4j:
       orderPlacement:
         limit-for-period: 50           # 주기당 허용 요청 수
         limit-refresh-period: 1s       # 주기 (1초마다 50건 리필)
-        timeout-duration: 3s           # 허용량 초과 시 최대 대기 시간
+        timeout-duration: 0s           # 즉시 거부 (스레드 점유 방지)
   circuitbreaker:
     instances:
       paymentGateway:
