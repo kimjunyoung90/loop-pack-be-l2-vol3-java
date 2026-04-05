@@ -12,5 +12,7 @@ public interface OrderRepository {
 
     Optional<Order> findByIdAndDeletedAtIsNull(Long orderId);
 
+    Optional<Order> findByIdempotencyKey(String idempotencyKey);
+
     Page<Order> findAllByUserId(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable);
 }

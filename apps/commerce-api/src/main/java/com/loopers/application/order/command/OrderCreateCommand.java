@@ -4,6 +4,7 @@ import java.util.List;
 
 public record OrderCreateCommand(
         Long userId,
+        String idempotencyKey,
         Long userCouponId,
         List<OrderItem> orderItems
 ) {

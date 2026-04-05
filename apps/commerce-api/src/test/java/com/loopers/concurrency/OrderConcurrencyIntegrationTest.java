@@ -77,7 +77,7 @@ class OrderConcurrencyIntegrationTest {
                     UserResult user = userService.signUp(
                             new UserCreateCommand("ct" + index, "password1!", "사용자", "1990-01-01", "ct" + index + "@t.com"));
 
-                    OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
+                    OrderCreateCommand command = new OrderCreateCommand(user.id(), java.util.UUID.randomUUID().toString(), null, List.of(
                             new OrderCreateCommand.OrderItem(product.id(), quantityPerOrder)
                     ));
                     orderFacade.placeOrder(command);
@@ -132,7 +132,7 @@ class OrderConcurrencyIntegrationTest {
                     UserResult user = userService.signUp(
                             new UserCreateCommand("st" + index, "password1!", "사용자", "1990-01-01", "st" + index + "@t.com"));
 
-                    OrderCreateCommand command = new OrderCreateCommand(user.id(), null, List.of(
+                    OrderCreateCommand command = new OrderCreateCommand(user.id(), java.util.UUID.randomUUID().toString(), null, List.of(
                             new OrderCreateCommand.OrderItem(productA.id(), 1),
                             new OrderCreateCommand.OrderItem(productB.id(), 1)
                     ));

@@ -20,7 +20,7 @@ public interface OrderV1ApiSpec {
         summary = "주문 생성",
         description = "주문을 생성합니다. 인증된 사용자의 주문을 생성합니다."
     )
-    ApiResponse<OrderCreateResponse> placeOrder(AuthUser authUser, String entryToken, OrderCreateRequest request);
+    ApiResponse<OrderCreateResponse> placeOrder(AuthUser authUser, String idempotencyKey, String entryToken, OrderCreateRequest request);
 
     @Operation(
         summary = "주문 취소",

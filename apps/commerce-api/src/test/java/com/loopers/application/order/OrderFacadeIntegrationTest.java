@@ -19,6 +19,7 @@ import com.loopers.domain.coupon.DiscountType;
 import com.loopers.support.error.CoreException;
 
 import java.time.LocalDate;
+import java.util.UUID;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ class OrderFacadeIntegrationTest {
         ProductResult productResult2 = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", 30000, 5));
 
         // 주문 생성
-        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), null, List.of(
                 new OrderCreateCommand.OrderItem(productResult1.id(), 2),
                 new OrderCreateCommand.OrderItem(productResult2.id(), 1)
         ));
@@ -93,7 +94,7 @@ class OrderFacadeIntegrationTest {
         ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 2));
 
         // 재고 초과 주문
-        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), null, List.of(
                 new OrderCreateCommand.OrderItem(productResult.id(), 5)
         ));
 
@@ -113,7 +114,7 @@ class OrderFacadeIntegrationTest {
         ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
 
         // 주문 생성
-        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), null, List.of(
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), null, List.of(
                 new OrderCreateCommand.OrderItem(productResult.id(), 2)
         ));
         OrderResult orderResult = orderFacade.placeOrder(command);
@@ -156,7 +157,7 @@ class OrderFacadeIntegrationTest {
 
         // 쿠폰 적용 주문 생성
         int expectedTotalAmount = productPrice * orderQuantity;
-        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), userCouponResult.id(), List.of(
                 new OrderCreateCommand.OrderItem(productResult.id(), orderQuantity)
         ));
         OrderResult result = orderFacade.placeOrder(command);
@@ -197,7 +198,7 @@ class OrderFacadeIntegrationTest {
         var userCouponResult = couponService.getUserCoupons(userResult.id()).getFirst();
 
         // 쿠폰 적용 주문 생성
-        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), userCouponResult.id(), List.of(
+        OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), userCouponResult.id(), List.of(
                 new OrderCreateCommand.OrderItem(productResult.id(), orderQuantity)
         ));
         OrderResult orderResult = orderFacade.placeOrder(command);

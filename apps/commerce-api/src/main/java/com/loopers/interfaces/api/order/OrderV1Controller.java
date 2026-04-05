@@ -36,10 +36,12 @@ public class OrderV1Controller implements OrderV1ApiSpec {
     @PostMapping
     public ApiResponse<OrderCreateResponse> placeOrder(
             @LoginUser AuthUser authUser,
+            @RequestHeader("X-Idempotency-Key") String idempotencyKey,
             @RequestHeader("X-Entry-Token") String entryToken,
             @Valid @RequestBody OrderCreateRequest request) {
         OrderCreateCommand command = new OrderCreateCommand(
                 authUser.id(),
+                idempotencyKey,
                 request.userCouponId(),
                 request.orderItems().stream()
                         .map(item -> new OrderCreateCommand.OrderItem(

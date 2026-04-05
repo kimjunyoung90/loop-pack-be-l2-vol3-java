@@ -48,7 +48,7 @@ public class OrderFacade {
         }
 
         // 3. 주문을 생성한다.
-        OrderResult orderResult = orderService.placeOrder(command.userId(), command.userCouponId(), orderItemCommands, discountAmount);
+        OrderResult orderResult = orderService.placeOrder(command.userId(), command.idempotencyKey(), command.userCouponId(), orderItemCommands, discountAmount);
 
         // 4. 주문 생성 이벤트를 발행한다. (재고 차감, 쿠폰 사용)
         eventPublisher.publishEvent(new OrderPlacedEvent(stockItems, command.userCouponId(), command.userId(), totalAmount));

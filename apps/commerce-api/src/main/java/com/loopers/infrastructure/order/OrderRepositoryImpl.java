@@ -28,6 +28,11 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
+    public Optional<Order> findByIdempotencyKey(String idempotencyKey) {
+        return orderJpaRepository.findByIdempotencyKey(idempotencyKey);
+    }
+
+    @Override
     public Page<Order> findAllByUserId(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         ZonedDateTime startDateTime = startDate.atStartOfDay(ZoneId.systemDefault());
         ZonedDateTime endDateTime = endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault());
