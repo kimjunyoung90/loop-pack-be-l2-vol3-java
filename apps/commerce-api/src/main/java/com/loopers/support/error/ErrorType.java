@@ -19,6 +19,9 @@ public enum ErrorType {
     QUEUE_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase(), "대기열 토큰을 찾을 수 없습니다."),
     QUEUE_NOT_ALLOWED(HttpStatus.FORBIDDEN, HttpStatus.FORBIDDEN.getReasonPhrase(), "아직 주문이 허용되지 않았습니다."),
 
+    /** 주문 에러 */
+    ORDER_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(), "주문 요청이 너무 많습니다. 잠시 후 다시 시도해주세요."),
+
     /** 결제 에러 */
     PAYMENT_GATEWAY_ERROR(HttpStatus.SERVICE_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(), "결제 서비스가 일시적으로 불안정합니다."),
     PAYMENT_GATEWAY_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, HttpStatus.GATEWAY_TIMEOUT.getReasonPhrase(), "결제 서비스 응답 시간이 초과되었습니다."),
