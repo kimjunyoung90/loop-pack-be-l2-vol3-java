@@ -14,6 +14,8 @@ public interface OrderJpaRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByIdAndDeletedAtIsNull(Long id);
 
+    Optional<Order> findByIdempotencyKey(String idempotencyKey);
+
     @Query("SELECT o FROM Order o WHERE o.userId = :userId " +
            "AND o.createdAt >= :startDateTime AND o.createdAt < :endDateTime " +
            "AND o.deletedAt IS NULL")

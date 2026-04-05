@@ -4,6 +4,7 @@ import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderService;
 import com.loopers.application.order.result.OrderResult.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
+import com.loopers.application.queue.QueueService;
 import com.loopers.application.user.UserService;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
@@ -55,6 +56,9 @@ class OrderV1ControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private QueueService queueService;
+
     private static final String LOGIN_ID_HEADER = "X-Loopers-LoginId";
     private static final String LOGIN_PW_HEADER = "X-Loopers-LoginPw";
 
@@ -80,6 +84,7 @@ class OrderV1ControllerTest {
         mockMvc.perform(post("/api/v1/orders")
                         .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!")
+                        .header("X-Entry-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -119,6 +124,7 @@ class OrderV1ControllerTest {
         mockMvc.perform(post("/api/v1/orders")
                         .header(LOGIN_ID_HEADER, "loginId")
                         .header(LOGIN_PW_HEADER, "password1!")
+                        .header("X-Entry-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

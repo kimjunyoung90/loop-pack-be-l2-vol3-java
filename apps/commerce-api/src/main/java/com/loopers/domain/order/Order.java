@@ -21,6 +21,9 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long userId;
 
+    @Column(nullable = false, unique = true)
+    private String idempotencyKey;
+
     @Column
     private Long userCouponId;
 
@@ -41,8 +44,9 @@ public class Order extends BaseEntity {
     private int finalAmount;
 
     @Builder
-    private Order(Long userId, Long userCouponId) {
+    private Order(Long userId, String idempotencyKey, Long userCouponId) {
         this.userId = userId;
+        this.idempotencyKey = idempotencyKey;
         this.userCouponId = userCouponId;
         this.status = OrderStatus.PENDING;
         this.totalAmount = 0;
@@ -55,6 +59,9 @@ public class Order extends BaseEntity {
     protected void guard() {
         if (userId == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문자 ID는 필수입니다.");
+        }
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "멱등성 키는 필수입니다.");
         }
         if (status == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 상태는 필수입니다.");

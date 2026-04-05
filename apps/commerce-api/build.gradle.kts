@@ -15,8 +15,9 @@ dependencies {
     // security
     implementation("org.springframework.security:spring-security-crypto")
 
-    // circuit breaker
+    // circuit breaker + rate limiter
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
+    implementation("io.github.resilience4j:resilience4j-ratelimiter")
 
     // querydsl
     annotationProcessor("com.querydsl:querydsl-apt::jakarta")

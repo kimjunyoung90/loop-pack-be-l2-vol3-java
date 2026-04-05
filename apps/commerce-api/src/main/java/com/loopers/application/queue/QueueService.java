@@ -1,0 +1,112 @@
+package com.loopers.application.queue;
+
+import com.loopers.application.queue.result.QueuePositionResult;
+import com.loopers.application.queue.result.QueueTokenResult;
+import com.loopers.domain.queue.QueuePosition;
+import com.loopers.domain.queue.QueueRepository;
+import com.loopers.domain.queue.QueueStatus;
+import com.loopers.domain.queue.QueueToken;
+import com.loopers.infrastructure.queue.QueueProperties;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class QueueService {
+
+	private final QueueRepository queueRepository;
+	private final QueueProperties queueProperties;
+
+	//큐 진입
+	public QueueTokenResult enterQueue(Long userId) {
+		if (queueRepository.isAlreadyQueued(userId)) {
+			Long rank = queueRepository.getRank(userId);
+			long position = rank != null ? rank + 1 : 0;
+			return new QueueTokenResult(position, calculateEstimatedWait(position), calculatePollingInterval(position));
+		}
+
+		queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
+
+		Long rank = queueRepository.getRank(userId);
+		long position = rank != null ? rank + 1 : 0;
+		return new QueueTokenResult(position, calculateEstimatedWait(position), calculatePollingInterval(position));
+	}
+
+	//대기 순번 반환
+	public QueuePositionResult getQueuePosition(Long userId) {
+		Long rank = queueRepository.getRank(userId);
+		if (rank != null) {
+			long position = rank + 1;
+			long estimatedWaitSeconds = calculateEstimatedWait(position);
+			long pollingInterval = calculatePollingInterval(position);
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds, pollingInterval, 0);
+			return QueuePositionResult.from(queuePosition, null);
+		}
+
+		String token = queueRepository.findTokenByUserId(userId).orElse(null);
+		if (token != null) {
+			long orderableAfterSeconds = calculateOrderableAfterSeconds(userId);
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0, 0, orderableAfterSeconds);
+			return QueuePositionResult.from(queuePosition, token);
+		}
+
+		QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0, 0, 0);
+		return QueuePositionResult.from(queuePosition, null);
+	}
+
+	public void validateToken(String token, Long userId) {
+		try {
+			String storedToken = queueRepository.findTokenByUserId(userId)
+					.orElseThrow(() -> new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND));
+
+			if (!storedToken.equals(token)) {
+				throw new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND);
+			}
+
+			queueRepository.findOrderableAtByUserId(userId).ifPresent(orderableAt -> {
+				if (System.currentTimeMillis() < orderableAt) {
+					throw new CoreException(ErrorType.BAD_REQUEST, "아직 주문 가능 시간이 아닙니다.");
+				}
+			});
+		} catch (RedisConnectionFailureException e) {
+			log.warn("Redis 장애로 토큰 검증을 건너뜁니다. userId={}", userId, e);
+		}
+	}
+
+	public void removeToken(Long userId) {
+		try {
+			queueRepository.removeToken(userId);
+		} catch (RedisConnectionFailureException e) {
+			log.warn("Redis 장애로 토큰 삭제를 건너뜁니다. userId={}", userId, e);
+		}
+	}
+
+	private long calculateOrderableAfterSeconds(Long userId) {
+		return queueRepository.findOrderableAtByUserId(userId)
+				.map(orderableAt -> Math.max(0, (orderableAt - System.currentTimeMillis()) / 1000))
+				.orElse(0L);
+	}
+
+	private long calculatePollingInterval(long position) {
+		for (QueueProperties.Polling.Tier tier : queueProperties.polling().tiers()) {
+			if (position <= tier.maxPosition()) {
+				return tier.intervalSeconds();
+			}
+		}
+		return queueProperties.polling().defaultIntervalSeconds();
+	}
+
+	private long calculateEstimatedWait(long position) {
+		int batchSize = queueProperties.scheduler().batchSize();
+		long intervalMs = queueProperties.scheduler().intervalMs();
+		double secondsPerBatch = intervalMs / 1000.0;
+		return (long) Math.ceil((double) position / batchSize * secondsPerBatch);
+	}
+}

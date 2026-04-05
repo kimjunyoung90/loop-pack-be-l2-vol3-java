@@ -23,9 +23,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderResult placeOrder(Long userId, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
+    public OrderResult placeOrder(Long userId, String idempotencyKey, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
+		if (orderRepository.findByIdempotencyKey(idempotencyKey).isPresent()) {
+			throw new CoreException(ErrorType.BAD_REQUEST, "이미 처리된 주문입니다.");
+		}
+
         Order order = Order.builder()
                 .userId(userId)
+                .idempotencyKey(idempotencyKey)
                 .userCouponId(userCouponId)
                 .build();
 

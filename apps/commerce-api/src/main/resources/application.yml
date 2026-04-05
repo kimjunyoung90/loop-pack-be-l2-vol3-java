@@ -36,7 +36,33 @@ pg:
   read-timeout: 5000
   callback-url: http://localhost:8080/api/v1/payments/callback
 
+queue:
+  scheduler:
+    # Thundering Herd 완화: 배치 크기를 줄이고 주기를 단축하여 피크 부하 분산
+    # 변경 전: 50명/1000ms (초당 50명, 피크 50명)
+    # 변경 후: 10명/200ms (초당 50명, 피크 10명)
+    interval-ms: 200
+    batch-size: 10
+    # 입장 지연: 배치 내 유저별 주문 가능 시점을 분산
+    spread-interval-ms: 200    # 유저 간 기본 간격 (0번째: 0ms, 1번째: 200ms, ...)
+    jitter-max-ms: 100         # 랜덤 지터 범위 (0~100ms)
+  token:
+    ttl-minutes: 30
+  polling:
+    default-interval-seconds: 10
+    tiers:
+      - max-position: 100
+        interval-seconds: 2
+      - max-position: 500
+        interval-seconds: 5
+
 resilience4j:
+  ratelimiter:
+    instances:
+      orderPlacement:
+        limit-for-period: 50           # 주기당 허용 요청 수
+        limit-refresh-period: 1s       # 주기 (1초마다 50건 리필)
+        timeout-duration: 0s           # 즉시 거부 (스레드 점유 방지)
   circuitbreaker:
     instances:
       paymentGateway:
@@ -58,6 +84,10 @@ spring:
   config:
     activate:
       on-profile: local, test
+
+queue:
+  scheduler:
+    enabled: false
 
 ---
 spring:
