@@ -1,6 +1,7 @@
 package com.loopers.interfaces.consumer;
 
 import com.loopers.application.order.OrderEventProcessor;
+import com.loopers.application.product.ProductRankingService;
 import com.loopers.confg.kafka.KafkaConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class OrderEventConsumer {
     private static final String TOPIC_ORDER = "order-events";
 
     private final OrderEventProcessor orderEventProcessor;
+    private final ProductRankingService productRankingService;
 
     @KafkaListener(topics = {TOPIC_ORDER}, containerFactory = KafkaConfig.BATCH_LISTENER)
     public void consumeOrderEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
@@ -34,6 +36,7 @@ public class OrderEventConsumer {
                 throw new BatchListenerFailedException("주문 이벤트 처리 실패", e, i);
             }
         }
+        productRankingService.flush();
         acknowledgment.acknowledge();
     }
 }
