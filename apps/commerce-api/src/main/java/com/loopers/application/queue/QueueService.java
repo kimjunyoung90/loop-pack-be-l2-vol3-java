@@ -21,6 +21,7 @@ public class QueueService {
 	private final QueueRepository queueRepository;
 	private final QueueProperties queueProperties;
 
+	//큐 진입
 	public QueueTokenResult enterQueue(Long userId) {
 		if (queueRepository.isAlreadyQueued(userId)) {
 			Long rank = queueRepository.getRank(userId);
@@ -35,6 +36,7 @@ public class QueueService {
 		return new QueueTokenResult(position, calculateEstimatedWait(position));
 	}
 
+	//대기 순번 반환
 	public QueuePositionResult getQueuePosition(Long userId) {
 		Long rank = queueRepository.getRank(userId);
 		if (rank != null) {
@@ -54,14 +56,16 @@ public class QueueService {
 		return QueuePositionResult.from(queuePosition, null);
 	}
 
-	public void validateAndConsumeToken(String token, Long userId) {
+	public void validateToken(String token, Long userId) {
 		String storedToken = queueRepository.findTokenByUserId(userId)
 				.orElseThrow(() -> new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND));
 
 		if (!storedToken.equals(token)) {
 			throw new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND);
 		}
+	}
 
+	public void removeToken(Long userId) {
 		queueRepository.removeToken(userId);
 	}
 

@@ -51,8 +51,9 @@ public class OrderV1Controller implements OrderV1ApiSpec {
                         .toList()
         );
 
-        queueService.validateAndConsumeToken(entryToken, authUser.id());
+        queueService.validateToken(entryToken, authUser.id());
         OrderResult orderResult = orderFacade.placeOrder(command);
+        queueService.removeToken(authUser.id());
         return ApiResponse.success(OrderCreateResponse.from(orderResult));
     }
 
