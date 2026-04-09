@@ -31,24 +31,42 @@ public class RankingScheduler {
     @Value("${ranking.weights.sales:0.6}")
     private double salesWeight;
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void aggregateDailyRanking() {
-        aggregate(LocalDate.now().minusDays(1));
+    @Value("${ranking.carry-over-rate:0.3}")
+    private double carryOverRate;
+
+    @Scheduled(cron = "0 50 23 * * *")
+    public void carryOverRanking() {
+        LocalDate today = LocalDate.now();
+        LocalDate tomorrow = today.plusDays(1);
+
+        Map<Long, Double> todayScores = productRankingRepository.getAllScores(today);
+        Map<Long, Double> carryOverScores = todayScores.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue() * carryOverRate
+                ));
+
+        productRankingRepository.saveScores(tomorrow, carryOverScores);
+        log.info("랭킹 carry-over 완료: from={}, to={}, count={}", today, tomorrow, carryOverScores.size());
     }
 
-    public void aggregate(LocalDate date) {
-        List<ProductMetrics> metricsList = productMetricsRepository.findAllByMetricDate(date);
+    @Scheduled(cron = "0 0 0 * * *")
+    public void aggregateDailyRanking() {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate today = LocalDate.now();
+
+        List<ProductMetrics> metricsList = productMetricsRepository.findAllByMetricDate(yesterday);
         Map<Long, Double> scores = metricsList.stream()
                 .collect(Collectors.toMap(
                         ProductMetrics::getProductId,
                         this::calculateScore
                 ));
 
-        productRankingRepository.saveScores(date, scores);
-        log.info("일간 랭킹 집계 완료: date={}, count={}", date, scores.size());
+        productRankingRepository.incrementScores(today, scores);
+        log.info("일간 랭킹 집계 완료: metricDate={}, targetDate={}, count={}", yesterday, today, scores.size());
     }
 
-    private double calculateScore(ProductMetrics metrics) {
+	private double calculateScore(ProductMetrics metrics) {
         return (metrics.getViewCount() * viewWeight)
                 + (metrics.getLikeCount() * likeWeight)
                 + (metrics.getSalesCount() * salesWeight);

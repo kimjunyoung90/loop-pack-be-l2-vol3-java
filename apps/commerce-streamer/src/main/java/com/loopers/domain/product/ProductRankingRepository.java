@@ -7,5 +7,9 @@ public interface ProductRankingRepository {
 
     void incrementScores(Map<Long, Double> productScores);
 
+    void incrementScores(LocalDate date, Map<Long, Double> productScores);
+
     void saveScores(LocalDate date, Map<Long, Double> productScores);
+
+    Map<Long, Double> getAllScores(LocalDate date);
 }

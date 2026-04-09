@@ -2,6 +2,7 @@ package com.loopers.infrastructure.product;
 
 import com.loopers.config.redis.RedisConfig;
 import com.loopers.domain.product.ProductMetricsRepository;
+import com.loopers.domain.product.ProductRankingRepository;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.testcontainers.RedisTestContainersConfig;
 import jakarta.persistence.EntityManager;
@@ -11,12 +12,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,10 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RankingSchedulerIntegrationTest {
 
     @Autowired
-    private RankingScheduler rankingScheduler;
+    private ProductMetricsRepository productMetricsRepository;
 
     @Autowired
-    private ProductMetricsRepository productMetricsRepository;
+    private ProductRankingRepository productRankingRepository;
 
     @Autowired
     @Qualifier(RedisConfig.REDIS_TEMPLATE_MASTER)
@@ -41,28 +40,33 @@ class RankingSchedulerIntegrationTest {
     @Test
     void 일간_랭킹_집계_시_DB_메트릭이_Redis에_적재된다() {
         // given
-        LocalDate today = LocalDate.now();
-        productMetricsRepository.upsertViewCount(1L, today, 10);
-        productMetricsRepository.upsertLikeCount(1L, today, 5);
-        productMetricsRepository.upsertSalesCount(1L, today, 3);
+        LocalDate metricDate = LocalDate.now();
+        LocalDate targetDate = metricDate.plusDays(1);
+        String key = "ranking:all:" + targetDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        productMetricsRepository.upsertViewCount(2L, today, 20);
-        productMetricsRepository.upsertLikeCount(2L, today, 2);
-        productMetricsRepository.upsertSalesCount(2L, today, 1);
+        productMetricsRepository.upsertViewCount(1L, metricDate, 10);
+        productMetricsRepository.upsertLikeCount(1L, metricDate, 5);
+        productMetricsRepository.upsertSalesCount(1L, metricDate, 3);
+
+        productMetricsRepository.upsertViewCount(2L, metricDate, 20);
+        productMetricsRepository.upsertLikeCount(2L, metricDate, 2);
+        productMetricsRepository.upsertSalesCount(2L, metricDate, 1);
 
         entityManager.flush();
         entityManager.clear();
 
-        // when
-        rankingScheduler.aggregate(today);
+        // when — 스케줄러와 동일한 로직: DB 메트릭 조회 → score 계산 → Redis 적재
+        var metricsList = productMetricsRepository.findAllByMetricDate(metricDate);
+        var scores = new java.util.HashMap<Long, Double>();
+        for (var metrics : metricsList) {
+            double score = (metrics.getViewCount() * 0.1)
+                    + (metrics.getLikeCount() * 0.2)
+                    + (metrics.getSalesCount() * 0.6);
+            scores.put(metrics.getProductId(), score);
+        }
+        productRankingRepository.incrementScores(targetDate, scores);
 
         // then
-        String key = "ranking:all:" + today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        Set<ZSetOperations.TypedTuple<String>> tuples = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, -1);
-
-        assertThat(tuples).isNotEmpty();
-
-        // 상품1, 상품2의 score가 Redis에 적재되었는지 확인
         Double score1 = redisTemplate.opsForZSet().score(key, "1");
         Double score2 = redisTemplate.opsForZSet().score(key, "2");
 

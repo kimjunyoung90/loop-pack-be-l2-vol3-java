@@ -10,10 +10,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.redis.core.ZSetOperations;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -32,11 +37,16 @@ public class ProductRankingRepositoryImpl implements ProductRankingRepository {
 
     @Override
     public void incrementScores(Map<Long, Double> productScores) {
+        incrementScores(LocalDate.now(), productScores);
+    }
+
+    @Override
+    public void incrementScores(LocalDate date, Map<Long, Double> productScores) {
         if (productScores.isEmpty()) {
             return;
         }
 
-        String key = KEY_PREFIX + LocalDate.now().format(DATE_FORMATTER);
+        String key = KEY_PREFIX + date.format(DATE_FORMATTER);
 
         try {
             redisTemplate.executePipelined(new SessionCallback<>() {
@@ -86,6 +96,26 @@ public class ProductRankingRepositoryImpl implements ProductRankingRepository {
             log.info("Redis 랭킹 일괄 적재 완료: key={}, count={}", key, productScores.size());
         } catch (Exception e) {
             log.warn("Redis 랭킹 일괄 적재 실패: key={}", key, e);
+        }
+    }
+
+    @Override
+    public Map<Long, Double> getAllScores(LocalDate date) {
+        String key = KEY_PREFIX + date.format(DATE_FORMATTER);
+        try {
+            Set<ZSetOperations.TypedTuple<String>> tuples =
+                    redisTemplate.opsForZSet().rangeWithScores(key, 0, -1);
+            if (tuples == null || tuples.isEmpty()) {
+                return Collections.emptyMap();
+            }
+            return tuples.stream()
+                    .collect(Collectors.toMap(
+                            tuple -> Long.parseLong(tuple.getValue()),
+                            ZSetOperations.TypedTuple::getScore
+                    ));
+        } catch (Exception e) {
+            log.warn("Redis 랭킹 전체 조회 실패: key={}", key, e);
+            return Collections.emptyMap();
         }
     }
 }
