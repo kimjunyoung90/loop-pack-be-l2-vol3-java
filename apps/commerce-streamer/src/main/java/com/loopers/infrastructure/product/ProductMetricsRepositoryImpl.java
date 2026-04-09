@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -22,6 +23,11 @@ public class ProductMetricsRepositoryImpl implements ProductMetricsRepository {
     @Override
     public Optional<ProductMetrics> findByProductIdAndMetricDate(Long productId, LocalDate metricDate) {
         return productMetricsJpaRepository.findByProductIdAndMetricDate(productId, metricDate);
+    }
+
+    @Override
+    public List<ProductMetrics> findAllByMetricDate(LocalDate metricDate) {
+        return productMetricsJpaRepository.findAllByMetricDate(metricDate);
     }
 
     @Override

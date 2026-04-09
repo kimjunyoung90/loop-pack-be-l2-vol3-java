@@ -6,11 +6,14 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductMetricsJpaRepository extends JpaRepository<ProductMetrics, Long> {
 
     Optional<ProductMetrics> findByProductIdAndMetricDate(Long productId, LocalDate metricDate);
+
+    List<ProductMetrics> findAllByMetricDate(LocalDate metricDate);
 
     @Modifying
     @Query(value = """

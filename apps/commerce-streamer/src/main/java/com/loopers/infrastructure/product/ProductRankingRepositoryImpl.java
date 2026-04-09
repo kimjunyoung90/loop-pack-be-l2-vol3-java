@@ -58,4 +58,34 @@ public class ProductRankingRepositoryImpl implements ProductRankingRepository {
             log.warn("Redis 랭킹 점수 갱신 실패: key={}", key, e);
         }
     }
+
+    @Override
+    public void saveScores(LocalDate date, Map<Long, Double> productScores) {
+        if (productScores.isEmpty()) {
+            return;
+        }
+
+        String key = KEY_PREFIX + date.format(DATE_FORMATTER);
+
+        try {
+            redisTemplate.executePipelined(new SessionCallback<>() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public Object execute(RedisOperations operations) throws DataAccessException {
+                    for (Map.Entry<Long, Double> entry : productScores.entrySet()) {
+                        operations.opsForZSet().add(
+                                key,
+                                String.valueOf(entry.getKey()),
+                                entry.getValue()
+                        );
+                    }
+                    operations.expire(key, TTL);
+                    return null;
+                }
+            });
+            log.info("Redis 랭킹 일괄 적재 완료: key={}, count={}", key, productScores.size());
+        } catch (Exception e) {
+            log.warn("Redis 랭킹 일괄 적재 실패: key={}", key, e);
+        }
+    }
 }

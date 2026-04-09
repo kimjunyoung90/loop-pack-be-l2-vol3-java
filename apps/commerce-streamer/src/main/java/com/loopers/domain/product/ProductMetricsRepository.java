@@ -1,6 +1,7 @@
 package com.loopers.domain.product;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductMetricsRepository {
@@ -8,6 +9,8 @@ public interface ProductMetricsRepository {
     ProductMetrics save(ProductMetrics productMetrics);
 
     Optional<ProductMetrics> findByProductIdAndMetricDate(Long productId, LocalDate metricDate);
+
+    List<ProductMetrics> findAllByMetricDate(LocalDate metricDate);
 
     void upsertLikeCount(Long productId, LocalDate metricDate, int delta);
 
