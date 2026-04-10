@@ -55,6 +55,7 @@ public class RankingScheduler {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalDate today = LocalDate.now();
 
+		//어제 집계 데이터를 바탕으로 일간 랭킹 점수 계산
         List<ProductMetrics> metricsList = productMetricsRepository.findAllByMetricDate(yesterday);
         Map<Long, Double> scores = metricsList.stream()
                 .collect(Collectors.toMap(
