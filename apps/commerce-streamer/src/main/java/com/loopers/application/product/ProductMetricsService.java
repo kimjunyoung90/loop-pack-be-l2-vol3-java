@@ -14,22 +14,22 @@ public class ProductMetricsService {
     private final ProductMetricsRepository productMetricsRepository;
 
     @Transactional
-    public void incrementLikeCount(Long productId) {
-        productMetricsRepository.upsertLikeCount(productId, LocalDate.now(), 1);
+    public void incrementLikeCount(Long productId, LocalDate eventDate) {
+        productMetricsRepository.upsertLikeCount(productId, eventDate, 1);
     }
 
     @Transactional
-    public void decrementLikeCount(Long productId) {
-        productMetricsRepository.upsertLikeCount(productId, LocalDate.now(), -1);
+    public void decrementLikeCount(Long productId, LocalDate eventDate) {
+        productMetricsRepository.upsertLikeCount(productId, eventDate, -1);
     }
 
     @Transactional
-    public void incrementViewCount(Long productId) {
-        productMetricsRepository.upsertViewCount(productId, LocalDate.now(), 1);
+    public void incrementViewCount(Long productId, LocalDate eventDate) {
+        productMetricsRepository.upsertViewCount(productId, eventDate, 1);
     }
 
     @Transactional
-    public void incrementSalesCount(Long productId, int quantity) {
-        productMetricsRepository.upsertSalesCount(productId, LocalDate.now(), quantity);
+    public void incrementSalesCount(Long productId, int quantity, LocalDate eventDate) {
+        productMetricsRepository.upsertSalesCount(productId, eventDate, quantity);
     }
 }

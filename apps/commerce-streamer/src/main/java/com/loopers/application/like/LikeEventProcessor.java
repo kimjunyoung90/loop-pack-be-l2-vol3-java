@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class LikeEventProcessor {
 
     private static final String EVENT_PRODUCT_LIKED = "PRODUCT_LIKED";
     private static final String EVENT_PRODUCT_UNLIKED = "PRODUCT_UNLIKED";
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ProductMetricsService productMetricsService;
     private final EventHandledRepository eventHandledRepository;
@@ -33,14 +37,15 @@ public class LikeEventProcessor {
             return;
         }
 
+        LocalDate eventDate = LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), KST);
         JsonNode node = objectMapper.readTree(record.value().toString());
         Long productId = node.get("productId").asLong();
         String eventType = node.get("eventType").asText();
 
         if (EVENT_PRODUCT_LIKED.equals(eventType)) {
-            productMetricsService.incrementLikeCount(productId);
+            productMetricsService.incrementLikeCount(productId, eventDate);
         } else if (EVENT_PRODUCT_UNLIKED.equals(eventType)) {
-            productMetricsService.decrementLikeCount(productId);
+            productMetricsService.decrementLikeCount(productId, eventDate);
         } else {
             log.warn("알 수 없는 좋아요 이벤트 타입: {}", eventType);
             return;

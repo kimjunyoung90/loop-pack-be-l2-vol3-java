@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 public class ProductEventProcessor {
 
     private static final String EVENT_PRODUCT_VIEWED = "PRODUCT_VIEWED";
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ProductMetricsService productMetricsService;
     private final EventHandledRepository eventHandledRepository;
@@ -31,12 +35,13 @@ public class ProductEventProcessor {
             return;
         }
 
+        LocalDate eventDate = LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), KST);
         JsonNode node = objectMapper.readTree(record.value().toString());
         String eventType = node.get("eventType").asText();
 
         if (EVENT_PRODUCT_VIEWED.equals(eventType)) {
             Long productId = node.get("productId").asLong();
-            productMetricsService.incrementViewCount(productId);
+            productMetricsService.incrementViewCount(productId, eventDate);
         } else {
             log.warn("알 수 없는 상품 이벤트 타입: {}", eventType);
             return;
@@ -47,7 +52,7 @@ public class ProductEventProcessor {
         }
     }
 
-    private String extractEventId(ConsumerRecord<Object, Object> record) {
+	private String extractEventId(ConsumerRecord<Object, Object> record) {
         Header header = record.headers().lastHeader("eventId");
         if (header == null) {
             return null;
