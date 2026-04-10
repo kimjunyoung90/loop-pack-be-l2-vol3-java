@@ -36,11 +36,6 @@ public class ProductRankingRepositoryImpl implements ProductRankingRepository {
     }
 
     @Override
-    public void incrementScores(Map<Long, Double> productScores) {
-        incrementScores(LocalDate.now(), productScores);
-    }
-
-    @Override
     public void incrementScores(LocalDate date, Map<Long, Double> productScores) {
         if (productScores.isEmpty()) {
             return;
