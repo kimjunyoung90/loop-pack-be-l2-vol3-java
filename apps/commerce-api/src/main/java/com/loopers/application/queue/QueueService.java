@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,14 +23,8 @@ public class QueueService {
 	private final QueueRepository queueRepository;
 	private final QueueProperties queueProperties;
 
-	//큐 진입
-	public QueueTokenResult enterQueue(Long userId) {
-		if (queueRepository.isAlreadyQueued(userId)) {
-			Long rank = queueRepository.getRank(userId);
-			long position = rank != null ? rank + 1 : 0;
-			return new QueueTokenResult(position, calculateEstimatedWait(position), calculatePollingInterval(position));
-		}
 
+	public QueueTokenResult enterQueue(Long userId) {
 		queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
 
 		Long rank = queueRepository.getRank(userId);
