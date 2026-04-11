@@ -12,6 +12,7 @@ public record ProductWithBrandDetailResponse(
         int price,
         int stock,
         int likeCount,
+        Integer rank,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
@@ -24,6 +25,7 @@ public record ProductWithBrandDetailResponse(
                 result.price(),
                 result.stock(),
                 result.likeCount(),
+                result.rank(),
                 result.createdAt(),
                 result.updatedAt()
         );

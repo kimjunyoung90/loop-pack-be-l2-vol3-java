@@ -27,8 +27,14 @@ import java.util.UUID;
 @Component
 public class MetricsEventPublisher {
 
-    private static final String TOPIC_CATALOG = "catalog-events";
+    private static final String TOPIC_PRODUCT = "product-events";
+    private static final String TOPIC_LIKE = "like-events";
     private static final String TOPIC_ORDER = "order-events";
+
+    private static final String EVENT_PRODUCT_VIEWED = "PRODUCT_VIEWED";
+    private static final String EVENT_PRODUCT_LIKED = "PRODUCT_LIKED";
+    private static final String EVENT_PRODUCT_UNLIKED = "PRODUCT_UNLIKED";
+    private static final String EVENT_ORDER_PLACED = "ORDER_PLACED";
 
     private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
@@ -36,22 +42,22 @@ public class MetricsEventPublisher {
     @Async("outboxTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleProductLiked(ProductLikedEvent event) {
-        send(TOPIC_CATALOG, String.valueOf(event.productId()),
-                writeJson(Map.of("eventType", "PRODUCT_LIKED", "productId", event.productId())));
+        send(TOPIC_LIKE, String.valueOf(event.productId()),
+                writeJson(Map.of("eventType", EVENT_PRODUCT_LIKED, "productId", event.productId())));
     }
 
     @Async("outboxTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleProductUnliked(ProductUnlikedEvent event) {
-        send(TOPIC_CATALOG, String.valueOf(event.productId()),
-                writeJson(Map.of("eventType", "PRODUCT_UNLIKED", "productId", event.productId())));
+        send(TOPIC_LIKE, String.valueOf(event.productId()),
+                writeJson(Map.of("eventType", EVENT_PRODUCT_UNLIKED, "productId", event.productId())));
     }
 
     @Async("outboxTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleProductViewed(ProductViewedEvent event) {
-        send(TOPIC_CATALOG, String.valueOf(event.productId()),
-                writeJson(Map.of("eventType", "PRODUCT_VIEWED", "productId", event.productId())));
+        send(TOPIC_PRODUCT, String.valueOf(event.productId()),
+                writeJson(Map.of("eventType", EVENT_PRODUCT_VIEWED, "productId", event.productId())));
     }
 
     @Async("outboxTaskExecutor")
@@ -59,7 +65,7 @@ public class MetricsEventPublisher {
     public void handleOrderPlaced(OrderPlacedEvent event) {
         event.stockItems().forEach(stockItem ->
                 send(TOPIC_ORDER, String.valueOf(stockItem.productId()),
-                        writeJson(Map.of("eventType", "ORDER_PLACED", "productId", stockItem.productId(), "quantity", stockItem.quantity()))));
+                        writeJson(Map.of("eventType", EVENT_ORDER_PLACED, "productId", stockItem.productId(), "quantity", stockItem.quantity()))));
     }
 
     private void send(String topic, String key, String payload) {

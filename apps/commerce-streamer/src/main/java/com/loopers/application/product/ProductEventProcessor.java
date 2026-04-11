@@ -2,56 +2,57 @@ package com.loopers.application.product;
 
 import com.loopers.domain.event.EventHandled;
 import com.loopers.domain.event.EventHandledRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
-public class ProductMetricsEventProcessor {
+public class ProductEventProcessor {
+
+    private static final String EVENT_PRODUCT_VIEWED = "PRODUCT_VIEWED";
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ProductMetricsService productMetricsService;
     private final EventHandledRepository eventHandledRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public void processViewEvent(ConsumerRecord<Object, Object> record) throws Exception {
+    public void process(ConsumerRecord<Object, Object> record) throws Exception {
         String eventId = extractEventId(record);
         if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
             return;
         }
 
-        Long productId = objectMapper.readTree(record.value().toString()).get("productId").asLong();
-        productMetricsService.incrementViewCount(productId);
+        LocalDate eventDate = LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), KST);
+        JsonNode node = objectMapper.readTree(record.value().toString());
+        String eventType = node.get("eventType").asText();
+
+        if (EVENT_PRODUCT_VIEWED.equals(eventType)) {
+            Long productId = node.get("productId").asLong();
+            productMetricsService.incrementViewCount(productId, eventDate);
+        } else {
+            log.warn("알 수 없는 상품 이벤트 타입: {}", eventType);
+            return;
+        }
 
         if (eventId != null) {
             eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
         }
     }
 
-    @Transactional
-    public void processOrderEvent(ConsumerRecord<Object, Object> record) throws Exception {
-        String eventId = extractEventId(record);
-        if (eventId != null && eventHandledRepository.existsByEventId(eventId)) {
-            return;
-        }
-
-        var node = objectMapper.readTree(record.value().toString());
-        Long productId = node.get("productId").asLong();
-        int quantity = node.get("quantity").asInt();
-        productMetricsService.incrementSalesCount(productId, quantity);
-
-        if (eventId != null) {
-            eventHandledRepository.save(EventHandled.builder().eventId(eventId).build());
-        }
-    }
-
-    private String extractEventId(ConsumerRecord<Object, Object> record) {
+	private String extractEventId(ConsumerRecord<Object, Object> record) {
         Header header = record.headers().lastHeader("eventId");
         if (header == null) {
             return null;

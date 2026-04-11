@@ -1,6 +1,6 @@
 package com.loopers.interfaces.consumer;
 
-import com.loopers.application.order.OrderEventProcessor;
+import com.loopers.application.product.ProductEventProcessor;
 import com.loopers.confg.kafka.KafkaConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,22 +16,22 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class OrderEventConsumer {
+public class ProductEventConsumer {
 
-    private static final String TOPIC_ORDER = "order-events";
+    private static final String TOPIC_PRODUCT = "product-events";
 
-    private final OrderEventProcessor orderEventProcessor;
+    private final ProductEventProcessor productEventProcessor;
 
-    @KafkaListener(topics = {TOPIC_ORDER}, containerFactory = KafkaConfig.BATCH_LISTENER)
-    public void consumeOrderEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
+    @KafkaListener(topics = {TOPIC_PRODUCT}, containerFactory = KafkaConfig.BATCH_LISTENER)
+    public void consumeProductEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
         for (int i = 0; i < messages.size(); i++) {
             try {
-                orderEventProcessor.process(messages.get(i));
+                productEventProcessor.process(messages.get(i));
             } catch (DataIntegrityViolationException e) {
-                log.info("주문 이벤트 중복 처리 감지 (정상). record={}", messages.get(i));
+                log.info("상품 이벤트 중복 처리 감지 (정상). record={}", messages.get(i));
             } catch (Exception e) {
-                log.error("주문 이벤트 처리 실패. record={}", messages.get(i), e);
-                throw new BatchListenerFailedException("주문 이벤트 처리 실패", e, i);
+                log.error("상품 이벤트 처리 실패. record={}", messages.get(i), e);
+                throw new BatchListenerFailedException("상품 이벤트 처리 실패", e, i);
             }
         }
         acknowledgment.acknowledge();

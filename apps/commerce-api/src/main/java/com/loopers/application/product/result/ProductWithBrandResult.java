@@ -10,10 +10,15 @@ public record ProductWithBrandResult(
         int price,
         int stock,
         int likeCount,
+        Integer rank,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
     public static ProductWithBrandResult from(ProductResult product, String brandName) {
+        return from(product, brandName, null);
+    }
+
+    public static ProductWithBrandResult from(ProductResult product, String brandName, Long rank) {
         return new ProductWithBrandResult(
                 product.id(),
                 product.brandId(),
@@ -22,6 +27,7 @@ public record ProductWithBrandResult(
                 product.price(),
                 product.stock(),
                 product.likeCount(),
+                rank != null ? rank.intValue() : null,
                 product.createdAt(),
                 product.updatedAt()
         );
