@@ -18,6 +18,14 @@ public record OrderCreateResponse(
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
 ) {
+    public static OrderCreateResponse accepted(String idempotencyKey) {
+        return new OrderCreateResponse(
+                null, null, null, "ACCEPTED",
+                0, 0, 0,
+                List.of(), null, null
+        );
+    }
+
     public static OrderCreateResponse from(OrderResult result) {
         return new OrderCreateResponse(
                 result.id(),

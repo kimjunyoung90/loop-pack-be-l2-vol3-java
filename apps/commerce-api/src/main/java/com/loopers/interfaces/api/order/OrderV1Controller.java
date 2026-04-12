@@ -5,6 +5,7 @@ import com.loopers.application.order.OrderService;
 import com.loopers.application.order.command.OrderCreateCommand;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.queue.QueueService;
+import com.loopers.infrastructure.kafka.OrderRequestProducer;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.order.request.OrderCreateRequest;
@@ -31,13 +32,14 @@ public class OrderV1Controller implements OrderV1ApiSpec {
     private final OrderFacade orderFacade;
     private final OrderService orderService;
     private final QueueService queueService;
+    private final OrderRequestProducer orderRequestProducer;
 
     @Override
     @PostMapping
     public ApiResponse<OrderCreateResponse> placeOrder(
             @LoginUser AuthUser authUser,
             @RequestHeader("X-Idempotency-Key") String idempotencyKey,
-            @RequestHeader("X-Entry-Token") String entryToken,
+            @RequestHeader(value = "X-Entry-Token", required = false) String entryToken,
             @Valid @RequestBody OrderCreateRequest request) {
         OrderCreateCommand command = new OrderCreateCommand(
                 authUser.id(),
@@ -50,6 +52,11 @@ public class OrderV1Controller implements OrderV1ApiSpec {
                         ))
                         .toList()
         );
+
+        if (!queueService.isRedisAvailable()) {
+            orderRequestProducer.send(command);
+            return ApiResponse.success(OrderCreateResponse.accepted(idempotencyKey));
+        }
 
         queueService.validateToken(entryToken, authUser.id());
         OrderResult orderResult = orderFacade.placeOrder(command);
