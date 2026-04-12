@@ -10,7 +10,6 @@ import com.loopers.support.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Pageable;
-
 import java.time.LocalDate;
 
 @Tag(name = "Order V1 API", description = "주문 관련 API 입니다.")
@@ -18,7 +17,7 @@ public interface OrderV1ApiSpec {
 
     @Operation(
         summary = "주문 생성",
-        description = "주문을 생성합니다. 인증된 사용자의 주문을 생성합니다."
+        description = "주문을 생성합니다. 정상 모드에서는 동기 처리, Redis 장애 시 Kafka 경유 비동기 처리(status=ACCEPTED)됩니다."
     )
     ApiResponse<OrderCreateResponse> placeOrder(AuthUser authUser, String idempotencyKey, String entryToken, OrderCreateRequest request);
 

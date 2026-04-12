@@ -2,6 +2,7 @@ package com.loopers.concurrency;
 
 import com.loopers.application.queue.QueueService;
 import com.loopers.application.queue.result.QueueTokenResult;
+import com.loopers.infrastructure.queue.QueueScheduler;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import com.loopers.testcontainers.RedisTestContainersConfig;
 import com.loopers.utils.RedisCleanUp;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -26,6 +28,9 @@ class QueueConcurrencyIntegrationTest {
 
     @Autowired
     private QueueService queueService;
+
+    @MockitoBean
+    private QueueScheduler queueScheduler;
 
     @Autowired
     private RedisCleanUp redisCleanUp;

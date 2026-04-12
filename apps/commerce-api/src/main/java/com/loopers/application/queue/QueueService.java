@@ -11,10 +11,8 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,41 +22,52 @@ public class QueueService {
 	private final QueueRepository queueRepository;
 	private final QueueProperties queueProperties;
 
-	//큐 진입
+	private volatile boolean redisAvailable = true;
+
 	public QueueTokenResult enterQueue(Long userId) {
-		if (queueRepository.isAlreadyQueued(userId)) {
+		try {
+			queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
+
 			Long rank = queueRepository.getRank(userId);
 			long position = rank != null ? rank + 1 : 0;
-			return new QueueTokenResult(position, calculateEstimatedWait(position), calculatePollingInterval(position));
+			redisAvailable = true;
+			return new QueueTokenResult("WAITING", position, calculateEstimatedWait(position), calculatePollingInterval(position));
+		} catch (Exception e) {
+			log.warn("Redis 장애로 대기열 진입을 건너뜁니다. userId={}", userId, e);
+			redisAvailable = false;
+			return QueueTokenResult.bypassed();
 		}
-
-		queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
-
-		Long rank = queueRepository.getRank(userId);
-		long position = rank != null ? rank + 1 : 0;
-		return new QueueTokenResult(position, calculateEstimatedWait(position), calculatePollingInterval(position));
 	}
 
-	//대기 순번 반환
 	public QueuePositionResult getQueuePosition(Long userId) {
-		Long rank = queueRepository.getRank(userId);
-		if (rank != null) {
-			long position = rank + 1;
-			long estimatedWaitSeconds = calculateEstimatedWait(position);
-			long pollingInterval = calculatePollingInterval(position);
-			QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds, pollingInterval, 0);
+		try {
+			Long rank = queueRepository.getRank(userId);
+			if (rank != null) {
+				long position = rank + 1;
+				long estimatedWaitSeconds = calculateEstimatedWait(position);
+				long pollingInterval = calculatePollingInterval(position);
+				QueuePosition queuePosition = new QueuePosition(QueueStatus.WAITING, position, estimatedWaitSeconds, pollingInterval, 0);
+				redisAvailable = true;
+				return QueuePositionResult.from(queuePosition, null);
+			}
+
+			String token = queueRepository.findTokenByUserId(userId).orElse(null);
+			if (token != null) {
+				long orderableAfterSeconds = calculateOrderableAfterSeconds(userId);
+				QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0, 0, orderableAfterSeconds);
+				redisAvailable = true;
+				return QueuePositionResult.from(queuePosition, token);
+			}
+
+			redisAvailable = true;
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0, 0, 0);
+			return QueuePositionResult.from(queuePosition, null);
+		} catch (Exception e) {
+			log.warn("Redis 장애로 대기열 순번 조회를 건너뜁니다. userId={}", userId, e);
+			redisAvailable = false;
+			QueuePosition queuePosition = new QueuePosition(QueueStatus.BYPASSED, 0, 0, 0, 0);
 			return QueuePositionResult.from(queuePosition, null);
 		}
-
-		String token = queueRepository.findTokenByUserId(userId).orElse(null);
-		if (token != null) {
-			long orderableAfterSeconds = calculateOrderableAfterSeconds(userId);
-			QueuePosition queuePosition = new QueuePosition(QueueStatus.ALLOWED, 0, 0, 0, orderableAfterSeconds);
-			return QueuePositionResult.from(queuePosition, token);
-		}
-
-		QueuePosition queuePosition = new QueuePosition(QueueStatus.NOT_FOUND, 0, 0, 0, 0);
-		return QueuePositionResult.from(queuePosition, null);
 	}
 
 	public void validateToken(String token, Long userId) {
@@ -75,17 +84,27 @@ public class QueueService {
 					throw new CoreException(ErrorType.BAD_REQUEST, "아직 주문 가능 시간이 아닙니다.");
 				}
 			});
-		} catch (RedisConnectionFailureException e) {
+			redisAvailable = true;
+		} catch (CoreException e) {
+			throw e;
+		} catch (Exception e) {
 			log.warn("Redis 장애로 토큰 검증을 건너뜁니다. userId={}", userId, e);
+			redisAvailable = false;
 		}
 	}
 
 	public void removeToken(Long userId) {
 		try {
 			queueRepository.removeToken(userId);
-		} catch (RedisConnectionFailureException e) {
+			redisAvailable = true;
+		} catch (Exception e) {
 			log.warn("Redis 장애로 토큰 삭제를 건너뜁니다. userId={}", userId, e);
+			redisAvailable = false;
 		}
+	}
+
+	public boolean isRedisAvailable() {
+		return redisAvailable;
 	}
 
 	private long calculateOrderableAfterSeconds(Long userId) {

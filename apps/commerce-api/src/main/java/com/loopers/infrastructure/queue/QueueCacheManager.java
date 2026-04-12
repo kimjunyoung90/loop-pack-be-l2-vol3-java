@@ -42,8 +42,9 @@ public class QueueCacheManager implements QueueRepository {
 	}
 
 	@Override
-	public void enqueue(QueueToken token) {
-		redisTemplate.opsForZSet().add(WAITING_QUEUE_KEY, String.valueOf(token.userId()), token.createdAt());
+	public boolean enqueue(QueueToken token) {
+		Boolean added = redisTemplate.opsForZSet().addIfAbsent(WAITING_QUEUE_KEY, String.valueOf(token.userId()), token.createdAt());
+		return Boolean.TRUE.equals(added);
 	}
 
 	@Override
@@ -87,11 +88,6 @@ public class QueueCacheManager implements QueueRepository {
 	@Override
 	public void removeToken(Long userId) {
 		redisTemplate.delete(entryTokenKey(userId));
-	}
-
-	@Override
-	public boolean isAlreadyQueued(Long userId) {
-		return redisTemplate.opsForZSet().score(WAITING_QUEUE_KEY, String.valueOf(userId)) != null;
 	}
 
 	@Override

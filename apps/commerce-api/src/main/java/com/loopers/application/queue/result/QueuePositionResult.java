@@ -1,7 +1,6 @@
 package com.loopers.application.queue.result;
 
 import com.loopers.domain.queue.QueuePosition;
-import com.loopers.domain.queue.QueueStatus;
 
 public record QueuePositionResult(
         String status,

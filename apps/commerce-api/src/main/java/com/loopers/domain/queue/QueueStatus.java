@@ -3,5 +3,6 @@ package com.loopers.domain.queue;
 public enum QueueStatus {
     WAITING,
     ALLOWED,
-    NOT_FOUND
+    NOT_FOUND,
+    BYPASSED
 }

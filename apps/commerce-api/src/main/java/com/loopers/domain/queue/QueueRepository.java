@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface QueueRepository {
 
-    void enqueue(QueueToken token);
+    boolean enqueue(QueueToken token);
 
     Optional<String> findTokenByUserId(Long userId);
 
@@ -16,8 +16,6 @@ public interface QueueRepository {
     Optional<Long> findOrderableAtByUserId(Long userId);
 
     void removeToken(Long userId);
-
-    boolean isAlreadyQueued(Long userId);
 
     long getWaitingCount();
 }
