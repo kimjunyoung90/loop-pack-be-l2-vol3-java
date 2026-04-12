@@ -11,7 +11,6 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.stereotype.Service;
 
 
@@ -55,30 +54,22 @@ public class QueueService {
 	}
 
 	public void validateToken(String token, Long userId) {
-		try {
-			String storedToken = queueRepository.findTokenByUserId(userId)
-					.orElseThrow(() -> new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND));
+		String storedToken = queueRepository.findTokenByUserId(userId)
+				.orElseThrow(() -> new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND));
 
-			if (!storedToken.equals(token)) {
-				throw new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND);
-			}
-
-			queueRepository.findOrderableAtByUserId(userId).ifPresent(orderableAt -> {
-				if (System.currentTimeMillis() < orderableAt) {
-					throw new CoreException(ErrorType.BAD_REQUEST, "아직 주문 가능 시간이 아닙니다.");
-				}
-			});
-		} catch (RedisConnectionFailureException e) {
-			log.warn("Redis 장애로 토큰 검증을 건너뜁니다. userId={}", userId, e);
+		if (!storedToken.equals(token)) {
+			throw new CoreException(ErrorType.QUEUE_TOKEN_NOT_FOUND);
 		}
+
+		queueRepository.findOrderableAtByUserId(userId).ifPresent(orderableAt -> {
+			if (System.currentTimeMillis() < orderableAt) {
+				throw new CoreException(ErrorType.BAD_REQUEST, "아직 주문 가능 시간이 아닙니다.");
+			}
+		});
 	}
 
 	public void removeToken(Long userId) {
-		try {
-			queueRepository.removeToken(userId);
-		} catch (RedisConnectionFailureException e) {
-			log.warn("Redis 장애로 토큰 삭제를 건너뜁니다. userId={}", userId, e);
-		}
+		queueRepository.removeToken(userId);
 	}
 
 	private long calculateOrderableAfterSeconds(Long userId) {

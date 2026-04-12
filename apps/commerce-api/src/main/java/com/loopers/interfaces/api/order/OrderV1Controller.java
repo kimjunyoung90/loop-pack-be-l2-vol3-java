@@ -11,12 +11,8 @@ import com.loopers.interfaces.api.order.request.OrderCreateRequest;
 import com.loopers.interfaces.api.order.response.OrderCancelResponse;
 import com.loopers.interfaces.api.order.response.OrderCreateResponse;
 import com.loopers.interfaces.api.order.response.OrderDetailResponse;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import com.loopers.support.auth.AuthUser;
 import com.loopers.support.auth.LoginUser;
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +34,6 @@ public class OrderV1Controller implements OrderV1ApiSpec {
 
     @Override
     @PostMapping
-    @RateLimiter(name = "orderPlacement", fallbackMethod = "placeOrderFallback")
     public ApiResponse<OrderCreateResponse> placeOrder(
             @LoginUser AuthUser authUser,
             @RequestHeader("X-Idempotency-Key") String idempotencyKey,
@@ -91,11 +86,5 @@ public class OrderV1Controller implements OrderV1ApiSpec {
                         authUser.id(), startDate, endDate, pageable)
                 .map(OrderDetailResponse::from);
         return ApiResponse.success(PageResponse.from(orders));
-    }
-
-    private ApiResponse<OrderCreateResponse> placeOrderFallback(
-            AuthUser authUser, String idempotencyKey, String entryToken,
-            OrderCreateRequest request, RequestNotPermitted e) {
-        throw new CoreException(ErrorType.ORDER_RATE_LIMIT_EXCEEDED);
     }
 }

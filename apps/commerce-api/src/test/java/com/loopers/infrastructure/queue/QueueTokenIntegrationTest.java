@@ -50,8 +50,7 @@ class QueueTokenIntegrationTest {
         queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
 
         List<String> tokens = List.of(UUID.randomUUID().toString());
-        List<Long> orderableAts = List.of(System.currentTimeMillis());
-        queueRepository.popAndIssueTokens(1, tokens, orderableAts);
+        queueRepository.popAndIssueTokens(1, tokens, List.of(System.currentTimeMillis()));
 
         // when
         QueuePositionResult result = queueService.getQueuePosition(userId);
@@ -68,8 +67,7 @@ class QueueTokenIntegrationTest {
         queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
 
         String token = UUID.randomUUID().toString();
-        List<Long> orderableAts = List.of(System.currentTimeMillis());
-        queueRepository.popAndIssueTokens(1, List.of(token), orderableAts);
+        queueRepository.popAndIssueTokens(1, List.of(token), List.of(System.currentTimeMillis()));
 
         // when & then
         queueService.validateToken(token, userId);
@@ -82,8 +80,7 @@ class QueueTokenIntegrationTest {
         queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
 
         List<String> tokens = List.of(UUID.randomUUID().toString());
-        List<Long> orderableAts = List.of(System.currentTimeMillis());
-        queueRepository.popAndIssueTokens(1, tokens, orderableAts);
+        queueRepository.popAndIssueTokens(1, tokens, List.of(System.currentTimeMillis()));
 
         // when & then
         assertThatThrownBy(() -> queueService.validateToken("invalid-token", userId))
@@ -97,8 +94,7 @@ class QueueTokenIntegrationTest {
         queueRepository.enqueue(new QueueToken(userId, System.currentTimeMillis()));
 
         List<String> tokens = List.of(UUID.randomUUID().toString());
-        List<Long> orderableAts = List.of(System.currentTimeMillis());
-        queueRepository.popAndIssueTokens(1, tokens, orderableAts);
+        queueRepository.popAndIssueTokens(1, tokens, List.of(System.currentTimeMillis()));
 
         // when
         queueService.removeToken(userId);
