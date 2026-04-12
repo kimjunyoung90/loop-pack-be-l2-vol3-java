@@ -15,11 +15,16 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 @RequiredArgsConstructor
 @Component
 public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final UserService userService;
+
+	// 인증 캐시
+	private final ConcurrentHashMap<String, AuthUser> authCache = new ConcurrentHashMap<>();
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
@@ -32,8 +37,15 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
 		String loginId = webRequest.getHeader(AuthConstants.LOGIN_ID_HEADER);
 		String loginPwd = webRequest.getHeader(AuthConstants.LOGIN_PW_HEADER);
 
-		User user = userService.authenticateUser(loginId, loginPwd);
+		String cacheKey = loginId + ":" + loginPwd;
+		AuthUser cached = authCache.get(cacheKey);
+		if (cached != null) {
+			return cached;
+		}
 
-		return new AuthUser(user.getId(), user.getLoginId());
+		User user = userService.authenticateUser(loginId, loginPwd);
+		AuthUser authUser = new AuthUser(user.getId(), user.getLoginId());
+		authCache.put(cacheKey, authUser);
+		return authUser;
 	}
 }
