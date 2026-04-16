@@ -23,8 +23,8 @@ import java.util.Optional;
 @Service
 public class RankingService {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-    private static final DateTimeFormatter DATE_PARAM_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter API_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter REDIS_KEY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final RankingCacheRepository rankingCacheRepository;
     private final RankingPeriodCacheRepository rankingPeriodCacheRepository;
@@ -32,18 +32,18 @@ public class RankingService {
 
     @Transactional(readOnly = true)
     public List<Long> getRankedProductIds(String date, long offset, int size) {
-        String resolvedDate = resolveDate(date);
-        return rankingCacheRepository.getTopRankedProductIds(resolvedDate, offset, size);
+        String redisKey = resolveDailyRedisKey(date);
+        return rankingCacheRepository.getTopRankedProductIds(redisKey, offset, size);
     }
 
     @Transactional(readOnly = true)
     public long getTotalCount(String date) {
-        String resolvedDate = resolveDate(date);
-        return rankingCacheRepository.getTotalCount(resolvedDate);
+        String redisKey = resolveDailyRedisKey(date);
+        return rankingCacheRepository.getTotalCount(redisKey);
     }
 
     public Long getRank(Long productId) {
-        String today = LocalDate.now().format(DATE_FORMATTER);
+        String today = LocalDate.now().format(REDIS_KEY_DATE_FORMATTER);
         return rankingCacheRepository.getRank(today, productId);
     }
 
@@ -103,11 +103,12 @@ public class RankingService {
         return new PageImpl<>(cached.ranks(), pageable, cached.totalElements());
     }
 
-    private String resolveDate(String date) {
-        return (date != null) ? date : LocalDate.now().format(DATE_FORMATTER);
+    private String resolveDailyRedisKey(String date) {
+        LocalDate baseDate = resolveBaseDate(date);
+        return baseDate.format(REDIS_KEY_DATE_FORMATTER);
     }
 
     private LocalDate resolveBaseDate(String date) {
-        return (date != null) ? LocalDate.parse(date, DATE_PARAM_FORMATTER) : LocalDate.now();
+        return (date != null) ? LocalDate.parse(date, API_DATE_FORMATTER) : LocalDate.now();
     }
 }
