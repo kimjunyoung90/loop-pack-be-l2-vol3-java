@@ -1,7 +1,7 @@
 package com.loopers.batch.job.ranking.weekly;
 
 import com.loopers.batch.job.ranking.dto.ProductMetricsAggregation;
-import com.loopers.batch.job.ranking.weekly.step.WeeklyRankClearTasklet;
+import com.loopers.batch.job.ranking.weekly.step.WeeklyRankClearChunkListener;
 import com.loopers.batch.job.ranking.weekly.step.WeeklyRankProcessor;
 import com.loopers.batch.listener.JobListener;
 import com.loopers.batch.listener.StepMonitorListener;
@@ -19,7 +19,6 @@ import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
-import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +38,6 @@ import java.time.temporal.TemporalAdjusters;
 public class WeeklyRankJobConfig {
 
     public static final String JOB_NAME = "weeklyRankJob";
-    private static final String STEP_CLEAR = "weeklyRankClearStep";
     private static final String STEP_AGGREGATE = "weeklyRankAggregateStep";
     private static final int CHUNK_SIZE = 100;
     private static final int TOP_RANK_LIMIT = 100;
@@ -77,7 +75,7 @@ public class WeeklyRankJobConfig {
     private final JobRepository jobRepository;
     private final JobListener jobListener;
     private final StepMonitorListener stepMonitorListener;
-    private final WeeklyRankClearTasklet weeklyRankClearTasklet;
+    private final WeeklyRankClearChunkListener weeklyRankClearChunkListener;
     private final WeeklyRankProcessor weeklyRankProcessor;
     private final DataSource dataSource;
     private final PlatformTransactionManager transactionManager;
@@ -86,18 +84,8 @@ public class WeeklyRankJobConfig {
     public Job weeklyRankJob() {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .incrementer(new RunIdIncrementer())
-                .start(clearStep())
-                .next(aggregateStep())
+                .start(aggregateStep())
                 .listener(jobListener)
-                .build();
-    }
-
-    @JobScope
-    @Bean(STEP_CLEAR)
-    public Step clearStep() {
-        return new StepBuilder(STEP_CLEAR, jobRepository)
-                .tasklet(weeklyRankClearTasklet, new ResourcelessTransactionManager())
-                .listener(stepMonitorListener)
                 .build();
     }
 
@@ -109,6 +97,7 @@ public class WeeklyRankJobConfig {
                 .reader(weeklyRankReader(null))
                 .processor(weeklyRankProcessor)
                 .writer(weeklyRankWriter())
+                .listener(weeklyRankClearChunkListener)
                 .listener(stepMonitorListener)
                 .build();
     }

@@ -1,7 +1,7 @@
 package com.loopers.batch.job.ranking.monthly;
 
 import com.loopers.batch.job.ranking.dto.ProductMetricsAggregation;
-import com.loopers.batch.job.ranking.monthly.step.MonthlyRankClearTasklet;
+import com.loopers.batch.job.ranking.monthly.step.MonthlyRankClearChunkListener;
 import com.loopers.batch.job.ranking.monthly.step.MonthlyRankProcessor;
 import com.loopers.batch.listener.JobListener;
 import com.loopers.batch.listener.StepMonitorListener;
@@ -19,7 +19,6 @@ import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
-import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +37,6 @@ import java.time.temporal.TemporalAdjusters;
 public class MonthlyRankJobConfig {
 
     public static final String JOB_NAME = "monthlyRankJob";
-    private static final String STEP_CLEAR = "monthlyRankClearStep";
     private static final String STEP_AGGREGATE = "monthlyRankAggregateStep";
     private static final int CHUNK_SIZE = 100;
     private static final int TOP_RANK_LIMIT = 100;
@@ -76,7 +74,7 @@ public class MonthlyRankJobConfig {
     private final JobRepository jobRepository;
     private final JobListener jobListener;
     private final StepMonitorListener stepMonitorListener;
-    private final MonthlyRankClearTasklet monthlyRankClearTasklet;
+    private final MonthlyRankClearChunkListener monthlyRankClearChunkListener;
     private final MonthlyRankProcessor monthlyRankProcessor;
     private final DataSource dataSource;
     private final PlatformTransactionManager transactionManager;
@@ -85,18 +83,8 @@ public class MonthlyRankJobConfig {
     public Job monthlyRankJob() {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .incrementer(new RunIdIncrementer())
-                .start(clearStep())
-                .next(aggregateStep())
+                .start(aggregateStep())
                 .listener(jobListener)
-                .build();
-    }
-
-    @JobScope
-    @Bean(STEP_CLEAR)
-    public Step clearStep() {
-        return new StepBuilder(STEP_CLEAR, jobRepository)
-                .tasklet(monthlyRankClearTasklet, new ResourcelessTransactionManager())
-                .listener(stepMonitorListener)
                 .build();
     }
 
@@ -108,6 +96,7 @@ public class MonthlyRankJobConfig {
                 .reader(monthlyRankReader(null))
                 .processor(monthlyRankProcessor)
                 .writer(monthlyRankWriter())
+                .listener(monthlyRankClearChunkListener)
                 .listener(stepMonitorListener)
                 .build();
     }
