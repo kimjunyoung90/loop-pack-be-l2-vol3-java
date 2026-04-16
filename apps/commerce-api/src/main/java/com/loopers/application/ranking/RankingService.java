@@ -1,10 +1,13 @@
 package com.loopers.application.ranking;
 
+import com.loopers.application.ranking.result.CachedProductRanks;
 import com.loopers.application.ranking.result.ProductRankResult;
 import com.loopers.domain.ranking.ProductRankRepository;
 import com.loopers.domain.ranking.RankingCacheRepository;
+import com.loopers.domain.ranking.RankingPeriodCacheRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -21,6 +25,7 @@ public class RankingService {
     private static final DateTimeFormatter DATE_PARAM_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final RankingCacheRepository rankingCacheRepository;
+    private final RankingPeriodCacheRepository rankingPeriodCacheRepository;
     private final ProductRankRepository productRankRepository;
 
     @Transactional(readOnly = true)
@@ -43,15 +48,41 @@ public class RankingService {
     @Transactional(readOnly = true)
     public Page<ProductRankResult> getWeeklyRanks(String date, Pageable pageable) {
         LocalDate baseDate = resolveBaseDate(date);
-        return productRankRepository.findWeeklyRanks(baseDate, pageable)
+
+        Optional<CachedProductRanks> cached = rankingPeriodCacheRepository.getWeeklyRanks(baseDate, pageable);
+        if (cached.isPresent()) {
+            return toPage(cached.get(), pageable);
+        }
+
+        Page<ProductRankResult> result = productRankRepository.findWeeklyRanks(baseDate, pageable)
                 .map(ProductRankResult::from);
+
+        rankingPeriodCacheRepository.putWeeklyRanks(baseDate, pageable,
+                new CachedProductRanks(result.getContent(), result.getTotalElements()));
+
+        return result;
     }
 
     @Transactional(readOnly = true)
     public Page<ProductRankResult> getMonthlyRanks(String date, Pageable pageable) {
         LocalDate baseDate = resolveBaseDate(date);
-        return productRankRepository.findMonthlyRanks(baseDate, pageable)
+
+        Optional<CachedProductRanks> cached = rankingPeriodCacheRepository.getMonthlyRanks(baseDate, pageable);
+        if (cached.isPresent()) {
+            return toPage(cached.get(), pageable);
+        }
+
+        Page<ProductRankResult> result = productRankRepository.findMonthlyRanks(baseDate, pageable)
                 .map(ProductRankResult::from);
+
+        rankingPeriodCacheRepository.putMonthlyRanks(baseDate, pageable,
+                new CachedProductRanks(result.getContent(), result.getTotalElements()));
+
+        return result;
+    }
+
+    private Page<ProductRankResult> toPage(CachedProductRanks cached, Pageable pageable) {
+        return new PageImpl<>(cached.ranks(), pageable, cached.totalElements());
     }
 
     private String resolveDate(String date) {
