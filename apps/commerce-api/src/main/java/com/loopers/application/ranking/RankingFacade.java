@@ -5,6 +5,8 @@ import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithBrandResult;
+import com.loopers.application.ranking.result.ProductRankResult;
+import com.loopers.application.ranking.result.ProductRankWithProductResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -49,5 +51,29 @@ public class RankingFacade {
         }
 
         return new PageImpl<>(results, pageable, totalCount);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductRankWithProductResult> getWeeklyRankedProducts(Pageable pageable) {
+        Page<ProductRankResult> ranks = rankingService.getWeeklyRanks(pageable);
+        return enrichWithProductInfo(ranks);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductRankWithProductResult> getMonthlyRankedProducts(Pageable pageable) {
+        Page<ProductRankResult> ranks = rankingService.getMonthlyRanks(pageable);
+        return enrichWithProductInfo(ranks);
+    }
+
+    private Page<ProductRankWithProductResult> enrichWithProductInfo(Page<ProductRankResult> ranks) {
+        List<ProductRankWithProductResult> results = ranks.getContent().stream()
+                .map(rank -> {
+                    ProductResult product = productService.getProduct(rank.productId());
+                    BrandResult brand = brandService.getBrand(product.brandId());
+                    return ProductRankWithProductResult.from(rank, product.name(), brand.name(), product.price());
+                })
+                .toList();
+
+        return new PageImpl<>(results, ranks.getPageable(), ranks.getTotalElements());
     }
 }
