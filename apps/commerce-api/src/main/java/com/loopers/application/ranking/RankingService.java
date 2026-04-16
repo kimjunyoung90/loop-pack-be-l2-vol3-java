@@ -9,10 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -45,20 +43,14 @@ public class RankingService {
     @Transactional(readOnly = true)
     public Page<ProductRankResult> getWeeklyRanks(String date, Pageable pageable) {
         LocalDate baseDate = resolveBaseDate(date);
-        LocalDate periodStart = baseDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate periodEnd = periodStart.plusDays(6);
-
-        return productRankRepository.findWeeklyRanks(periodStart, periodEnd, pageable)
+        return productRankRepository.findWeeklyRanks(baseDate, pageable)
                 .map(ProductRankResult::from);
     }
 
     @Transactional(readOnly = true)
     public Page<ProductRankResult> getMonthlyRanks(String date, Pageable pageable) {
         LocalDate baseDate = resolveBaseDate(date);
-        LocalDate periodStart = baseDate.withDayOfMonth(1);
-        LocalDate periodEnd = periodStart.with(TemporalAdjusters.lastDayOfMonth());
-
-        return productRankRepository.findMonthlyRanks(periodStart, periodEnd, pageable)
+        return productRankRepository.findMonthlyRanks(baseDate, pageable)
                 .map(ProductRankResult::from);
     }
 

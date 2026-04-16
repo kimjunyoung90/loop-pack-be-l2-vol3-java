@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 public interface ProductRankRepository {
 
-    Page<MvProductRankWeekly> findWeeklyRanks(LocalDate periodStart, LocalDate periodEnd, Pageable pageable);
+    Page<MvProductRankWeekly> findWeeklyRanks(LocalDate date, Pageable pageable);
 
-    Page<MvProductRankMonthly> findMonthlyRanks(LocalDate periodStart, LocalDate periodEnd, Pageable pageable);
+    Page<MvProductRankMonthly> findMonthlyRanks(LocalDate date, Pageable pageable);
 }

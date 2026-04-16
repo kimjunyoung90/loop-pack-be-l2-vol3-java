@@ -9,6 +9,6 @@ import java.time.LocalDate;
 
 public interface MvProductRankMonthlyJpaRepository extends JpaRepository<MvProductRankMonthly, Long> {
 
-    Page<MvProductRankMonthly> findAllByPeriodStartAndPeriodEndOrderByRankNumberAsc(
+    Page<MvProductRankMonthly> findAllByPeriodStartLessThanEqualAndPeriodEndGreaterThanEqualOrderByRankNumberAsc(
             LocalDate periodStart, LocalDate periodEnd, Pageable pageable);
 }

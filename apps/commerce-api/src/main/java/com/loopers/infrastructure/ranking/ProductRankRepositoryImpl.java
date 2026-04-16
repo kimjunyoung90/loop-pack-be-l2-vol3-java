@@ -18,14 +18,14 @@ public class ProductRankRepositoryImpl implements ProductRankRepository {
     private final MvProductRankMonthlyJpaRepository monthlyJpaRepository;
 
     @Override
-    public Page<MvProductRankWeekly> findWeeklyRanks(LocalDate periodStart, LocalDate periodEnd, Pageable pageable) {
-        return weeklyJpaRepository.findAllByPeriodStartAndPeriodEndOrderByRankNumberAsc(
-                periodStart, periodEnd, pageable);
+    public Page<MvProductRankWeekly> findWeeklyRanks(LocalDate date, Pageable pageable) {
+        return weeklyJpaRepository.findAllByPeriodStartLessThanEqualAndPeriodEndGreaterThanEqualOrderByRankNumberAsc(
+                date, date, pageable);
     }
 
     @Override
-    public Page<MvProductRankMonthly> findMonthlyRanks(LocalDate periodStart, LocalDate periodEnd, Pageable pageable) {
-        return monthlyJpaRepository.findAllByPeriodStartAndPeriodEndOrderByRankNumberAsc(
-                periodStart, periodEnd, pageable);
+    public Page<MvProductRankMonthly> findMonthlyRanks(LocalDate date, Pageable pageable) {
+        return monthlyJpaRepository.findAllByPeriodStartLessThanEqualAndPeriodEndGreaterThanEqualOrderByRankNumberAsc(
+                date, date, pageable);
     }
 }
