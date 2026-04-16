@@ -6,7 +6,7 @@ import com.loopers.application.product.ProductService;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.product.result.ProductWithBrandResult;
 import com.loopers.application.ranking.result.ProductRankResult;
-import com.loopers.application.ranking.result.ProductRankWithProductResult;
+import com.loopers.domain.ranking.RankingPeriod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,20 +27,25 @@ public class RankingFacade {
     private final BrandService brandService;
 
     @Transactional(readOnly = true)
-    public Page<ProductWithBrandResult> getRankedProducts(String date, Pageable pageable) {
+    public Page<ProductWithBrandResult> getRankedProducts(RankingPeriod period, String date, Pageable pageable) {
+        return switch (period) {
+            case DAILY -> getDailyRankedProducts(date, pageable);
+            case WEEKLY -> getWeeklyRankedProducts(date, pageable);
+            case MONTHLY -> getMonthlyRankedProducts(date, pageable);
+        };
+    }
+
+    private Page<ProductWithBrandResult> getDailyRankedProducts(String date, Pageable pageable) {
         long offset = pageable.getOffset();
         int size = pageable.getPageSize();
 
-		//1. 랭킹 상품 id 조회
         List<Long> rankedProductIds = rankingService.getRankedProductIds(date, offset, size);
         if (rankedProductIds.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
-		//2. 랭킹 토탈 카운트 조회
         long totalCount = rankingService.getTotalCount(date);
 
-		//3. 상품 정보, 브랜드 정보 조회(랭킹 순 반환)
         List<ProductWithBrandResult> results = new ArrayList<>();
         for (int i = 0; i < rankedProductIds.size(); i++) {
             Long productId = rankedProductIds.get(i);
@@ -53,24 +58,22 @@ public class RankingFacade {
         return new PageImpl<>(results, pageable, totalCount);
     }
 
-    @Transactional(readOnly = true)
-    public Page<ProductRankWithProductResult> getWeeklyRankedProducts(String date, Pageable pageable) {
+    private Page<ProductWithBrandResult> getWeeklyRankedProducts(String date, Pageable pageable) {
         Page<ProductRankResult> ranks = rankingService.getWeeklyRanks(date, pageable);
         return enrichWithProductInfo(ranks);
     }
 
-    @Transactional(readOnly = true)
-    public Page<ProductRankWithProductResult> getMonthlyRankedProducts(String date, Pageable pageable) {
+    private Page<ProductWithBrandResult> getMonthlyRankedProducts(String date, Pageable pageable) {
         Page<ProductRankResult> ranks = rankingService.getMonthlyRanks(date, pageable);
         return enrichWithProductInfo(ranks);
     }
 
-    private Page<ProductRankWithProductResult> enrichWithProductInfo(Page<ProductRankResult> ranks) {
-        List<ProductRankWithProductResult> results = ranks.getContent().stream()
+    private Page<ProductWithBrandResult> enrichWithProductInfo(Page<ProductRankResult> ranks) {
+        List<ProductWithBrandResult> results = ranks.getContent().stream()
                 .map(rank -> {
                     ProductResult product = productService.getProduct(rank.productId());
                     BrandResult brand = brandService.getBrand(product.brandId());
-                    return ProductRankWithProductResult.from(rank, product.name(), brand.name(), product.price());
+                    return ProductWithBrandResult.from(product, brand.name(), (long) rank.rankNumber());
                 })
                 .toList();
 

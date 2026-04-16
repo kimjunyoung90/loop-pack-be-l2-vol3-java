@@ -1,10 +1,10 @@
 package com.loopers.interfaces.api.ranking;
 
 import com.loopers.application.ranking.RankingFacade;
+import com.loopers.domain.ranking.RankingPeriod;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.product.response.ProductWithBrandDetailResponse;
-import com.loopers.interfaces.api.ranking.response.ProductRankDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,33 +24,12 @@ public class RankingV1Controller implements RankingV1ApiSpec {
     @GetMapping
     @Override
     public ApiResponse<PageResponse<ProductWithBrandDetailResponse>> getRankings(
+            @RequestParam(defaultValue = "DAILY") RankingPeriod period,
             @RequestParam(required = false) String date,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<ProductWithBrandDetailResponse> rankings = rankingFacade.getRankedProducts(date, pageable)
+        Page<ProductWithBrandDetailResponse> rankings = rankingFacade.getRankedProducts(period, date, pageable)
                 .map(ProductWithBrandDetailResponse::from);
-        return ApiResponse.success(PageResponse.from(rankings));
-    }
-
-    @GetMapping("/weekly")
-    @Override
-    public ApiResponse<PageResponse<ProductRankDetailResponse>> getWeeklyRankings(
-            @RequestParam(required = false) String date,
-            @PageableDefault(size = 20) Pageable pageable
-    ) {
-        Page<ProductRankDetailResponse> rankings = rankingFacade.getWeeklyRankedProducts(date, pageable)
-                .map(ProductRankDetailResponse::from);
-        return ApiResponse.success(PageResponse.from(rankings));
-    }
-
-    @GetMapping("/monthly")
-    @Override
-    public ApiResponse<PageResponse<ProductRankDetailResponse>> getMonthlyRankings(
-            @RequestParam(required = false) String date,
-            @PageableDefault(size = 20) Pageable pageable
-    ) {
-        Page<ProductRankDetailResponse> rankings = rankingFacade.getMonthlyRankedProducts(date, pageable)
-                .map(ProductRankDetailResponse::from);
         return ApiResponse.success(PageResponse.from(rankings));
     }
 }
