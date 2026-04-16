@@ -12,8 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,8 +50,9 @@ public class RankingService {
     @Transactional(readOnly = true)
     public Page<ProductRankResult> getWeeklyRanks(String date, Pageable pageable) {
         LocalDate baseDate = resolveBaseDate(date);
+        LocalDate periodStart = baseDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 
-        Optional<CachedProductRanks> cached = rankingPeriodCacheRepository.getWeeklyRanks(baseDate, pageable);
+        Optional<CachedProductRanks> cached = rankingPeriodCacheRepository.getWeeklyRanks(periodStart, pageable);
         if (cached.isPresent()) {
             return toPage(cached.get(), pageable);
         }
@@ -63,7 +66,7 @@ public class RankingService {
         }
 
         if (!result.isEmpty()) {
-            rankingPeriodCacheRepository.putWeeklyRanks(baseDate, pageable,
+            rankingPeriodCacheRepository.putWeeklyRanks(periodStart, pageable,
                     new CachedProductRanks(result.getContent(), result.getTotalElements()));
         }
 
@@ -73,8 +76,9 @@ public class RankingService {
     @Transactional(readOnly = true)
     public Page<ProductRankResult> getMonthlyRanks(String date, Pageable pageable) {
         LocalDate baseDate = resolveBaseDate(date);
+        LocalDate periodStart = baseDate.withDayOfMonth(1);
 
-        Optional<CachedProductRanks> cached = rankingPeriodCacheRepository.getMonthlyRanks(baseDate, pageable);
+        Optional<CachedProductRanks> cached = rankingPeriodCacheRepository.getMonthlyRanks(periodStart, pageable);
         if (cached.isPresent()) {
             return toPage(cached.get(), pageable);
         }
@@ -88,7 +92,7 @@ public class RankingService {
         }
 
         if (!result.isEmpty()) {
-            rankingPeriodCacheRepository.putMonthlyRanks(baseDate, pageable,
+            rankingPeriodCacheRepository.putMonthlyRanks(periodStart, pageable,
                     new CachedProductRanks(result.getContent(), result.getTotalElements()));
         }
 
