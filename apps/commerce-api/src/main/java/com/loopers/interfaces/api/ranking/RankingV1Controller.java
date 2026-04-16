@@ -35,9 +35,10 @@ public class RankingV1Controller implements RankingV1ApiSpec {
     @GetMapping("/weekly")
     @Override
     public ApiResponse<PageResponse<ProductRankDetailResponse>> getWeeklyRankings(
+            @RequestParam(required = false) String date,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<ProductRankDetailResponse> rankings = rankingFacade.getWeeklyRankedProducts(pageable)
+        Page<ProductRankDetailResponse> rankings = rankingFacade.getWeeklyRankedProducts(date, pageable)
                 .map(ProductRankDetailResponse::from);
         return ApiResponse.success(PageResponse.from(rankings));
     }
@@ -45,9 +46,10 @@ public class RankingV1Controller implements RankingV1ApiSpec {
     @GetMapping("/monthly")
     @Override
     public ApiResponse<PageResponse<ProductRankDetailResponse>> getMonthlyRankings(
+            @RequestParam(required = false) String date,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<ProductRankDetailResponse> rankings = rankingFacade.getMonthlyRankedProducts(pageable)
+        Page<ProductRankDetailResponse> rankings = rankingFacade.getMonthlyRankedProducts(date, pageable)
                 .map(ProductRankDetailResponse::from);
         return ApiResponse.success(PageResponse.from(rankings));
     }

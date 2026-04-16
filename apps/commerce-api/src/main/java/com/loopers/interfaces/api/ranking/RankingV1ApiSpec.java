@@ -19,13 +19,13 @@ public interface RankingV1ApiSpec {
 
     @Operation(
             summary = "주간 상품 랭킹 조회",
-            description = "직전 주(월~일) 기준 인기 상품 TOP 100 랭킹을 조회합니다."
+            description = "주간 인기 상품 TOP 100 랭킹을 조회합니다. date 파라미터(yyyy-MM-dd)로 해당 날짜가 속한 주의 랭킹을 조회할 수 있습니다."
     )
-    ApiResponse<PageResponse<ProductRankDetailResponse>> getWeeklyRankings(Pageable pageable);
+    ApiResponse<PageResponse<ProductRankDetailResponse>> getWeeklyRankings(String date, Pageable pageable);
 
     @Operation(
             summary = "월간 상품 랭킹 조회",
-            description = "직전 월(1일~말일) 기준 인기 상품 TOP 100 랭킹을 조회합니다."
+            description = "월간 인기 상품 TOP 100 랭킹을 조회합니다. date 파라미터(yyyy-MM-dd)로 해당 날짜가 속한 월의 랭킹을 조회할 수 있습니다."
     )
-    ApiResponse<PageResponse<ProductRankDetailResponse>> getMonthlyRankings(Pageable pageable);
+    ApiResponse<PageResponse<ProductRankDetailResponse>> getMonthlyRankings(String date, Pageable pageable);
 }

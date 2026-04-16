@@ -9,8 +9,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ import java.util.List;
 public class RankingService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter DATE_PARAM_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final RankingCacheRepository rankingCacheRepository;
     private final ProductRankRepository productRankRepository;
@@ -40,18 +43,30 @@ public class RankingService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductRankResult> getWeeklyRanks(Pageable pageable) {
-        return productRankRepository.findLatestWeeklyRanks(pageable)
+    public Page<ProductRankResult> getWeeklyRanks(String date, Pageable pageable) {
+        LocalDate baseDate = resolveBaseDate(date);
+        LocalDate periodStart = baseDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate periodEnd = periodStart.plusDays(6);
+
+        return productRankRepository.findWeeklyRanks(periodStart, periodEnd, pageable)
                 .map(ProductRankResult::from);
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductRankResult> getMonthlyRanks(Pageable pageable) {
-        return productRankRepository.findLatestMonthlyRanks(pageable)
+    public Page<ProductRankResult> getMonthlyRanks(String date, Pageable pageable) {
+        LocalDate baseDate = resolveBaseDate(date);
+        LocalDate periodStart = baseDate.withDayOfMonth(1);
+        LocalDate periodEnd = periodStart.with(TemporalAdjusters.lastDayOfMonth());
+
+        return productRankRepository.findMonthlyRanks(periodStart, periodEnd, pageable)
                 .map(ProductRankResult::from);
     }
 
     private String resolveDate(String date) {
         return (date != null) ? date : LocalDate.now().format(DATE_FORMATTER);
+    }
+
+    private LocalDate resolveBaseDate(String date) {
+        return (date != null) ? LocalDate.parse(date, DATE_PARAM_FORMATTER) : LocalDate.now();
     }
 }

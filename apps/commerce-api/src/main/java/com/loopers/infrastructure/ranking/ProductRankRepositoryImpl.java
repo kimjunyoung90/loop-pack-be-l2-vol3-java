@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 
 @RequiredArgsConstructor
 @Repository
@@ -19,24 +18,14 @@ public class ProductRankRepositoryImpl implements ProductRankRepository {
     private final MvProductRankMonthlyJpaRepository monthlyJpaRepository;
 
     @Override
-    public Page<MvProductRankWeekly> findLatestWeeklyRanks(Pageable pageable) {
-        LocalDate latestPeriodStart = weeklyJpaRepository.findLatestPeriodStart();
-        if (latestPeriodStart == null) {
-            return Page.empty(pageable);
-        }
-        LocalDate periodEnd = latestPeriodStart.plusDays(6);
+    public Page<MvProductRankWeekly> findWeeklyRanks(LocalDate periodStart, LocalDate periodEnd, Pageable pageable) {
         return weeklyJpaRepository.findAllByPeriodStartAndPeriodEndOrderByRankNumberAsc(
-                latestPeriodStart, periodEnd, pageable);
+                periodStart, periodEnd, pageable);
     }
 
     @Override
-    public Page<MvProductRankMonthly> findLatestMonthlyRanks(Pageable pageable) {
-        LocalDate latestPeriodStart = monthlyJpaRepository.findLatestPeriodStart();
-        if (latestPeriodStart == null) {
-            return Page.empty(pageable);
-        }
-        LocalDate periodEnd = latestPeriodStart.with(TemporalAdjusters.lastDayOfMonth());
+    public Page<MvProductRankMonthly> findMonthlyRanks(LocalDate periodStart, LocalDate periodEnd, Pageable pageable) {
         return monthlyJpaRepository.findAllByPeriodStartAndPeriodEndOrderByRankNumberAsc(
-                latestPeriodStart, periodEnd, pageable);
+                periodStart, periodEnd, pageable);
     }
 }

@@ -54,14 +54,14 @@ public class RankingFacade {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductRankWithProductResult> getWeeklyRankedProducts(Pageable pageable) {
-        Page<ProductRankResult> ranks = rankingService.getWeeklyRanks(pageable);
+    public Page<ProductRankWithProductResult> getWeeklyRankedProducts(String date, Pageable pageable) {
+        Page<ProductRankResult> ranks = rankingService.getWeeklyRanks(date, pageable);
         return enrichWithProductInfo(ranks);
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductRankWithProductResult> getMonthlyRankedProducts(Pageable pageable) {
-        Page<ProductRankResult> ranks = rankingService.getMonthlyRanks(pageable);
+    public Page<ProductRankWithProductResult> getMonthlyRankedProducts(String date, Pageable pageable) {
+        Page<ProductRankResult> ranks = rankingService.getMonthlyRanks(date, pageable);
         return enrichWithProductInfo(ranks);
     }
 
