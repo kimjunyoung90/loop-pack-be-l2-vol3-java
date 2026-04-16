@@ -28,4 +28,14 @@ public class ProductRankRepositoryImpl implements ProductRankRepository {
         return monthlyJpaRepository.findAllByPeriodStartLessThanEqualAndPeriodEndGreaterThanEqualOrderByRankNumberAsc(
                 date, date, pageable);
     }
+
+    @Override
+    public Page<MvProductRankWeekly> findLatestWeeklyRanks(LocalDate date, Pageable pageable) {
+        return weeklyJpaRepository.findLatestBefore(date, pageable);
+    }
+
+    @Override
+    public Page<MvProductRankMonthly> findLatestMonthlyRanks(LocalDate date, Pageable pageable) {
+        return monthlyJpaRepository.findLatestBefore(date, pageable);
+    }
 }

@@ -3,7 +3,9 @@ package com.loopers.batch.job.ranking.monthly;
 import com.loopers.batch.job.ranking.dto.ProductMetricsAggregation;
 import com.loopers.batch.job.ranking.monthly.step.MonthlyRankClearChunkListener;
 import com.loopers.batch.job.ranking.monthly.step.MonthlyRankProcessor;
+import com.loopers.batch.job.ranking.monthly.step.MonthlyRankValidationTasklet;
 import com.loopers.batch.listener.JobListener;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import com.loopers.batch.listener.StepMonitorListener;
 import com.loopers.domain.ranking.MvProductRankMonthly;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,6 @@ import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -37,6 +38,7 @@ import java.time.temporal.TemporalAdjusters;
 public class MonthlyRankJobConfig {
 
     public static final String JOB_NAME = "monthlyRankJob";
+    private static final String STEP_VALIDATION = "monthlyRankValidationStep";
     private static final String STEP_AGGREGATE = "monthlyRankAggregateStep";
     private static final int CHUNK_SIZE = 100;
     private static final int TOP_RANK_LIMIT = 100;
@@ -74,6 +76,7 @@ public class MonthlyRankJobConfig {
     private final JobRepository jobRepository;
     private final JobListener jobListener;
     private final StepMonitorListener stepMonitorListener;
+    private final MonthlyRankValidationTasklet monthlyRankValidationTasklet;
     private final MonthlyRankClearChunkListener monthlyRankClearChunkListener;
     private final MonthlyRankProcessor monthlyRankProcessor;
     private final DataSource dataSource;
@@ -83,8 +86,17 @@ public class MonthlyRankJobConfig {
     public Job monthlyRankJob() {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .incrementer(new RunIdIncrementer())
-                .start(aggregateStep())
+                .start(validationStep())
+                .next(aggregateStep())
                 .listener(jobListener)
+                .build();
+    }
+
+    @JobScope
+    @Bean(STEP_VALIDATION)
+    public Step validationStep() {
+        return new StepBuilder(STEP_VALIDATION, jobRepository)
+                .tasklet(monthlyRankValidationTasklet, transactionManager)
                 .build();
     }
 

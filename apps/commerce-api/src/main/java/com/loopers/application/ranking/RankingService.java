@@ -57,8 +57,15 @@ public class RankingService {
         Page<ProductRankResult> result = productRankRepository.findWeeklyRanks(baseDate, pageable)
                 .map(ProductRankResult::from);
 
-        rankingPeriodCacheRepository.putWeeklyRanks(baseDate, pageable,
-                new CachedProductRanks(result.getContent(), result.getTotalElements()));
+        if (result.isEmpty()) {
+            result = productRankRepository.findLatestWeeklyRanks(baseDate, pageable)
+                    .map(ProductRankResult::from);
+        }
+
+        if (!result.isEmpty()) {
+            rankingPeriodCacheRepository.putWeeklyRanks(baseDate, pageable,
+                    new CachedProductRanks(result.getContent(), result.getTotalElements()));
+        }
 
         return result;
     }
@@ -75,8 +82,15 @@ public class RankingService {
         Page<ProductRankResult> result = productRankRepository.findMonthlyRanks(baseDate, pageable)
                 .map(ProductRankResult::from);
 
-        rankingPeriodCacheRepository.putMonthlyRanks(baseDate, pageable,
-                new CachedProductRanks(result.getContent(), result.getTotalElements()));
+        if (result.isEmpty()) {
+            result = productRankRepository.findLatestMonthlyRanks(baseDate, pageable)
+                    .map(ProductRankResult::from);
+        }
+
+        if (!result.isEmpty()) {
+            rankingPeriodCacheRepository.putMonthlyRanks(baseDate, pageable,
+                    new CachedProductRanks(result.getContent(), result.getTotalElements()));
+        }
 
         return result;
     }

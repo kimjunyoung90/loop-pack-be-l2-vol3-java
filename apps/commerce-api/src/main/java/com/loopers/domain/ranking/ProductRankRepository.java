@@ -10,4 +10,8 @@ public interface ProductRankRepository {
     Page<MvProductRankWeekly> findWeeklyRanks(LocalDate date, Pageable pageable);
 
     Page<MvProductRankMonthly> findMonthlyRanks(LocalDate date, Pageable pageable);
+
+    Page<MvProductRankWeekly> findLatestWeeklyRanks(LocalDate date, Pageable pageable);
+
+    Page<MvProductRankMonthly> findLatestMonthlyRanks(LocalDate date, Pageable pageable);
 }
