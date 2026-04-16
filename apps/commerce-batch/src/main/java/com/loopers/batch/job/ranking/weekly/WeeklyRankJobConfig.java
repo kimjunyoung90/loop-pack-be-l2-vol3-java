@@ -1,7 +1,6 @@
 package com.loopers.batch.job.ranking.weekly;
 
 import com.loopers.batch.job.ranking.dto.ProductMetricsAggregation;
-import com.loopers.batch.job.ranking.weekly.step.WeeklyRankClearChunkListener;
 import com.loopers.batch.job.ranking.weekly.step.WeeklyRankProcessor;
 import com.loopers.batch.job.ranking.weekly.step.WeeklyRankValidationTasklet;
 import com.loopers.batch.listener.JobListener;
@@ -78,7 +77,6 @@ public class WeeklyRankJobConfig {
     private final JobListener jobListener;
     private final StepMonitorListener stepMonitorListener;
     private final WeeklyRankValidationTasklet weeklyRankValidationTasklet;
-    private final WeeklyRankClearChunkListener weeklyRankClearChunkListener;
     private final WeeklyRankProcessor weeklyRankProcessor;
     private final DataSource dataSource;
     private final PlatformTransactionManager transactionManager;
@@ -109,7 +107,6 @@ public class WeeklyRankJobConfig {
                 .reader(weeklyRankReader(null))
                 .processor(weeklyRankProcessor)
                 .writer(weeklyRankWriter())
-                .listener(weeklyRankClearChunkListener)
                 .listener(stepMonitorListener)
                 .build();
     }

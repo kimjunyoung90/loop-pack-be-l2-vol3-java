@@ -1,7 +1,6 @@
 package com.loopers.batch.job.ranking.monthly;
 
 import com.loopers.batch.job.ranking.dto.ProductMetricsAggregation;
-import com.loopers.batch.job.ranking.monthly.step.MonthlyRankClearChunkListener;
 import com.loopers.batch.job.ranking.monthly.step.MonthlyRankProcessor;
 import com.loopers.batch.job.ranking.monthly.step.MonthlyRankValidationTasklet;
 import com.loopers.batch.listener.JobListener;
@@ -77,7 +76,6 @@ public class MonthlyRankJobConfig {
     private final JobListener jobListener;
     private final StepMonitorListener stepMonitorListener;
     private final MonthlyRankValidationTasklet monthlyRankValidationTasklet;
-    private final MonthlyRankClearChunkListener monthlyRankClearChunkListener;
     private final MonthlyRankProcessor monthlyRankProcessor;
     private final DataSource dataSource;
     private final PlatformTransactionManager transactionManager;
@@ -108,7 +106,6 @@ public class MonthlyRankJobConfig {
                 .reader(monthlyRankReader(null))
                 .processor(monthlyRankProcessor)
                 .writer(monthlyRankWriter())
-                .listener(monthlyRankClearChunkListener)
                 .listener(stepMonitorListener)
                 .build();
     }
