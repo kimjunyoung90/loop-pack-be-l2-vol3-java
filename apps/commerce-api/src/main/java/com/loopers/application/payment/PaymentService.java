@@ -5,6 +5,7 @@ import com.loopers.application.payment.command.PaymentCreateCommand;
 import com.loopers.application.payment.result.PaymentResult;
 import com.loopers.domain.payment.CardType;
 import com.loopers.domain.payment.Payment;
+import com.loopers.domain.payment.PaymentGatewayClient.ReconciliationResult;
 import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.payment.PaymentStatus;
 import com.loopers.support.error.CoreException;
@@ -54,6 +55,32 @@ public class PaymentService {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
         payment.unknown();
         return PaymentResult.from(payment);
+    }
+
+    @Transactional
+    public void reconcileByResult(Long paymentId, ReconciliationResult result) {
+        Payment payment = paymentRepository.findByIdAndDeletedAtIsNull(paymentId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
+
+        if (payment.getTransactionKey() == null && result.transactionKey() != null) {
+            payment.assignTransactionKey(result.transactionKey());
+        }
+
+        switch (result.status()) {
+            case APPROVED -> payment.approve();
+            case REJECTED -> payment.reject(result.reason());
+            case PENDING -> {
+            }
+            default -> {
+            }
+        }
+    }
+
+    @Transactional
+    public void reconcileAsNotFound(Long paymentId) {
+        Payment payment = paymentRepository.findByIdAndDeletedAtIsNull(paymentId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
+        payment.reject("PG에서 확인 불가 — 요청이 도달하지 못한 것으로 확정");
     }
 
     @Transactional
