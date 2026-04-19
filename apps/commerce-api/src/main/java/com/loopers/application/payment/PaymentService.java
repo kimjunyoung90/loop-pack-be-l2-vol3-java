@@ -84,6 +84,13 @@ public class PaymentService {
     }
 
     @Transactional
+    public void abandonPayment(Long paymentId, String reason) {
+        Payment payment = paymentRepository.findByIdAndDeletedAtIsNull(paymentId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));
+        payment.abandon(reason);
+    }
+
+    @Transactional
     public PaymentResult handleCallback(PaymentCallbackCommand command) {
         Payment payment = paymentRepository.findByTransactionKeyAndDeletedAtIsNull(command.transactionKey())
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 정보를 찾을 수 없습니다."));

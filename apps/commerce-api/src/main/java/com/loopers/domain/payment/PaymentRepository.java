@@ -15,4 +15,6 @@ public interface PaymentRepository {
     Optional<Payment> findByTransactionKeyAndDeletedAtIsNull(String transactionKey);
 
     List<Payment> findRecoveryTargets(ZonedDateTime pendingThreshold, Pageable pageable);
+
+    List<Payment> findGiveUpTargets(ZonedDateTime giveUpThreshold, Pageable pageable);
 }

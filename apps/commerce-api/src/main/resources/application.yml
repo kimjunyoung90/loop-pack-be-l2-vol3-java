@@ -42,6 +42,7 @@ payment:
     interval-ms: 30000          # 스케줄러 주기 30s
     pending-grace-seconds: 10   # callback SLA(5s) × 2
     batch-size: 50
+    give-up-minutes: 30         # 생성 후 이 시간 경과까지 미확정이면 최종 포기 + 알람
 
 queue:
   scheduler:
@@ -67,10 +68,10 @@ resilience4j:
   circuitbreaker:
     instances:
       paymentGateway:
-        sliding-window-type: COUNT_BASED
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        failure-rate-threshold: 60      # PG SLA 40% + 여유 20%p
+        sliding-window-type: TIME_BASED          # 저트래픽 시 오래된 실패 잔류 방지 (시간 경과 시 자동 만료)
+        sliding-window-size: 60                  # 60초 윈도우 (장애 감지 + 안정성 균형)
+        minimum-number-of-calls: 20              # 60초 내 최소 20건 (PG 기저 에러율 40% 흡수 + 단일 장애로 OPEN되지 않도록)
+        failure-rate-threshold: 60               # PG SLA 40% + 여유 20%p
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 3
         slow-call-duration-threshold: 500ms   # PG 동기 SLA 자체 (SLA 위반 즉시 전조 감지)

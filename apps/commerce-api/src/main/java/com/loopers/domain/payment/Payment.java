@@ -81,6 +81,24 @@ public class Payment extends BaseEntity {
         this.status = PaymentStatus.UNKNOWN;
     }
 
+    public void abandon(String reason) {
+        // TODO(human): 장시간 미확정 결제의 "최종 포기" 도메인 메서드 구현
+        //
+        // 호출 맥락:
+        //   - Reconciliation 스케줄러가 생성 후 30분 이상 PENDING/UNKNOWN에 머문 결제를 감지하여 호출
+        //   - 이 시점에서는 PG와의 상태 확정을 포기하고 결제를 종결 상태로 마감해야 함
+        //
+        // 고민 포인트:
+        //   1. "포기"를 어떤 상태로 표현할 것인가?
+        //      - 기존 REJECTED를 재활용 (상태 머신 단순 유지) vs 새 상태(예: ABANDONED) 도입 (명시적 구분)
+        //      - 선택에 따라 PaymentStatus enum도 수정 필요할 수 있음
+        //   2. 이미 종결된 결제(APPROVED/REJECTED)에 abandon 호출되면 어떻게 처리할 것인가?
+        //      - 경합 상황에서 뒤늦게 도착하는 호출이 가능 (§1-4 "충돌 시나리오" A/B/C 참고)
+        //      - "조용히 넘어가기(no-op)" vs 예외
+        //   3. reason 파라미터는 어디에 보존할 것인가?
+        //      - failureReason에 기록? 별도 필드?
+    }
+
     @Override
     protected void guard() {
         if (orderId == null) {

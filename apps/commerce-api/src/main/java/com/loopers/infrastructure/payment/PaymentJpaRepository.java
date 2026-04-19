@@ -27,4 +27,16 @@ public interface PaymentJpaRepository extends JpaRepository<Payment, Long> {
             """)
     List<Payment> findRecoveryTargets(@Param("pendingThreshold") ZonedDateTime pendingThreshold,
                                       Pageable pageable);
+
+    @Query("""
+            SELECT p FROM Payment p
+            WHERE p.deletedAt IS NULL
+              AND p.status IN (
+                    com.loopers.domain.payment.PaymentStatus.PENDING,
+                    com.loopers.domain.payment.PaymentStatus.UNKNOWN
+              )
+              AND p.createdAt < :giveUpThreshold
+            """)
+    List<Payment> findGiveUpTargets(@Param("giveUpThreshold") ZonedDateTime giveUpThreshold,
+                                    Pageable pageable);
 }

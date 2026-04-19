@@ -35,4 +35,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     public List<Payment> findRecoveryTargets(ZonedDateTime pendingThreshold, Pageable pageable) {
         return paymentJpaRepository.findRecoveryTargets(pendingThreshold, pageable);
     }
+
+    @Override
+    public List<Payment> findGiveUpTargets(ZonedDateTime giveUpThreshold, Pageable pageable) {
+        return paymentJpaRepository.findGiveUpTargets(giveUpThreshold, pageable);
+    }
 }

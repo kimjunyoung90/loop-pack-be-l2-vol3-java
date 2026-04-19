@@ -29,7 +29,12 @@ public class PaymentRecoveryFacade {
     @Value("${payment.reconciliation.batch-size:50}")
     private int batchSize;
 
+    @Value("${payment.reconciliation.give-up-minutes:30}")
+    private long giveUpMinutes;
+
     public void reconcilePendingPayments() {
+        abandonLongPendingPayments();
+
         ZonedDateTime pendingThreshold = ZonedDateTime.now().minusSeconds(pendingGraceSeconds);
         List<Payment> targets = paymentRepository.findRecoveryTargets(
                 pendingThreshold, PageRequest.of(0, batchSize));
@@ -42,6 +47,30 @@ public class PaymentRecoveryFacade {
 
         for (Payment payment : targets) {
             reconcileSafely(payment);
+        }
+    }
+
+    private void abandonLongPendingPayments() {
+        ZonedDateTime giveUpThreshold = ZonedDateTime.now().minusMinutes(giveUpMinutes);
+        List<Payment> targets = paymentRepository.findGiveUpTargets(
+                giveUpThreshold, PageRequest.of(0, batchSize));
+
+        if (targets.isEmpty()) {
+            return;
+        }
+
+        log.error("[ALERT] 최종 포기 대상 결제 {} 건 발견 — 생성 후 {}분 이상 미확정",
+                targets.size(), giveUpMinutes);
+
+        String reason = String.format("최종 포기 — %d분 이상 미확정", giveUpMinutes);
+        for (Payment payment : targets) {
+            try {
+                log.error("[ALERT] 결제 최종 포기: paymentId={}, orderId={}, status={}, createdAt={}",
+                        payment.getId(), payment.getOrderId(), payment.getStatus(), payment.getCreatedAt());
+                paymentService.abandonPayment(payment.getId(), reason);
+            } catch (Exception e) {
+                log.warn("최종 포기 처리 실패 — 다음 주기 재시도: paymentId={}", payment.getId(), e);
+            }
         }
     }
 
