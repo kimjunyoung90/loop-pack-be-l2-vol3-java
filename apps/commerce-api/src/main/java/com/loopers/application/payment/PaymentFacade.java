@@ -5,6 +5,7 @@ import com.loopers.application.payment.command.PaymentCreateCommand;
 import com.loopers.application.payment.result.PaymentResult;
 import com.loopers.domain.payment.PaymentGatewayClient;
 import com.loopers.domain.payment.PaymentStatus;
+import com.loopers.domain.payment.PgConnectException;
 import com.loopers.domain.payment.event.PaymentApprovedEvent;
 import com.loopers.domain.payment.event.PaymentRejectedEvent;
 import com.loopers.domain.payment.PaymentGatewayClient.PgResponseStatus;
@@ -56,6 +57,10 @@ public class PaymentFacade {
                 paymentService.failPaymentApproval(paymentId, response.reason());
                 throw new CoreException(ErrorType.PAYMENT_FAILED, response.reason());
             }
+        } catch (PgConnectException e) {
+            // Retry 소진 후 전파 — 도달하지 못함이 확실하므로 REJECTED 확정 (UNKNOWN 아님)
+            paymentService.failPaymentApproval(paymentId, "PG 연결 실패 — 재시도 소진");
+            throw new CoreException(ErrorType.PAYMENT_GATEWAY_ERROR, "PG 연결 실패 — 재시도 소진");
         } catch (CoreException e) {
             if (e.getErrorType() == ErrorType.PAYMENT_GATEWAY_TIMEOUT) {
                 // TX2: unknown → 커밋

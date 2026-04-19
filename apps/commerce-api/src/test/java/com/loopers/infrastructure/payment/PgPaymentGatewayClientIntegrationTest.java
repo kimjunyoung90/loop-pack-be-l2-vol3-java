@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "resilience4j.circuitbreaker.instances.paymentGateway.minimum-number-of-calls=3",
         "resilience4j.circuitbreaker.instances.paymentGateway.failure-rate-threshold=50",
         "resilience4j.circuitbreaker.instances.paymentGateway.wait-duration-in-open-state=10s",
+        "resilience4j.retry.instances.paymentGateway.max-attempts=1",  // 테스트에서 재시도 비활성
         "pg.base-url=http://localhost:59999",
         "pg.connect-timeout=1000",
         "pg.read-timeout=1000",
@@ -42,27 +43,23 @@ class PgPaymentGatewayClientIntegrationTest {
     }
 
     @Test
-    void 연결_실패_시_ResourceAccessException_fallback이_실행된다() {
-        // when - 존재하지 않는 서버로 요청 → ResourceAccessException 발생
-        // then - ResourceAccessException fallback → "TIMEOUT" 메시지
+    void 연결_실패_시_Retry_소진_후_PgConnectException이_전파된다() {
+        // when - 존재하지 않는 서버로 요청 → ConnectException → PgConnectException → Retry 3회 후 전파
+        // then - PgConnectException이 그대로 전파되어 PaymentFacade에서 REJECTED 처리되도록 함
         assertThatThrownBy(() -> paymentGatewayClient.requestPayment(request))
-                .isInstanceOf(CoreException.class)
-                .satisfies(e -> {
-                    CoreException ce = (CoreException) e;
-                    assertThat(ce.getErrorType()).isEqualTo(ErrorType.PAYMENT_GATEWAY_ERROR);
-                    assertThat(ce.getCustomMessage()).isEqualTo("TIMEOUT");
-                });
+                .isInstanceOf(com.loopers.domain.payment.PgConnectException.class);
     }
 
     @Test
-    void 실패가_임계치를_넘으면_서킷이_OPEN_상태로_전환된다() {
-        // given - 3회 실패 (minimum-number-of-calls = 3, failure-rate-threshold = 50%)
+    void 연결_실패가_임계치를_넘으면_서킷이_OPEN_상태로_전환된다() {
+        // given - 연결 실패 3회 (Retry는 max-attempts=1로 비활성)
+        //        record-exceptions에 PgConnectException 포함 → CB가 각 실패를 기록
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> paymentGatewayClient.requestPayment(request))
-                    .isInstanceOf(CoreException.class);
+                    .isInstanceOf(com.loopers.domain.payment.PgConnectException.class);
         }
 
-        // when & then - 서킷이 OPEN 상태로 전환
+        // then - 3회 실패 기록 → 서킷 OPEN (장기 PG 장애 시 빠른 차단)
         CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("paymentGateway");
         assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
     }

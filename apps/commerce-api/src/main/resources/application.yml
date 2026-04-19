@@ -79,6 +79,16 @@ resilience4j:
           - java.io.IOException
           - java.util.concurrent.TimeoutException
           - org.springframework.web.client.RestClientException
+          - com.loopers.domain.payment.PgConnectException
+        # 주의: Retry outer + PgConnectException 기록 → 1번의 연결 장애가 재시도 횟수만큼 기록됨.
+        # 연속 장애 시 Circuit이 빠르게 열려 장기 장애를 차단하는 것을 우선.
+  retry:
+    instances:
+      paymentGateway:
+        max-attempts: 3                 # 최초 1회 + 재시도 2회
+        wait-duration: 200ms            # 재시도 간격 (지수 백오프 미사용)
+        retry-exceptions:
+          - com.loopers.domain.payment.PgConnectException    # 도달 전 실패만 재시도
 
 ---
 spring:
