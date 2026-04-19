@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.ranking;
 
-import com.loopers.application.product.result.ProductWithBrandResult;
 import com.loopers.application.ranking.RankingFacade;
+import com.loopers.domain.ranking.RankingPeriod;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.PageResponse;
 import com.loopers.interfaces.api.product.response.ProductWithBrandDetailResponse;
@@ -24,10 +24,11 @@ public class RankingV1Controller implements RankingV1ApiSpec {
     @GetMapping
     @Override
     public ApiResponse<PageResponse<ProductWithBrandDetailResponse>> getRankings(
+            @RequestParam(defaultValue = "DAILY") RankingPeriod period,
             @RequestParam(required = false) String date,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        Page<ProductWithBrandDetailResponse> rankings = rankingFacade.getRankedProducts(date, pageable)
+        Page<ProductWithBrandDetailResponse> rankings = rankingFacade.getRankedProducts(period, date, pageable)
                 .map(ProductWithBrandDetailResponse::from);
         return ApiResponse.success(PageResponse.from(rankings));
     }
