@@ -16,6 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -48,7 +49,7 @@ public class OutboxEventPublisher {
                     outboxEvent.getMessageKey(),
                     outboxEvent.getPayload()
             );
-            record.headers().add("eventId", outboxEvent.getEventId().getBytes());
+            record.headers().add("eventId", outboxEvent.getEventId().getBytes(StandardCharsets.UTF_8));
             kafkaTemplate.send(record).get(5, TimeUnit.SECONDS);
             outboxEvent.markPublished();
         } catch (InterruptedException e) {
