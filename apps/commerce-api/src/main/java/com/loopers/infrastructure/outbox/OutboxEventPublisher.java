@@ -7,8 +7,6 @@ import com.loopers.domain.outbox.LikeOutboxEvent;
 import com.loopers.domain.outbox.LikeOutboxEventRepository;
 import com.loopers.domain.outbox.OrderOutboxEvent;
 import com.loopers.domain.outbox.OrderOutboxEventRepository;
-import com.loopers.domain.outbox.ProductOutboxEvent;
-import com.loopers.domain.outbox.ProductOutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -23,7 +21,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * 도메인 Outbox 이벤트를 Kafka로 발행한다.
- * 즉시 발행(OutboxImmediatePublisher)과 보상 스케줄러(OutboxRelayScheduler)가 공통으로 사용한다.
+ * OutboxRelayScheduler가 공통으로 사용한다.
  * DLQ 저장은 BaseOutboxEvent.getDomain()을 기준으로 도메인 Repository에 위임한다.
  */
 @Slf4j
@@ -31,7 +29,6 @@ import java.util.concurrent.TimeoutException;
 @Component
 public class OutboxEventPublisher {
 
-    private final ProductOutboxEventRepository productOutboxEventRepository;
     private final LikeOutboxEventRepository likeOutboxEventRepository;
     private final OrderOutboxEventRepository orderOutboxEventRepository;
     private final CouponOutboxEventRepository couponOutboxEventRepository;
@@ -72,7 +69,6 @@ public class OutboxEventPublisher {
 
     private void saveDeadLetter(BaseOutboxEvent dle) {
         switch (dle.getDomain()) {
-            case PRODUCT -> productOutboxEventRepository.save((ProductOutboxEvent) dle);
             case LIKE -> likeOutboxEventRepository.save((LikeOutboxEvent) dle);
             case ORDER -> orderOutboxEventRepository.save((OrderOutboxEvent) dle);
             case COUPON -> couponOutboxEventRepository.save((CouponOutboxEvent) dle);

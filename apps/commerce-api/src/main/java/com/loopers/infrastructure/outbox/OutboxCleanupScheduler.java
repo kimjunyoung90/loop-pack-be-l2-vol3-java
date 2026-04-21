@@ -4,7 +4,6 @@ import com.loopers.domain.outbox.CouponOutboxEventRepository;
 import com.loopers.domain.outbox.LikeOutboxEventRepository;
 import com.loopers.domain.outbox.OrderOutboxEventRepository;
 import com.loopers.domain.outbox.OutboxStatus;
-import com.loopers.domain.outbox.ProductOutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,7 +19,6 @@ public class OutboxCleanupScheduler {
 
     private static final int RETENTION_DAYS = 7;
 
-    private final ProductOutboxEventRepository productOutboxEventRepository;
     private final LikeOutboxEventRepository likeOutboxEventRepository;
     private final OrderOutboxEventRepository orderOutboxEventRepository;
     private final CouponOutboxEventRepository couponOutboxEventRepository;
@@ -29,7 +27,6 @@ public class OutboxCleanupScheduler {
     @Transactional
     public void cleanup() {
         ZonedDateTime before = ZonedDateTime.now().minusDays(RETENTION_DAYS);
-        productOutboxEventRepository.deleteAllByStatusAndCreatedAtBefore(OutboxStatus.PUBLISHED, before);
         likeOutboxEventRepository.deleteAllByStatusAndCreatedAtBefore(OutboxStatus.PUBLISHED, before);
         orderOutboxEventRepository.deleteAllByStatusAndCreatedAtBefore(OutboxStatus.PUBLISHED, before);
         couponOutboxEventRepository.deleteAllByStatusAndCreatedAtBefore(OutboxStatus.PUBLISHED, before);

@@ -4,7 +4,6 @@ import com.loopers.domain.outbox.CouponOutboxEventRepository;
 import com.loopers.domain.outbox.LikeOutboxEventRepository;
 import com.loopers.domain.outbox.OrderOutboxEventRepository;
 import com.loopers.domain.outbox.OutboxStatus;
-import com.loopers.domain.outbox.ProductOutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class OutboxRelayScheduler {
 
-    private final ProductOutboxEventRepository productOutboxEventRepository;
     private final LikeOutboxEventRepository likeOutboxEventRepository;
     private final OrderOutboxEventRepository orderOutboxEventRepository;
     private final CouponOutboxEventRepository couponOutboxEventRepository;
@@ -27,8 +25,6 @@ public class OutboxRelayScheduler {
 
     @Scheduled(fixedDelay = 1000)
     public void relay() {
-        productOutboxEventRepository.findAllByStatus(OutboxStatus.PENDING)
-                .forEach(outboxEventPublisher::publish);
         likeOutboxEventRepository.findAllByStatus(OutboxStatus.PENDING)
                 .forEach(outboxEventPublisher::publish);
         orderOutboxEventRepository.findAllByStatus(OutboxStatus.PENDING)

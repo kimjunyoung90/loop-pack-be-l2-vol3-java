@@ -1,7 +1,6 @@
 package com.loopers.application.product;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.application.outbox.ProductOutboxEventService;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
@@ -14,16 +13,20 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -36,7 +39,7 @@ public class ProductService {
     private final ProductCacheRepository productCacheRepository;
     private final CacheLockManager cacheLockManager;
     private final ApplicationEventPublisher eventPublisher;
-    private final ProductOutboxEventService productOutboxEventService;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -53,7 +56,7 @@ public class ProductService {
         return ProductResult.from(saved);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ProductResult getProduct(Long productId) {
         Product product = productCacheRepository.getProduct(productId)
                 .orElseGet(() -> cacheLockManager.executeWithLock(
@@ -66,13 +69,18 @@ public class ProductService {
                             return origin;
                         }
                 ));
-		//outbox event 적재
-        productOutboxEventService.saveAndPublish(
+        publishProductViewed(productId);
+        return ProductResult.from(product);
+    }
+
+    private void publishProductViewed(Long productId) {
+        ProducerRecord<Object, Object> record = new ProducerRecord<>(
                 TOPIC_PRODUCT,
                 String.valueOf(productId),
                 writeJson(Map.of("eventType", EVENT_PRODUCT_VIEWED, "productId", productId))
         );
-        return ProductResult.from(product);
+        record.headers().add("eventId", UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8));
+        kafkaTemplate.send(record);
     }
 
     @SneakyThrows
