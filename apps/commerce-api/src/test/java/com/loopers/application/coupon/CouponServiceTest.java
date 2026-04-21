@@ -6,7 +6,7 @@ import com.loopers.domain.coupon.CouponIssueRequestRepository;
 import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.domain.coupon.UserCouponRepository;
-import com.loopers.application.outbox.OutboxEventService;
+import com.loopers.application.outbox.CouponOutboxEventService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +36,7 @@ class CouponServiceTest {
     private CouponIssueRequestRepository couponIssueRequestRepository;
 
     @Mock
-    private OutboxEventService outboxEventService;
+    private CouponOutboxEventService outboxEventService;
 
     @Mock
     private ObjectMapper objectMapper;

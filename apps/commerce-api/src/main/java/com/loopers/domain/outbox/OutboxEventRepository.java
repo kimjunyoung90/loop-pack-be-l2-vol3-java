@@ -4,13 +4,13 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface OutboxEventRepository {
+public interface OutboxEventRepository<T extends BaseOutboxEvent> {
 
-    OutboxEvent save(OutboxEvent outboxEvent);
+    T save(T outboxEvent);
 
-    Optional<OutboxEvent> findById(Long id);
+    Optional<T> findById(Long id);
 
-    List<OutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
+    List<T> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
 
     void deleteAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
 }

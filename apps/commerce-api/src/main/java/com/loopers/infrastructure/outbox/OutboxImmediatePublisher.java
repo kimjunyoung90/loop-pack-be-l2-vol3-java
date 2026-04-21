@@ -1,7 +1,10 @@
 package com.loopers.infrastructure.outbox;
 
-import com.loopers.domain.outbox.OutboxEventRepository;
+import com.loopers.domain.outbox.CouponOutboxEventRepository;
+import com.loopers.domain.outbox.LikeOutboxEventRepository;
+import com.loopers.domain.outbox.OrderOutboxEventRepository;
 import com.loopers.domain.outbox.OutboxPublishEvent;
+import com.loopers.domain.outbox.ProductOutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -18,13 +21,24 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class OutboxImmediatePublisher {
 
-    private final OutboxEventRepository outboxEventRepository;
+    private final ProductOutboxEventRepository productOutboxEventRepository;
+    private final LikeOutboxEventRepository likeOutboxEventRepository;
+    private final OrderOutboxEventRepository orderOutboxEventRepository;
+    private final CouponOutboxEventRepository couponOutboxEventRepository;
     private final OutboxEventPublisher outboxEventPublisher;
 
     @Async("outboxTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void publishAfterCommit(OutboxPublishEvent event) {
-        outboxEventRepository.findById(event.outboxEventId())
-                .ifPresent(outboxEventPublisher::publish);
+        switch (event.domain()) {
+            case PRODUCT -> productOutboxEventRepository.findById(event.outboxEventId())
+                    .ifPresent(outboxEventPublisher::publish);
+            case LIKE -> likeOutboxEventRepository.findById(event.outboxEventId())
+                    .ifPresent(outboxEventPublisher::publish);
+            case ORDER -> orderOutboxEventRepository.findById(event.outboxEventId())
+                    .ifPresent(outboxEventPublisher::publish);
+            case COUPON -> couponOutboxEventRepository.findById(event.outboxEventId())
+                    .ifPresent(outboxEventPublisher::publish);
+        }
     }
 }

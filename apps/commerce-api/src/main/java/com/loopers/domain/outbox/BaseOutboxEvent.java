@@ -4,54 +4,49 @@ import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@Entity
-@Table(name = "outbox_events")
+@MappedSuperclass
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OutboxEvent extends BaseEntity {
+public abstract class BaseOutboxEvent extends BaseEntity {
+
+    protected static final int MAX_RETRY_COUNT = 3;
+    protected static final String DLT_SUFFIX = ".DLT";
 
     @Column(name = "event_id", nullable = false, unique = true)
-    private String eventId;
+    protected String eventId;
 
     @Column(name = "topic", nullable = false)
-    private String topic;
+    protected String topic;
 
     @Column(name = "message_key", nullable = false)
-    private String messageKey;
+    protected String messageKey;
 
     @Column(name = "payload", nullable = false, columnDefinition = "TEXT")
-    private String payload;
+    protected String payload;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private OutboxStatus status;
+    protected OutboxStatus status;
 
     @Column(name = "retry_count", nullable = false)
-    private int retryCount;
+    protected int retryCount;
 
-    private static final int MAX_RETRY_COUNT = 3;
-    private static final String DLT_SUFFIX = ".DLT";
-
-    @Builder
-    private OutboxEvent(String topic, String messageKey, String payload) {
+    protected BaseOutboxEvent(String topic, String messageKey, String payload) {
         this.eventId = UUID.randomUUID().toString();
         this.topic = topic;
         this.messageKey = messageKey;
         this.payload = payload;
         this.status = OutboxStatus.PENDING;
         this.retryCount = 0;
-        guard();
     }
 
     public void markPublished() {
@@ -77,13 +72,9 @@ public class OutboxEvent extends BaseEntity {
         return this.topic.endsWith(DLT_SUFFIX);
     }
 
-    public OutboxEvent createDeadLetterEvent() {
-        return OutboxEvent.builder()
-                .topic(this.topic + DLT_SUFFIX)
-                .messageKey(this.messageKey)
-                .payload(this.payload)
-                .build();
-    }
+    public abstract BaseOutboxEvent createDeadLetterEvent();
+
+    public abstract OutboxDomain getDomain();
 
     @Override
     protected void guard() {

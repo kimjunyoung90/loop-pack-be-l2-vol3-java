@@ -2,7 +2,7 @@ package com.loopers.infrastructure.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.order.command.OrderCreateCommand;
-import com.loopers.application.outbox.OutboxEventService;
+import com.loopers.application.outbox.OrderOutboxEventService;
 import com.loopers.infrastructure.kafka.message.OrderRequestMessage;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -18,7 +18,7 @@ public class OrderRequestProducer {
 
     private static final String TOPIC = "order-requests";
 
-    private final OutboxEventService outboxEventService;
+    private final OrderOutboxEventService outboxEventService;
     private final ObjectMapper objectMapper;
 
     @Transactional

@@ -1,26 +1,26 @@
 package com.loopers.infrastructure.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.application.outbox.LikeOutboxEventService;
+import com.loopers.application.outbox.OrderOutboxEventService;
+import com.loopers.application.outbox.ProductOutboxEventService;
 import com.loopers.domain.like.event.ProductLikedEvent;
 import com.loopers.domain.like.event.ProductUnlikedEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
 import com.loopers.domain.product.event.ProductViewedEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
- * 통계 이벤트 fire-and-forget 발행.
- * 유실돼도 비즈니스 불변식이 깨지지 않는 이벤트는 Outbox 없이 직접 발행한다.
+ * 통계 이벤트를 Outbox Pattern으로 발행한다.
+ * 도메인별 Outbox 테이블에 기록하도록 도메인별 Service로 분기한다.
+ * BEFORE_COMMIT 단계에서 동일 트랜잭션에 Outbox 레코드를 저장해 메시지 유실을 방지한다.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -36,46 +36,49 @@ public class MetricsEventPublisher {
     private static final String EVENT_PRODUCT_UNLIKED = "PRODUCT_UNLIKED";
     private static final String EVENT_ORDER_PLACED = "ORDER_PLACED";
 
-    private final KafkaTemplate<Object, Object> kafkaTemplate;
+    private final ProductOutboxEventService productOutboxEventService;
+    private final LikeOutboxEventService likeOutboxEventService;
+    private final OrderOutboxEventService orderOutboxEventService;
     private final ObjectMapper objectMapper;
 
-    @Async("outboxTaskExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleProductLiked(ProductLikedEvent event) {
-        send(TOPIC_LIKE, String.valueOf(event.productId()),
-                writeJson(Map.of("eventType", EVENT_PRODUCT_LIKED, "productId", event.productId())));
+        likeOutboxEventService.saveAndPublish(
+                TOPIC_LIKE,
+                String.valueOf(event.productId()),
+                writeJson(Map.of("eventType", EVENT_PRODUCT_LIKED, "productId", event.productId()))
+        );
     }
 
-    @Async("outboxTaskExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleProductUnliked(ProductUnlikedEvent event) {
-        send(TOPIC_LIKE, String.valueOf(event.productId()),
-                writeJson(Map.of("eventType", EVENT_PRODUCT_UNLIKED, "productId", event.productId())));
+        likeOutboxEventService.saveAndPublish(
+                TOPIC_LIKE,
+                String.valueOf(event.productId()),
+                writeJson(Map.of("eventType", EVENT_PRODUCT_UNLIKED, "productId", event.productId()))
+        );
     }
 
-    @Async("outboxTaskExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleProductViewed(ProductViewedEvent event) {
-        send(TOPIC_PRODUCT, String.valueOf(event.productId()),
-                writeJson(Map.of("eventType", EVENT_PRODUCT_VIEWED, "productId", event.productId())));
+        productOutboxEventService.saveAndPublish(
+                TOPIC_PRODUCT,
+                String.valueOf(event.productId()),
+                writeJson(Map.of("eventType", EVENT_PRODUCT_VIEWED, "productId", event.productId()))
+        );
     }
 
-    @Async("outboxTaskExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleOrderPlaced(OrderPlacedEvent event) {
-        event.stockItems().forEach(stockItem ->
-                send(TOPIC_ORDER, String.valueOf(stockItem.productId()),
-                        writeJson(Map.of("eventType", EVENT_ORDER_PLACED, "productId", stockItem.productId(), "quantity", stockItem.quantity()))));
-    }
-
-    private void send(String topic, String key, String payload) {
-        try {
-            ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, key, payload);
-            record.headers().add("eventId", UUID.randomUUID().toString().getBytes());
-            kafkaTemplate.send(record);
-        } catch (Exception e) {
-            log.warn("통계 이벤트 발행 실패 (유실 허용). topic={}, key={}", topic, key, e);
-        }
+        event.stockItems().forEach(stockItem -> orderOutboxEventService.saveAndPublish(
+                TOPIC_ORDER,
+                String.valueOf(stockItem.productId()),
+                writeJson(Map.of(
+                        "eventType", EVENT_ORDER_PLACED,
+                        "productId", stockItem.productId(),
+                        "quantity", stockItem.quantity()
+                ))
+        ));
     }
 
     @SneakyThrows

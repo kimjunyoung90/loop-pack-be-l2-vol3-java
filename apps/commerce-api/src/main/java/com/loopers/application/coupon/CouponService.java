@@ -12,7 +12,7 @@ import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.CouponRequestStatus;
 import com.loopers.domain.coupon.UserCoupon;
 import com.loopers.domain.coupon.UserCouponRepository;
-import com.loopers.application.outbox.OutboxEventService;
+import com.loopers.application.outbox.CouponOutboxEventService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +35,7 @@ public class CouponService {
 	private final CouponRepository couponRepository;
 	private final UserCouponRepository userCouponRepository;
 	private final CouponIssueRequestRepository couponIssueRequestRepository;
-	private final OutboxEventService outboxEventService;
+	private final CouponOutboxEventService outboxEventService;
 	private final ObjectMapper objectMapper;
 
 	@Transactional
