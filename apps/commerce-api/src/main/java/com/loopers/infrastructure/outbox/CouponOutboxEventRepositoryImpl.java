@@ -27,8 +27,8 @@ public class CouponOutboxEventRepositoryImpl implements CouponOutboxEventReposit
     }
 
     @Override
-    public List<CouponOutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before) {
-        return jpaRepository.findAllByStatusAndCreatedAtBefore(status, before);
+    public List<CouponOutboxEvent> findAllByStatus(OutboxStatus status) {
+        return jpaRepository.findAllByStatus(status);
     }
 
     @Override

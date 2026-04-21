@@ -1,5 +1,7 @@
 package com.loopers.application.product;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.application.outbox.ProductOutboxEventService;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
@@ -7,11 +9,11 @@ import com.loopers.domain.product.*;
 import com.loopers.domain.product.event.ProductDeletedEvent;
 import com.loopers.domain.product.event.ProductModifiedEvent;
 import com.loopers.domain.product.event.ProductStockChangedEvent;
-import com.loopers.domain.product.event.ProductViewedEvent;
 import com.loopers.support.cache.CacheLockManager;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,16 +22,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class ProductService {
 
+    private static final String TOPIC_PRODUCT = "product-events";
+    private static final String EVENT_PRODUCT_VIEWED = "PRODUCT_VIEWED";
+
     private final ProductRepository productRepository;
     private final ProductCacheRepository productCacheRepository;
     private final CacheLockManager cacheLockManager;
     private final ApplicationEventPublisher eventPublisher;
+    private final ProductOutboxEventService productOutboxEventService;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public ProductResult registerProduct(Long brandId, ProductCreateCommand command) {
@@ -58,8 +66,18 @@ public class ProductService {
                             return origin;
                         }
                 ));
-        eventPublisher.publishEvent(new ProductViewedEvent(productId));
+		//outbox event 적재
+        productOutboxEventService.saveAndPublish(
+                TOPIC_PRODUCT,
+                String.valueOf(productId),
+                writeJson(Map.of("eventType", EVENT_PRODUCT_VIEWED, "productId", productId))
+        );
         return ProductResult.from(product);
+    }
+
+    @SneakyThrows
+    private String writeJson(Object value) {
+        return objectMapper.writeValueAsString(value);
     }
 
     @Transactional(readOnly = true)

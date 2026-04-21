@@ -27,8 +27,8 @@ public class ProductOutboxEventRepositoryImpl implements ProductOutboxEventRepos
     }
 
     @Override
-    public List<ProductOutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before) {
-        return jpaRepository.findAllByStatusAndCreatedAtBefore(status, before);
+    public List<ProductOutboxEvent> findAllByStatus(OutboxStatus status) {
+        return jpaRepository.findAllByStatus(status);
     }
 
     @Override

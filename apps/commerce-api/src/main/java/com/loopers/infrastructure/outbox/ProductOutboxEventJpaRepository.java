@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ProductOutboxEventJpaRepository extends JpaRepository<ProductOutboxEvent, Long> {
 
-    List<ProductOutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
+    List<ProductOutboxEvent> findAllByStatus(OutboxStatus status);
 
     void deleteAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
 }

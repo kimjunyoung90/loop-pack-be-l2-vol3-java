@@ -10,19 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.ZonedDateTime;
-
 /**
- * Outbox 보상 스케줄러.
- * 즉시 발행(OutboxImmediatePublisher)이 실패한 이벤트를 도메인별 테이블에서 폴링하여 보상 처리한다.
- * GRACE_PERIOD_SECONDS 이내의 이벤트는 즉시 발행 경로와의 경합을 피하기 위해 건너뛴다.
+ * Outbox 이벤트를 도메인별 테이블에서 폴링하여 Kafka로 발행한다.
+ * 트랜잭션이 커밋되어 영속화된 PENDING 이벤트만 조회되므로 TX 경합 문제는 없다.
  */
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class OutboxRelayScheduler {
-
-    private static final int GRACE_PERIOD_SECONDS = 10;
 
     private final ProductOutboxEventRepository productOutboxEventRepository;
     private final LikeOutboxEventRepository likeOutboxEventRepository;
@@ -30,16 +25,15 @@ public class OutboxRelayScheduler {
     private final CouponOutboxEventRepository couponOutboxEventRepository;
     private final OutboxEventPublisher outboxEventPublisher;
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 1000)
     public void relay() {
-        ZonedDateTime before = ZonedDateTime.now().minusSeconds(GRACE_PERIOD_SECONDS);
-        productOutboxEventRepository.findAllByStatusAndCreatedAtBefore(OutboxStatus.PENDING, before)
+        productOutboxEventRepository.findAllByStatus(OutboxStatus.PENDING)
                 .forEach(outboxEventPublisher::publish);
-        likeOutboxEventRepository.findAllByStatusAndCreatedAtBefore(OutboxStatus.PENDING, before)
+        likeOutboxEventRepository.findAllByStatus(OutboxStatus.PENDING)
                 .forEach(outboxEventPublisher::publish);
-        orderOutboxEventRepository.findAllByStatusAndCreatedAtBefore(OutboxStatus.PENDING, before)
+        orderOutboxEventRepository.findAllByStatus(OutboxStatus.PENDING)
                 .forEach(outboxEventPublisher::publish);
-        couponOutboxEventRepository.findAllByStatusAndCreatedAtBefore(OutboxStatus.PENDING, before)
+        couponOutboxEventRepository.findAllByStatus(OutboxStatus.PENDING)
                 .forEach(outboxEventPublisher::publish);
     }
 }

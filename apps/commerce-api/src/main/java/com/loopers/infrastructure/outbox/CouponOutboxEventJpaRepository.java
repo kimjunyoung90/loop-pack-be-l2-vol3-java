@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CouponOutboxEventJpaRepository extends JpaRepository<CouponOutboxEvent, Long> {
 
-    List<CouponOutboxEvent> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
+    List<CouponOutboxEvent> findAllByStatus(OutboxStatus status);
 
     void deleteAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
 }

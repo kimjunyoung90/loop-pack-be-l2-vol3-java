@@ -1,28 +1,37 @@
 package com.loopers.application.order;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.application.coupon.CouponService;
 import com.loopers.application.order.command.OrderCreateCommand;
 import com.loopers.application.order.command.OrderItemCommand;
 import com.loopers.application.order.result.OrderResult;
+import com.loopers.application.outbox.OrderOutboxEventService;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.result.ProductResult;
 import com.loopers.domain.order.event.OrderCancelledEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
 public class OrderFacade {
 
+    private static final String TOPIC_ORDER = "order-events";
+    private static final String EVENT_ORDER_PLACED = "ORDER_PLACED";
+
     private final ProductService productService;
     private final OrderService orderService;
     private final CouponService couponService;
+    private final OrderOutboxEventService orderOutboxEventService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
 	
 	@Transactional
     public OrderResult placeOrder(OrderCreateCommand command) {
@@ -53,7 +62,23 @@ public class OrderFacade {
         // 4. 주문 생성 이벤트를 발행한다. (재고 차감, 쿠폰 사용)
         eventPublisher.publishEvent(new OrderPlacedEvent(stockItems, command.userCouponId(), command.userId(), totalAmount));
 
+        // 5. 집계용 Outbox 메시지 저장 (상품별)
+        stockItems.forEach(stockItem -> orderOutboxEventService.saveAndPublish(
+                TOPIC_ORDER,
+                String.valueOf(stockItem.productId()),
+                writeJson(Map.of(
+                        "eventType", EVENT_ORDER_PLACED,
+                        "productId", stockItem.productId(),
+                        "quantity", stockItem.quantity()
+                ))
+        ));
+
         return orderResult;
+    }
+
+    @SneakyThrows
+    private String writeJson(Object value) {
+        return objectMapper.writeValueAsString(value);
     }
 
     @Transactional

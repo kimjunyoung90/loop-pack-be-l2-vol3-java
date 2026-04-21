@@ -10,7 +10,7 @@ public interface OutboxEventRepository<T extends BaseOutboxEvent> {
 
     Optional<T> findById(Long id);
 
-    List<T> findAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
+    List<T> findAllByStatus(OutboxStatus status);
 
     void deleteAllByStatusAndCreatedAtBefore(OutboxStatus status, ZonedDateTime before);
 }

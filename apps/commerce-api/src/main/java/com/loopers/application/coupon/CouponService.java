@@ -115,6 +115,7 @@ public class CouponService {
 
 		String payload = writeJson(Map.of(
 				"userId", userId, "couponId", couponId, "issueRequestId", issueRequest.getId()));
+		//outbox 이벤트 적재
 		outboxEventService.saveAndPublish(COUPON_ISSUE_TOPIC, String.valueOf(couponId), payload);
 
 		return CouponIssueRequestResult.from(issueRequest);
