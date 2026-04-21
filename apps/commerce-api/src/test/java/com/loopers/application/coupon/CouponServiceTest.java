@@ -76,17 +76,6 @@ class CouponServiceTest {
     }
 
     @Test
-    void 존재하지_않는_발급요청으로_쿠폰_발급_시_무시된다() {
-        // given
-        given(couponIssueRequestRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
-
-        // when
-        couponService.issueCoupon(1L, 1L, 1L);
-
-        // then - 예외 없이 정상 종료 (요청을 찾을 수 없으면 무시)
-    }
-
-    @Test
     void 존재하지_않는_사용자_쿠폰_사용_시_예외가_발생한다() {
         // given
         given(userCouponRepository.findByIdWithLockAndDeletedAtIsNull(1L)).willReturn(Optional.empty());

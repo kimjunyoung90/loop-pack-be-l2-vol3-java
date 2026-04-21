@@ -1,12 +1,11 @@
 package com.loopers.interfaces.consumer;
 
-import com.loopers.application.coupon.CouponService;
+import com.loopers.application.coupon.CouponIssueProcessor;
 import com.loopers.confg.kafka.KafkaConfig;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.listener.BatchListenerFailedException;
 import org.springframework.kafka.support.Acknowledgment;
@@ -19,20 +18,17 @@ import java.util.List;
 @Component
 public class CouponIssueConsumer {
 
-    private static final String COUPON_ISSUE_TOPIC = "coupon-issue-requests";
+    private static final String TOPIC_COUPON_ISSUE = "coupon-issue-requests";
 
-    private final CouponService couponService;
-    private final ObjectMapper objectMapper;
+    private final CouponIssueProcessor couponIssueProcessor;
 
-    @KafkaListener(topics = {COUPON_ISSUE_TOPIC}, containerFactory = KafkaConfig.BATCH_LISTENER)
-    public void consumeCouponEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
+    @KafkaListener(topics = {TOPIC_COUPON_ISSUE}, containerFactory = KafkaConfig.BATCH_LISTENER)
+    public void consumeCouponIssueEvent(List<ConsumerRecord<Object, Object>> messages, Acknowledgment acknowledgment) {
         for (int i = 0; i < messages.size(); i++) {
             try {
-                JsonNode node = objectMapper.readTree(messages.get(i).value().toString());
-                Long userId = node.get("userId").asLong();
-                Long couponId = node.get("couponId").asLong();
-                Long issueRequestId = node.get("issueRequestId").asLong();
-                couponService.issueCoupon(userId, couponId, issueRequestId);
+                couponIssueProcessor.process(messages.get(i));
+            } catch (DataIntegrityViolationException e) {
+                log.info("쿠폰 발급 이벤트 중복 처리 감지 (정상). record={}", messages.get(i));
             } catch (Exception e) {
                 log.error("쿠폰 발급 이벤트 처리 실패. record={}", messages.get(i), e);
                 throw new BatchListenerFailedException("쿠폰 발급 이벤트 처리 실패", e, i);

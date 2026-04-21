@@ -122,32 +122,6 @@ public class CouponService {
 	}
 
 	@Transactional
-	public void issueCoupon(Long userId, Long couponId, Long issueRequestId) {
-		CouponIssueRequest issueRequest = couponIssueRequestRepository.findByIdAndDeletedAtIsNull(issueRequestId)
-				.orElse(null);
-
-		if (issueRequest == null || !issueRequest.isPending()) {
-			return;
-		}
-
-		if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
-			issueRequest.approve();
-			return;
-		}
-
-		try {
-			Coupon coupon = couponRepository.findByIdAndDeletedAtIsNull(couponId)
-					.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
-
-			UserCoupon userCoupon = coupon.issue(userId);
-			userCouponRepository.save(userCoupon);
-			issueRequest.approve();
-		} catch (CoreException e) {
-			issueRequest.reject(e.getMessage());
-		}
-	}
-
-	@Transactional
 	public void issueCoupon(Long userId, Long couponId) {
 		if (userCouponRepository.existsByUserIdAndCouponIdAndDeletedAtIsNull(userId, couponId)) {
 			return;
