@@ -7,6 +7,7 @@ import com.loopers.application.like.result.LikeResult;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class LikeServiceIntegrationTest {
     private ProductResult registerProduct() {
         BrandResult brand = brandService.registerBrand(new BrandCreateCommand("나이키"));
         return productService.registerProduct(brand.id(),
-                new ProductCreateCommand(brand.id(), "운동화", 50000, 10));
+                new ProductCreateCommand(brand.id(), "운동화", Money.of(50000), 10));
     }
 
     @Test

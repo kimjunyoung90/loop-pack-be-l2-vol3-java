@@ -4,6 +4,7 @@ import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class CouponConcurrencyIntegrationTest {
         // given
         Long userId = 99999L;
         CouponResult coupon = couponService.registerCoupon(
-                new CouponCreateCommand("동시성 테스트 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("동시성 테스트 쿠폰", DiscountType.FIXED, 3000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
         couponService.issueCoupon(userId, coupon.id());
         var issued = couponService.getUserCoupons(userId).getFirst();
@@ -53,7 +54,7 @@ class CouponConcurrencyIntegrationTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    couponService.useCoupon(issued.id(), userId, 50000);
+                    couponService.useCoupon(issued.id(), userId, Money.of(50000));
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();

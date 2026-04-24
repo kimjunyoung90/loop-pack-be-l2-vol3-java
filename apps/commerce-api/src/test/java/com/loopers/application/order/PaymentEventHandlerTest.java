@@ -2,6 +2,7 @@ package com.loopers.application.order;
 
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.order.result.OrderResult.OrderItemResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.order.event.OrderCancelledEvent;
 import com.loopers.domain.payment.event.PaymentApprovedEvent;
 import com.loopers.domain.payment.event.PaymentRejectedEvent;
@@ -38,8 +39,8 @@ class PaymentEventHandlerTest {
         PaymentApprovedEvent event = new PaymentApprovedEvent(1L);
 
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult completedResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult completedResult = new OrderResult(1L, 1L, null, "COMPLETED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
         given(orderService.completeOrder(1L)).willReturn(completedResult);
 
@@ -56,8 +57,8 @@ class PaymentEventHandlerTest {
         PaymentRejectedEvent event = new PaymentRejectedEvent(1L, 1L);
 
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult cancelledResult = new OrderResult(1L, 1L, 10L, "CANCELLED", 100000, 5000, 95000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult cancelledResult = new OrderResult(1L, 1L, 10L, "CANCELLED", Money.of(100000), Money.of(5000), Money.of(95000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
         given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledResult);
 
@@ -82,8 +83,8 @@ class PaymentEventHandlerTest {
         PaymentRejectedEvent event = new PaymentRejectedEvent(2L, 1L);
 
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult cancelledResult = new OrderResult(2L, 1L, null, "CANCELLED", 50000, 0, 50000, List.of(
-                new OrderItemResult(2L, 3L, "티셔츠", 25000, 2, 50000, now, now)
+        OrderResult cancelledResult = new OrderResult(2L, 1L, null, "CANCELLED", Money.of(50000), Money.of(0), Money.of(50000), List.of(
+                new OrderItemResult(2L, 3L, "티셔츠", Money.of(25000), 2, Money.of(50000), now, now)
         ), now, now);
         given(orderService.cancelOrder(1L, 2L)).willReturn(cancelledResult);
 

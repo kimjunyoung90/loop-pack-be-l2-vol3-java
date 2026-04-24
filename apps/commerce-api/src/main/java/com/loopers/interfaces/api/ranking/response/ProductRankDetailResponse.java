@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.ranking.response;
 
 import com.loopers.application.ranking.result.ProductRankWithProductResult;
+import com.loopers.domain.common.Money;
 
 import java.time.LocalDate;
 
@@ -9,7 +10,7 @@ public record ProductRankDetailResponse(
         Long productId,
         String productName,
         String brandName,
-        int price,
+        Money price,
         double score,
         long totalViewCount,
         long totalLikeCount,

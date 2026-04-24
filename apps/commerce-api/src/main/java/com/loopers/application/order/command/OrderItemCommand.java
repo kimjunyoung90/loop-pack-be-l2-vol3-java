@@ -1,16 +1,18 @@
 package com.loopers.application.order.command;
 
+import com.loopers.domain.common.Money;
+
 import java.util.List;
 
 public record OrderItemCommand(
         Long productId,
         String productName,
-        int productPrice,
+        Money productPrice,
         int quantity
 ) {
-    public static int calculateTotalAmount(List<OrderItemCommand> items) {
+    public static Money calculateTotalAmount(List<OrderItemCommand> items) {
         return items.stream()
-                .mapToInt(item -> item.productPrice() * item.quantity())
-                .sum();
+                .map(item -> item.productPrice().multiply(item.quantity()))
+                .reduce(Money.ZERO, Money::add);
     }
 }

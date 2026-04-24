@@ -1,5 +1,6 @@
 package com.loopers.domain.coupon;
 
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class UserCouponTest {
                 .couponName("테스트 쿠폰")
                 .discountType(DiscountType.FIXED)
                 .discountValue(1000)
-                .minOrderAmount(10000)
+                .minOrderAmount(Money.of(10000))
                 .expiredAt(expiredAt)
                 .build();
     }
@@ -43,7 +44,7 @@ class UserCouponTest {
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
 
         // when
-        userCoupon.use(1L, 50000);
+        userCoupon.use(1L, Money.of(50000));
 
         // then
         assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.USED);
@@ -53,10 +54,10 @@ class UserCouponTest {
     void 이미_사용된_쿠폰을_다시_사용하면_예외가_발생한다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
-        userCoupon.use(1L, 50000);
+        userCoupon.use(1L, Money.of(50000));
 
         // when & then
-        assertThatThrownBy(() -> userCoupon.use(1L, 50000))
+        assertThatThrownBy(() -> userCoupon.use(1L, Money.of(50000)))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
@@ -67,7 +68,7 @@ class UserCouponTest {
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().minusDays(1));
 
         // when & then
-        assertThatThrownBy(() -> userCoupon.use(1L, 50000))
+        assertThatThrownBy(() -> userCoupon.use(1L, Money.of(50000)))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
         assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.EXPIRED);
@@ -77,7 +78,7 @@ class UserCouponTest {
     void USED_상태의_쿠폰을_복원하면_AVAILABLE_상태가_된다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
-        userCoupon.use(1L, 50000);
+        userCoupon.use(1L, Money.of(50000));
 
         // when
         userCoupon.restore();
@@ -117,7 +118,7 @@ class UserCouponTest {
     void USED_상태이면_사용_불가능하다() {
         // given
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7));
-        userCoupon.use(1L, 50000);
+        userCoupon.use(1L, Money.of(50000));
 
         // when & then
         assertThat(userCoupon.isAvailable()).isFalse();
@@ -142,7 +143,7 @@ class UserCouponTest {
         UserCoupon userCoupon = createUserCoupon(couponOwnerUserId, LocalDate.now().plusDays(7));
 
         // when & then
-        assertThatThrownBy(() -> userCoupon.use(otherUserId, 50000))
+        assertThatThrownBy(() -> userCoupon.use(otherUserId, Money.of(50000)))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.FORBIDDEN));
     }
@@ -153,7 +154,7 @@ class UserCouponTest {
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7)); // minOrderAmount = 10000
 
         // when & then
-        assertThatThrownBy(() -> userCoupon.use(1L, 5000))
+        assertThatThrownBy(() -> userCoupon.use(1L, Money.of(5000)))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.BAD_REQUEST));
     }
@@ -164,7 +165,7 @@ class UserCouponTest {
         UserCoupon userCoupon = createUserCoupon(LocalDate.now().plusDays(7)); // minOrderAmount = 10000
 
         // when & then
-        assertThatCode(() -> userCoupon.use(1L, 50000))
+        assertThatCode(() -> userCoupon.use(1L, Money.of(50000)))
                 .doesNotThrowAnyException();
     }
 
@@ -185,10 +186,10 @@ class UserCouponTest {
                 .build();
 
         // when
-        int discount = userCoupon.calculateDiscount(totalAmount);
+        Money discount = userCoupon.calculateDiscount(Money.of(totalAmount));
 
         // then
-        assertThat(discount).isEqualTo(totalAmount * discountRate / 100);
+        assertThat(discount).isEqualTo(Money.of(totalAmount * discountRate / 100));
     }
 
     @Test
@@ -206,12 +207,12 @@ class UserCouponTest {
                 .build();
 
         // when
-        int discount = userCoupon.calculateDiscount(totalAmount);
+        Money discount = userCoupon.calculateDiscount(Money.of(totalAmount));
 
         // then
         int expectedWithoutTruncation = totalAmount * discountRate; // 333330
         assertThat(expectedWithoutTruncation % 100).isNotZero(); // 소수점이 발생하는 케이스임을 보장
-        assertThat(discount).isEqualTo(totalAmount * discountRate / 100);
+        assertThat(discount).isEqualTo(Money.of(totalAmount * discountRate / 100));
     }
 
     @Test
@@ -229,10 +230,10 @@ class UserCouponTest {
                 .build();
 
         // when
-        int discount = userCoupon.calculateDiscount(totalAmount);
+        Money discount = userCoupon.calculateDiscount(Money.of(totalAmount));
 
         // then
         assertThat(discountValue).isGreaterThan(totalAmount); // 할인값이 총액을 초과하는 케이스임을 보장
-        assertThat(discount).isEqualTo(totalAmount);
+        assertThat(discount).isEqualTo(Money.of(totalAmount));
     }
 }

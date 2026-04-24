@@ -2,6 +2,7 @@ package com.loopers.interfaces.api.order.response;
 
 import com.loopers.application.order.result.OrderResult.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
+import com.loopers.domain.common.Money;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -11,9 +12,9 @@ public record OrderCreateResponse(
         Long userId,
         Long userCouponId,
         String status,
-        int totalAmount,
-        int discountAmount,
-        int finalAmount,
+        Money totalAmount,
+        Money discountAmount,
+        Money finalAmount,
         List<OrderItemResponse> orderItems,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
@@ -21,7 +22,7 @@ public record OrderCreateResponse(
     public static OrderCreateResponse accepted(String idempotencyKey) {
         return new OrderCreateResponse(
                 null, null, null, "ACCEPTED",
-                0, 0, 0,
+                Money.ZERO, Money.ZERO, Money.ZERO,
                 List.of(), null, null
         );
     }
@@ -47,9 +48,9 @@ public record OrderCreateResponse(
             Long id,
             Long productId,
             String productName,
-            int productPrice,
+            Money productPrice,
             int quantity,
-            int totalPrice,
+            Money totalPrice,
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
     ) {

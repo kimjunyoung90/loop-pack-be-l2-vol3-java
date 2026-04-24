@@ -1,5 +1,7 @@
 package com.loopers.application.ranking.result;
 
+import com.loopers.domain.common.Money;
+
 import java.time.LocalDate;
 
 public record ProductRankWithProductResult(
@@ -7,7 +9,7 @@ public record ProductRankWithProductResult(
         Long productId,
         String productName,
         String brandName,
-        int price,
+        Money price,
         double score,
         long totalViewCount,
         long totalLikeCount,
@@ -15,7 +17,7 @@ public record ProductRankWithProductResult(
         LocalDate periodStart,
         LocalDate periodEnd
 ) {
-    public static ProductRankWithProductResult from(ProductRankResult rank, String productName, String brandName, int price) {
+    public static ProductRankWithProductResult from(ProductRankResult rank, String productName, String brandName, Money price) {
         return new ProductRankWithProductResult(
                 rank.rankNumber(),
                 rank.productId(),

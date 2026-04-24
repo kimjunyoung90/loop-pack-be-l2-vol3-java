@@ -4,6 +4,7 @@ import com.loopers.application.brand.BrandService;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,9 +34,9 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_생성하면_브랜드_검증_후_ProductResult를_반환한다() {
         // given
-        ProductCreateCommand command = new ProductCreateCommand(1L, "운동화", 100000, 50);
+        ProductCreateCommand command = new ProductCreateCommand(1L, "운동화", Money.of(100000), 50);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", 100000, 50, 0, now, now);
+        ProductResult expectedResult = new ProductResult(1L, 1L, "운동화", Money.of(100000), 50, 0, now, now);
         given(brandService.existsBrand(1L)).willReturn(true);
         given(productService.registerProduct(eq(1L), eq(command))).willReturn(expectedResult);
 
@@ -44,13 +45,13 @@ class ProductFacadeTest {
 
         // then
         assertThat(result.name()).isEqualTo("운동화");
-        assertThat(result.price()).isEqualTo(100000);
+        assertThat(result.price()).isEqualTo(Money.of(100000));
     }
 
     @Test
     void 존재하지_않는_브랜드로_상품을_생성하면_예외가_발생한다() {
         // given
-        ProductCreateCommand command = new ProductCreateCommand(999L, "운동화", 100000, 50);
+        ProductCreateCommand command = new ProductCreateCommand(999L, "운동화", Money.of(100000), 50);
         given(brandService.existsBrand(999L)).willReturn(false);
 
         // when & then
@@ -61,9 +62,9 @@ class ProductFacadeTest {
     @Test
     void 존재하는_브랜드로_상품을_수정하면_브랜드_검증_후_ProductResult를_반환한다() {
         // given
-        ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", 50000, 30);
+        ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", Money.of(50000), 30);
         ZonedDateTime now = ZonedDateTime.now();
-        ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", 50000, 30, 0, now, now);
+        ProductResult expectedResult = new ProductResult(1L, 2L, "슬리퍼", Money.of(50000), 30, 0, now, now);
         given(brandService.existsBrand(2L)).willReturn(true);
         given(productService.modifyProduct(eq(1L), eq(2L), eq(command))).willReturn(expectedResult);
 
@@ -72,13 +73,13 @@ class ProductFacadeTest {
 
         // then
         assertThat(result.name()).isEqualTo("슬리퍼");
-        assertThat(result.price()).isEqualTo(50000);
+        assertThat(result.price()).isEqualTo(Money.of(50000));
     }
 
     @Test
     void 존재하지_않는_브랜드로_상품을_수정하면_예외가_발생한다() {
         // given
-        ProductUpdateCommand command = new ProductUpdateCommand(999L, "슬리퍼", 50000, 30);
+        ProductUpdateCommand command = new ProductUpdateCommand(999L, "슬리퍼", Money.of(50000), 30);
         given(brandService.existsBrand(999L)).willReturn(false);
 
         // when & then

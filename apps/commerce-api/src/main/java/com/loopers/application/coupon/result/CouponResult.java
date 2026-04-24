@@ -1,5 +1,6 @@
 package com.loopers.application.coupon.result;
 
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.DiscountType;
 
@@ -11,7 +12,7 @@ public record CouponResult(
         String name,
         DiscountType discountType,
         int discountValue,
-        Integer minOrderAmount,
+        Money minOrderAmount,
         LocalDate expiredAt,
         int totalQuantity,
         int issuedQuantity,

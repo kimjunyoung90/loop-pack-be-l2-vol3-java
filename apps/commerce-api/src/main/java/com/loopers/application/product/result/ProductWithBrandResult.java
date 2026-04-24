@@ -1,5 +1,7 @@
 package com.loopers.application.product.result;
 
+import com.loopers.domain.common.Money;
+
 import java.time.ZonedDateTime;
 
 public record ProductWithBrandResult(
@@ -7,7 +9,7 @@ public record ProductWithBrandResult(
         Long brandId,
         String brandName,
         String name,
-        int price,
+        Money price,
         int stock,
         int likeCount,
         Integer rank,

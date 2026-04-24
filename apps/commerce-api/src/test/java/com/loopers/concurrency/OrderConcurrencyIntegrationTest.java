@@ -11,6 +11,7 @@ import com.loopers.application.user.UserService;
 import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.domain.common.Money;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,7 @@ class OrderConcurrencyIntegrationTest {
         BrandResult brand = brandService.registerBrand(new BrandCreateCommand("나이키"));
         int initialStock = 100;
         ProductResult product = productService.registerProduct(brand.id(),
-                new ProductCreateCommand(brand.id(), "운동화", 50000, initialStock));
+                new ProductCreateCommand(brand.id(), "운동화", Money.of(50000), initialStock));
 
         int threadCount = 100;
         int quantityPerOrder = 1;
@@ -114,9 +115,9 @@ class OrderConcurrencyIntegrationTest {
         int productAStock = 100;
         int productBStock = 5;
         ProductResult productA = productService.registerProduct(brand.id(),
-                new ProductCreateCommand(brand.id(), "운동화", 50000, productAStock));
+                new ProductCreateCommand(brand.id(), "운동화", Money.of(50000), productAStock));
         ProductResult productB = productService.registerProduct(brand.id(),
-                new ProductCreateCommand(brand.id(), "슬리퍼", 30000, productBStock));
+                new ProductCreateCommand(brand.id(), "슬리퍼", Money.of(30000), productBStock));
 
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

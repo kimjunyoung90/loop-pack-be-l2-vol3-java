@@ -4,6 +4,7 @@ import com.loopers.application.order.OrderService;
 import com.loopers.application.order.result.OrderResult.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.user.UserService;
+import com.loopers.domain.common.Money;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import com.loopers.support.error.CoreException;
@@ -43,8 +44,8 @@ class OrderAdminV1ControllerTest {
     void 주문_상세_조회_시_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
         given(orderService.getOrder(1L)).willReturn(orderResult);
 

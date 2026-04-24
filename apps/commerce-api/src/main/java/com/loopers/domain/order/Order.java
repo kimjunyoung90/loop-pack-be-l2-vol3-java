@@ -1,6 +1,7 @@
 package com.loopers.domain.order;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
@@ -35,13 +36,13 @@ public class Order extends BaseEntity {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @Column(nullable = false)
-    private int totalAmount;
+    private Money totalAmount;
 
     @Column(nullable = false)
-    private int discountAmount;
+    private Money discountAmount;
 
     @Column(nullable = false)
-    private int finalAmount;
+    private Money finalAmount;
 
     @Builder
     private Order(Long userId, String idempotencyKey, Long userCouponId) {
@@ -49,9 +50,9 @@ public class Order extends BaseEntity {
         this.idempotencyKey = idempotencyKey;
         this.userCouponId = userCouponId;
         this.status = OrderStatus.PENDING;
-        this.totalAmount = 0;
-        this.discountAmount = 0;
-        this.finalAmount = 0;
+        this.totalAmount = Money.ZERO;
+        this.discountAmount = Money.ZERO;
+        this.finalAmount = Money.ZERO;
         guard();
     }
 
@@ -66,14 +67,14 @@ public class Order extends BaseEntity {
         if (status == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 상태는 필수입니다.");
         }
-        if (totalAmount < 0) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "총 주문 금액은 0 이상이어야 합니다.");
+        if (totalAmount == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "총 주문 금액은 필수입니다.");
         }
-        if (discountAmount < 0) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "할인 금액은 0 이상이어야 합니다.");
+        if (discountAmount == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "할인 금액은 필수입니다.");
         }
-        if (finalAmount < 0) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "최종 결제 금액은 0 이상이어야 합니다.");
+        if (finalAmount == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "최종 결제 금액은 필수입니다.");
         }
     }
 
@@ -83,16 +84,16 @@ public class Order extends BaseEntity {
         refreshAmounts();
     }
 
-    public void applyDiscount(int discountAmount) {
+    public void applyDiscount(Money discountAmount) {
         this.discountAmount = discountAmount;
         refreshAmounts();
     }
 
     private void refreshAmounts() {
         this.totalAmount = orderItems.stream()
-                .mapToInt(OrderItem::getTotalPrice)
-                .sum();
-        this.finalAmount = Math.max(this.totalAmount - this.discountAmount, 0);
+                .map(OrderItem::getTotalPrice)
+                .reduce(Money.ZERO, Money::add);
+        this.finalAmount = this.totalAmount.subtract(this.discountAmount);
     }
 
     public void complete() {

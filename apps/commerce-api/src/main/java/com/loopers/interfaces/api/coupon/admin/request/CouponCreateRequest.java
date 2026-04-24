@@ -1,5 +1,6 @@
 package com.loopers.interfaces.api.coupon.admin.request;
 
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.DiscountType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,7 +14,7 @@ public record CouponCreateRequest(
         DiscountType discountType,
         @NotNull
         Integer discountValue,
-        Integer minOrderAmount,
+        Money minOrderAmount,
         @NotNull
         LocalDate expiredAt,
         @NotNull

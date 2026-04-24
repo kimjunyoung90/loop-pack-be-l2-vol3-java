@@ -15,6 +15,7 @@ import com.loopers.application.product.result.ProductResult;
 import com.loopers.application.user.UserService;
 import com.loopers.application.user.command.UserCreateCommand;
 import com.loopers.application.user.result.UserResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.support.error.CoreException;
 
@@ -60,8 +61,8 @@ class OrderFacadeIntegrationTest {
 
         // 브랜드 + 상품 등록
         BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
-        ProductResult productResult1 = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
-        ProductResult productResult2 = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", 30000, 5));
+        ProductResult productResult1 = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", Money.of(50000), 10));
+        ProductResult productResult2 = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", Money.of(30000), 5));
 
         // 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), null, List.of(
@@ -73,7 +74,7 @@ class OrderFacadeIntegrationTest {
         // 주문 정보 검증
         assertThat(result.id()).isNotNull();
         assertThat(result.userId()).isEqualTo(userResult.id());
-        assertThat(result.totalAmount()).isEqualTo(130000);
+        assertThat(result.totalAmount()).isEqualTo(Money.of(130000));
         assertThat(result.orderItems()).hasSize(2);
 
         // 재고 차감 검증
@@ -91,7 +92,7 @@ class OrderFacadeIntegrationTest {
 
         // 브랜드 + 상품 등록 (재고 2개)
         BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
-        ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 2));
+        ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", Money.of(50000), 2));
 
         // 재고 초과 주문
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), null, List.of(
@@ -111,7 +112,7 @@ class OrderFacadeIntegrationTest {
 
         // 브랜드 + 상품 등록
         BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
-        ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 50000, 10));
+        ProductResult productResult = productService.registerProduct(brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", Money.of(50000), 10));
 
         // 주문 생성
         OrderCreateCommand command = new OrderCreateCommand(userResult.id(), UUID.randomUUID().toString(), null, List.of(
@@ -146,7 +147,7 @@ class OrderFacadeIntegrationTest {
         int orderQuantity = 2;
         int initialStock = 10;
         ProductResult productResult = productService.registerProduct(brandResult.id(),
-                new ProductCreateCommand(brandResult.id(), "운동화", productPrice, initialStock));
+                new ProductCreateCommand(brandResult.id(), "운동화", Money.of(productPrice), initialStock));
 
         // 쿠폰 생성 + 발급
         int discountValue = 5000;
@@ -163,9 +164,9 @@ class OrderFacadeIntegrationTest {
         OrderResult result = orderFacade.placeOrder(command);
 
         // 할인 금액 및 최종 결제 금액 검증
-        assertThat(result.totalAmount()).isEqualTo(expectedTotalAmount);
-        assertThat(result.discountAmount()).isEqualTo(discountValue);
-        assertThat(result.finalAmount()).isEqualTo(expectedTotalAmount - discountValue);
+        assertThat(result.totalAmount()).isEqualTo(Money.of(expectedTotalAmount));
+        assertThat(result.discountAmount()).isEqualTo(Money.of(discountValue));
+        assertThat(result.finalAmount()).isEqualTo(Money.of(expectedTotalAmount - discountValue));
 
         // 쿠폰 상태 USED 검증
         UserCouponResult usedCoupon = couponService.getUserCoupons(userResult.id()).stream()
@@ -189,7 +190,7 @@ class OrderFacadeIntegrationTest {
         int initialStock = 10;
         int orderQuantity = 2;
         ProductResult productResult = productService.registerProduct(brandResult.id(),
-                new ProductCreateCommand(brandResult.id(), "운동화", 50000, initialStock));
+                new ProductCreateCommand(brandResult.id(), "운동화", Money.of(50000), initialStock));
 
         // 쿠폰 생성 + 발급
         CouponResult couponResult = couponService.registerCoupon(

@@ -1,6 +1,7 @@
 package com.loopers.domain.order;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
@@ -27,13 +28,13 @@ public class OrderItem extends BaseEntity {
     private String productName;
 
     @Column(nullable = false)
-    private int productPrice;
+    private Money productPrice;
 
     @Column(nullable = false)
     private int quantity;
 
     @Builder
-    private OrderItem(Long productId, String productName, int productPrice, int quantity) {
+    private OrderItem(Long productId, String productName, Money productPrice, int quantity) {
         this.productId = productId;
         this.productName = productName;
         this.productPrice = productPrice;
@@ -41,8 +42,8 @@ public class OrderItem extends BaseEntity {
         guard();
     }
 
-    public int getTotalPrice() {
-        return productPrice * quantity;
+    public Money getTotalPrice() {
+        return productPrice.multiply(quantity);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class OrderItem extends BaseEntity {
         if (productName == null || productName.isBlank()) {
             throw new CoreException(ErrorType.BAD_REQUEST, "상품명은 필수입니다.");
         }
-        if (productPrice <= 0) {
+        if (productPrice == null || !productPrice.isPositive()) {
             throw new CoreException(ErrorType.BAD_REQUEST, "상품 가격은 0보다 커야 합니다.");
         }
         if (quantity <= 0) {

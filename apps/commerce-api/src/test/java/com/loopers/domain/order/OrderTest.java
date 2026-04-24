@@ -1,5 +1,6 @@
 package com.loopers.domain.order;
 
+import com.loopers.domain.common.Money;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +54,7 @@ class OrderTest {
         OrderItem orderItem = OrderItem.builder()
                 .productId(1L)
                 .productName("운동화")
-                .productPrice(50000)
+                .productPrice(Money.of(50000))
                 .quantity(2)
                 .build();
 
@@ -62,7 +63,7 @@ class OrderTest {
 
         // then
         assertThat(order.getOrderItems()).hasSize(1);
-        assertThat(order.getTotalAmount()).isEqualTo(100000);
+        assertThat(order.getTotalAmount()).isEqualTo(Money.of(100000));
     }
 
     @Test
@@ -72,13 +73,13 @@ class OrderTest {
         OrderItem item1 = OrderItem.builder()
                 .productId(1L)
                 .productName("운동화")
-                .productPrice(50000)
+                .productPrice(Money.of(50000))
                 .quantity(2)
                 .build();
         OrderItem item2 = OrderItem.builder()
                 .productId(2L)
                 .productName("슬리퍼")
-                .productPrice(30000)
+                .productPrice(Money.of(30000))
                 .quantity(1)
                 .build();
 
@@ -88,7 +89,7 @@ class OrderTest {
 
         // then
         assertThat(order.getOrderItems()).hasSize(2);
-        assertThat(order.getTotalAmount()).isEqualTo(130000);
+        assertThat(order.getTotalAmount()).isEqualTo(Money.of(130000));
     }
 
     @Test
@@ -98,17 +99,17 @@ class OrderTest {
         order.addOrderItem(OrderItem.builder()
                 .productId(1L)
                 .productName("운동화")
-                .productPrice(50000)
+                .productPrice(Money.of(50000))
                 .quantity(2)
                 .build());
 
         // when
-        order.applyDiscount(10000);
+        order.applyDiscount(Money.of(10000));
 
         // then
-        assertThat(order.getTotalAmount()).isEqualTo(100000);
-        assertThat(order.getDiscountAmount()).isEqualTo(10000);
-        assertThat(order.getFinalAmount()).isEqualTo(90000);
+        assertThat(order.getTotalAmount()).isEqualTo(Money.of(100000));
+        assertThat(order.getDiscountAmount()).isEqualTo(Money.of(10000));
+        assertThat(order.getFinalAmount()).isEqualTo(Money.of(90000));
     }
 
     @Test
@@ -120,16 +121,16 @@ class OrderTest {
         order.addOrderItem(OrderItem.builder()
                 .productId(1L)
                 .productName("운동화")
-                .productPrice(productPrice)
+                .productPrice(Money.of(productPrice))
                 .quantity(1)
                 .build());
 
         // when
-        order.applyDiscount(discountAmount);
+        order.applyDiscount(Money.of(discountAmount));
 
         // then
-        assertThat(discountAmount).isGreaterThan(order.getTotalAmount());
-        assertThat(order.getFinalAmount()).isZero();
+        assertThat(discountAmount).isGreaterThan(order.getTotalAmount().value());
+        assertThat(order.getFinalAmount()).isEqualTo(Money.ZERO);
     }
 
     @Test

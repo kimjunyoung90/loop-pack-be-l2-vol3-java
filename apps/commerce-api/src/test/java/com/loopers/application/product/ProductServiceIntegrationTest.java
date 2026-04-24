@@ -6,6 +6,7 @@ import com.loopers.application.brand.result.BrandResult;
 import com.loopers.application.product.command.ProductCreateCommand;
 import com.loopers.application.product.command.ProductUpdateCommand;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
@@ -36,10 +37,10 @@ class ProductServiceIntegrationTest {
         BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
 
         // 상품 등록
-        ProductCreateCommand createCommand = new ProductCreateCommand(brandResult.id(), "운동화", 100000, 50);
+        ProductCreateCommand createCommand = new ProductCreateCommand(brandResult.id(), "운동화", Money.of(100000), 50);
         ProductResult created = productService.registerProduct(brandResult.id(), createCommand);
         assertThat(created.name()).isEqualTo("운동화");
-        assertThat(created.price()).isEqualTo(100000);
+        assertThat(created.price()).isEqualTo(Money.of(100000));
         assertThat(created.stock()).isEqualTo(50);
         assertThat(created.id()).isNotNull();
 
@@ -49,11 +50,11 @@ class ProductServiceIntegrationTest {
 
         // 상품 수정
         BrandResult brandResult2 = brandService.registerBrand(new BrandCreateCommand("아디다스"));
-        ProductUpdateCommand updateCommand = new ProductUpdateCommand(brandResult2.id(), "슬리퍼", 50000, 30);
+        ProductUpdateCommand updateCommand = new ProductUpdateCommand(brandResult2.id(), "슬리퍼", Money.of(50000), 30);
         ProductResult updated = productService.modifyProduct(created.id(), brandResult2.id(), updateCommand);
         assertThat(updated.brandId()).isEqualTo(brandResult2.id());
         assertThat(updated.name()).isEqualTo("슬리퍼");
-        assertThat(updated.price()).isEqualTo(50000);
+        assertThat(updated.price()).isEqualTo(Money.of(50000));
         assertThat(updated.stock()).isEqualTo(30);
 
         // 상품 삭제
@@ -69,9 +70,9 @@ class ProductServiceIntegrationTest {
         // given
         BrandResult brandResult = brandService.registerBrand(new BrandCreateCommand("나이키"));
         ProductResult product1 = productService.registerProduct(
-                brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", 100000, 50));
+                brandResult.id(), new ProductCreateCommand(brandResult.id(), "운동화", Money.of(100000), 50));
         ProductResult product2 = productService.registerProduct(
-                brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", 50000, 30));
+                brandResult.id(), new ProductCreateCommand(brandResult.id(), "슬리퍼", Money.of(50000), 30));
         productService.deleteProduct(product1.id());
 
         // when

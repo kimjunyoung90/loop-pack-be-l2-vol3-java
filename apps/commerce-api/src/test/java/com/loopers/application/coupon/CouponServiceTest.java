@@ -1,6 +1,7 @@
 package com.loopers.application.coupon;
 
 import com.loopers.application.coupon.command.CouponUpdateCommand;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponIssueRequestRepository;
 import com.loopers.domain.coupon.CouponRepository;
@@ -81,7 +82,7 @@ class CouponServiceTest {
         given(userCouponRepository.findByIdWithLockAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> couponService.useCoupon(1L, 1L, 50000))
+        assertThatThrownBy(() -> couponService.useCoupon(1L, 1L, Money.of(50000)))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.NOT_FOUND));
     }

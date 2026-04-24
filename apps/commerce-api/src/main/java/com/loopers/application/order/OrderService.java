@@ -2,6 +2,7 @@ package com.loopers.application.order;
 
 import com.loopers.application.order.command.OrderItemCommand;
 import com.loopers.application.order.result.OrderResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.order.OrderRepository;
@@ -23,7 +24,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderResult placeOrder(Long userId, String idempotencyKey, Long userCouponId, List<OrderItemCommand> items, int discountAmount) {
+    public OrderResult placeOrder(Long userId, String idempotencyKey, Long userCouponId, List<OrderItemCommand> items, Money discountAmount) {
 		if (orderRepository.findByIdempotencyKey(idempotencyKey).isPresent()) {
 			throw new CoreException(ErrorType.BAD_REQUEST, "이미 처리된 주문입니다.");
 		}

@@ -1,5 +1,6 @@
 package com.loopers.domain.coupon;
 
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class CouponTest {
                 .name("신규 가입 쿠폰")
                 .discountType(DiscountType.FIXED)
                 .discountValue(3000)
-                .minOrderAmount(10000)
+                .minOrderAmount(Money.of(10000))
                 .expiredAt(expiredAt)
                 .build();
 
@@ -31,7 +32,7 @@ class CouponTest {
         assertThat(coupon.getName()).isEqualTo("신규 가입 쿠폰");
         assertThat(coupon.getDiscountType()).isEqualTo(DiscountType.FIXED);
         assertThat(coupon.getDiscountValue()).isEqualTo(3000);
-        assertThat(coupon.getMinOrderAmount()).isEqualTo(10000);
+        assertThat(coupon.getMinOrderAmount()).isEqualTo(Money.of(10000));
         assertThat(coupon.getExpiredAt()).isEqualTo(expiredAt);
     }
 
@@ -170,7 +171,7 @@ class CouponTest {
                 .name("쿠폰")
                 .discountType(DiscountType.FIXED)
                 .discountValue(1000)
-                .minOrderAmount(0)
+                .minOrderAmount(Money.of(0))
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
         ).isInstanceOf(CoreException.class)
@@ -183,7 +184,7 @@ class CouponTest {
                 .name("쿠폰")
                 .discountType(DiscountType.FIXED)
                 .discountValue(1000)
-                .minOrderAmount(-1)
+                .minOrderAmount(Money.of(-1))
                 .expiredAt(LocalDate.now().plusDays(7))
                 .build()
         ).isInstanceOf(CoreException.class)
@@ -226,13 +227,13 @@ class CouponTest {
 
         // when
         LocalDate newExpiredAt = LocalDate.now().plusDays(30);
-        coupon.changeInfo("수정된 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt, 100);
+        coupon.changeInfo("수정된 쿠폰", DiscountType.RATE, 10, Money.of(5000), newExpiredAt, 100);
 
         // then
         assertThat(coupon.getName()).isEqualTo("수정된 쿠폰");
         assertThat(coupon.getDiscountType()).isEqualTo(DiscountType.RATE);
         assertThat(coupon.getDiscountValue()).isEqualTo(10);
-        assertThat(coupon.getMinOrderAmount()).isEqualTo(5000);
+        assertThat(coupon.getMinOrderAmount()).isEqualTo(Money.of(5000));
         assertThat(coupon.getExpiredAt()).isEqualTo(newExpiredAt);
     }
 
@@ -343,7 +344,7 @@ class CouponTest {
                 .name("신규 가입 쿠폰")
                 .discountType(DiscountType.FIXED)
                 .discountValue(3000)
-                .minOrderAmount(10000)
+                .minOrderAmount(Money.of(10000))
                 .expiredAt(LocalDate.now().plusDays(30))
                 .build();
         ReflectionTestUtils.setField(coupon, "id", 1L);
@@ -357,7 +358,7 @@ class CouponTest {
         assertThat(userCoupon.getCouponName()).isEqualTo("신규 가입 쿠폰");
         assertThat(userCoupon.getDiscountType()).isEqualTo(DiscountType.FIXED);
         assertThat(userCoupon.getDiscountValue()).isEqualTo(3000);
-        assertThat(userCoupon.getMinOrderAmount()).isEqualTo(10000);
+        assertThat(userCoupon.getMinOrderAmount()).isEqualTo(Money.of(10000));
         assertThat(userCoupon.getStatus()).isEqualTo(CouponStatus.AVAILABLE);
     }
 }

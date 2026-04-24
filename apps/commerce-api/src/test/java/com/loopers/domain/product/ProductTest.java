@@ -1,5 +1,6 @@
 package com.loopers.domain.product;
 
+import com.loopers.domain.common.Money;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,17 +13,17 @@ class ProductTest {
         Product product = Product.builder()
                 .brandId(1L)
                 .name("운동화")
-                .price(100000)
+                .price(Money.of(100000))
                 .stock(50)
                 .build();
 
         // when
-        product.changeInfo(2L, "슬리퍼", 50000, 30);
+        product.changeInfo(2L, "슬리퍼", Money.of(50000), 30);
 
         // then
         assertThat(product.getBrandId()).isEqualTo(2L);
         assertThat(product.getName()).isEqualTo("슬리퍼");
-        assertThat(product.getPrice()).isEqualTo(50000);
+        assertThat(product.getPrice()).isEqualTo(Money.of(50000));
         assertThat(product.getStock()).isEqualTo(30);
     }
 
@@ -32,7 +33,7 @@ class ProductTest {
         Product product = Product.builder()
                 .brandId(1L)
                 .name("운동화")
-                .price(100000)
+                .price(Money.of(100000))
                 .stock(50)
                 .build();
 

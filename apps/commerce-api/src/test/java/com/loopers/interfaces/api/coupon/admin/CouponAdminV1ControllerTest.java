@@ -5,6 +5,7 @@ import com.loopers.application.coupon.CouponService;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
 import com.loopers.application.user.UserService;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.interfaces.api.coupon.admin.request.CouponCreateRequest;
 import com.loopers.interfaces.api.coupon.admin.request.CouponUpdateRequest;
@@ -54,11 +55,11 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_생성_시_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponResult couponResult = new CouponResult(1L, "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, 100, 0, null, null);
+        CouponResult couponResult = new CouponResult(1L, "신규 쿠폰", DiscountType.FIXED, 3000, Money.of(10000), expiredAt, 100, 0, null, null);
         given(couponService.registerCoupon(any())).willReturn(couponResult);
 
         CouponCreateRequest request = new CouponCreateRequest(
-                "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, 100
+                "신규 쿠폰", DiscountType.FIXED, 3000, Money.of(10000), expiredAt, 100
         );
 
         // when & then
@@ -153,7 +154,7 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_상세_조회_시_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.RATE, 10, 5000, expiredAt, 100, 0, null, null);
+        CouponResult couponResult = new CouponResult(1L, "쿠폰", DiscountType.RATE, 10, Money.of(5000), expiredAt, 100, 0, null, null);
         given(couponService.getCoupon(1L)).willReturn(couponResult);
 
         // when & then
@@ -170,11 +171,11 @@ class CouponAdminV1ControllerTest {
     void 쿠폰_수정_시_수정된_쿠폰정보를_반환한다() throws Exception {
         // given
         LocalDate expiredAt = LocalDate.now().plusDays(30);
-        CouponResult couponResult = new CouponResult(1L, "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, 100, 0, null, null);
+        CouponResult couponResult = new CouponResult(1L, "수정 쿠폰", DiscountType.RATE, 15, Money.of(5000), expiredAt, 100, 0, null, null);
         given(couponService.modifyCoupon(any(), any())).willReturn(couponResult);
 
         CouponUpdateRequest request = new CouponUpdateRequest(
-                "수정 쿠폰", DiscountType.RATE, 15, 5000, expiredAt, 100
+                "수정 쿠폰", DiscountType.RATE, 15, Money.of(5000), expiredAt, 100
         );
 
         // when & then

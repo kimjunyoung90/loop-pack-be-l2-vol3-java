@@ -1,6 +1,7 @@
 package com.loopers.domain.coupon;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.domain.common.Money;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Column;
@@ -31,7 +32,7 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private int discountValue;
 
-    private Integer minOrderAmount;
+    private Money minOrderAmount;
 
     @Column(nullable = false)
     private LocalDate expiredAt;
@@ -43,7 +44,7 @@ public class Coupon extends BaseEntity {
     private int issuedQuantity;
 
     @Builder
-    private Coupon(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt, int totalQuantity) {
+    private Coupon(String name, DiscountType discountType, int discountValue, Money minOrderAmount, LocalDate expiredAt, int totalQuantity) {
         this.name = name;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -57,7 +58,7 @@ public class Coupon extends BaseEntity {
         }
     }
 
-    public void changeInfo(String name, DiscountType discountType, int discountValue, Integer minOrderAmount, LocalDate expiredAt, int totalQuantity) {
+    public void changeInfo(String name, DiscountType discountType, int discountValue, Money minOrderAmount, LocalDate expiredAt, int totalQuantity) {
         this.name = name;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -84,7 +85,7 @@ public class Coupon extends BaseEntity {
         if (discountType == DiscountType.RATE && 100 < discountValue) {
             throw new CoreException(ErrorType.BAD_REQUEST, "정률 할인 값은 100 이하여야 합니다.");
         }
-        if (minOrderAmount != null && minOrderAmount <= 0) {
+        if (minOrderAmount != null && !minOrderAmount.isPositive()) {
             throw new CoreException(ErrorType.BAD_REQUEST, "최소 주문 금액은 0보다 커야 합니다.");
         }
         if (expiredAt == null) {

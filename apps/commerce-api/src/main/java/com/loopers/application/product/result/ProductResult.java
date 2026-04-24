@@ -1,5 +1,6 @@
 package com.loopers.application.product.result;
 
+import com.loopers.domain.common.Money;
 import com.loopers.domain.product.Product;
 
 import java.time.ZonedDateTime;
@@ -8,7 +9,7 @@ public record ProductResult(
         Long id,
         Long brandId,
         String name,
-        int price,
+        Money price,
         int stock,
         int likeCount,
         ZonedDateTime createdAt,

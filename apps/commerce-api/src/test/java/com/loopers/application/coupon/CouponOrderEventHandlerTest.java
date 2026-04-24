@@ -1,5 +1,6 @@
 package com.loopers.application.coupon;
 
+import com.loopers.domain.common.Money;
 import com.loopers.domain.order.event.OrderCancelledEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -31,14 +31,14 @@ class CouponOrderEventHandlerTest {
         // given
         OrderPlacedEvent event = new OrderPlacedEvent(
                 List.of(new OrderPlacedEvent.ItemStock(1L, 2)),
-                10L, 1L, 100000
+                10L, 1L, Money.of(100000)
         );
 
         // when
         handler.handleOrderPlaced(event);
 
         // then
-        verify(couponService).useCoupon(10L, 1L, 100000);
+        verify(couponService).useCoupon(10L, 1L, Money.of(100000));
     }
 
     @Test
@@ -46,14 +46,14 @@ class CouponOrderEventHandlerTest {
         // given
         OrderPlacedEvent event = new OrderPlacedEvent(
                 List.of(new OrderPlacedEvent.ItemStock(1L, 2)),
-                null, 1L, 100000
+                null, 1L, Money.of(100000)
         );
 
         // when
         handler.handleOrderPlaced(event);
 
         // then
-        verify(couponService, never()).useCoupon(any(), any(), anyInt());
+        verify(couponService, never()).useCoupon(any(), any(), any(Money.class));
     }
 
     // --- handleOrderCancelled ---

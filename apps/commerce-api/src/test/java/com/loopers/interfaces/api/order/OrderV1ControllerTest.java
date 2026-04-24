@@ -6,6 +6,7 @@ import com.loopers.application.order.result.OrderResult.OrderItemResult;
 import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.queue.QueueService;
 import com.loopers.application.user.UserService;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.user.User;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
@@ -66,8 +67,8 @@ class OrderV1ControllerTest {
     void 주문을_생성하면_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
 
         User mockUser = mock(User.class);
@@ -134,8 +135,8 @@ class OrderV1ControllerTest {
     void 주문을_취소하면_200_OK와_취소된_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult orderResult = new OrderResult(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "CANCELLED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
 
         User mockUser = mock(User.class);
@@ -165,8 +166,8 @@ class OrderV1ControllerTest {
     void 주문_목록을_조회하면_200_OK와_주문_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
 
         Page<OrderResult> orderPage = new PageImpl<>(List.of(orderResult), PageRequest.of(0, 20), 1);
@@ -203,8 +204,8 @@ class OrderV1ControllerTest {
     void 주문_상세를_조회하면_200_OK와_주문_정보를_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult orderResult = new OrderResult(1L, 1L, null, "COMPLETED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
 
         User mockUser = mock(User.class);

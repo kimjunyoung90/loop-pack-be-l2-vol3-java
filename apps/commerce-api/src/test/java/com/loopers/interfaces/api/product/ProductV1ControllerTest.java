@@ -3,6 +3,7 @@ package com.loopers.interfaces.api.product;
 import com.loopers.application.product.ProductFacade;
 import com.loopers.application.product.result.ProductWithBrandResult;
 import com.loopers.application.user.UserService;
+import com.loopers.domain.common.Money;
 import com.loopers.interfaces.api.auth.AdminAuthInterceptor;
 import com.loopers.interfaces.api.auth.LoginUserArgumentResolver;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class ProductV1ControllerTest {
     void 상품_목록을_조회하면_200_OK와_페이징된_상품_목록을_반환한다() throws Exception {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        ProductWithBrandResult productResult = new ProductWithBrandResult(1L, 1L, "나이키", "운동화", 100000, 50, 10, null, now, now);
+        ProductWithBrandResult productResult = new ProductWithBrandResult(1L, 1L, "나이키", "운동화", Money.of(100000), 50, 10, null, now, now);
         given(productFacade.getProducts(isNull(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(productResult), PageRequest.of(0, 20), 1));
 
@@ -68,7 +69,7 @@ class ProductV1ControllerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productFacade.getProduct(1L))
-                .willReturn(new ProductWithBrandResult(1L, 1L, "나이키", "운동화", 100000, 50, 10, 3, now, now));
+                .willReturn(new ProductWithBrandResult(1L, 1L, "나이키", "운동화", Money.of(100000), 50, 10, 3, now, now));
 
         // when & then
         mockMvc.perform(get("/api/v1/products/1")

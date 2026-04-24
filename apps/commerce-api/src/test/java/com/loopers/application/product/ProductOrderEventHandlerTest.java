@@ -1,6 +1,7 @@
 package com.loopers.application.product;
 
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.order.event.OrderCancelledEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
 import org.junit.jupiter.api.Test;
@@ -31,11 +32,11 @@ class ProductOrderEventHandlerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.deductStock(1L, 2))
-                .willReturn(new ProductResult(1L, 1L, "운동화", 50000, 8, 0, now, now));
+                .willReturn(new ProductResult(1L, 1L, "운동화", Money.of(50000), 8, 0, now, now));
 
         OrderPlacedEvent event = new OrderPlacedEvent(List.of(
                 new OrderPlacedEvent.ItemStock(1L, 2)
-        ), null, 1L, 100000);
+        ), null, 1L, Money.of(100000));
 
         // when
         handler.handleOrderPlaced(event);
@@ -49,14 +50,14 @@ class ProductOrderEventHandlerTest {
         // given
         ZonedDateTime now = ZonedDateTime.now();
         given(productService.deductStock(1L, 1))
-                .willReturn(new ProductResult(1L, 1L, "운동화", 50000, 9, 0, now, now));
+                .willReturn(new ProductResult(1L, 1L, "운동화", Money.of(50000), 9, 0, now, now));
         given(productService.deductStock(2L, 3))
-                .willReturn(new ProductResult(2L, 1L, "티셔츠", 30000, 7, 0, now, now));
+                .willReturn(new ProductResult(2L, 1L, "티셔츠", Money.of(30000), 7, 0, now, now));
 
         OrderPlacedEvent event = new OrderPlacedEvent(List.of(
                 new OrderPlacedEvent.ItemStock(2L, 3),
                 new OrderPlacedEvent.ItemStock(1L, 1)
-        ), null, 1L, 80000);
+        ), null, 1L, Money.of(80000));
 
         // when
         handler.handleOrderPlaced(event);

@@ -3,6 +3,7 @@ package com.loopers.application.coupon;
 import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.application.coupon.result.CouponResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.support.error.CoreException;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
@@ -32,14 +33,14 @@ class CouponServiceIntegrationTest {
         // 생성
         LocalDate expiredAt = LocalDate.now().plusDays(30);
         CouponCreateCommand createCommand = new CouponCreateCommand(
-                "신규 쿠폰", DiscountType.FIXED, 3000, 10000, expiredAt, 100
+                "신규 쿠폰", DiscountType.FIXED, 3000, Money.of(10000), expiredAt, 100
         );
         CouponResult created = couponService.registerCoupon(createCommand);
         assertThat(created.id()).isNotNull();
         assertThat(created.name()).isEqualTo("신규 쿠폰");
         assertThat(created.discountType()).isEqualTo(DiscountType.FIXED);
         assertThat(created.discountValue()).isEqualTo(3000);
-        assertThat(created.minOrderAmount()).isEqualTo(10000);
+        assertThat(created.minOrderAmount()).isEqualTo(Money.of(10000));
         assertThat(created.expiredAt()).isEqualTo(expiredAt);
 
         // 조회
@@ -49,13 +50,13 @@ class CouponServiceIntegrationTest {
         // 수정
         LocalDate newExpiredAt = LocalDate.now().plusDays(60);
         CouponUpdateCommand updateCommand = new CouponUpdateCommand(
-                "수정 쿠폰", DiscountType.RATE, 10, 5000, newExpiredAt, 100
+                "수정 쿠폰", DiscountType.RATE, 10, Money.of(5000), newExpiredAt, 100
         );
         CouponResult updated = couponService.modifyCoupon(created.id(), updateCommand);
         assertThat(updated.name()).isEqualTo("수정 쿠폰");
         assertThat(updated.discountType()).isEqualTo(DiscountType.RATE);
         assertThat(updated.discountValue()).isEqualTo(10);
-        assertThat(updated.minOrderAmount()).isEqualTo(5000);
+        assertThat(updated.minOrderAmount()).isEqualTo(Money.of(5000));
         assertThat(updated.expiredAt()).isEqualTo(newExpiredAt);
 
         // 삭제
@@ -73,7 +74,7 @@ class CouponServiceIntegrationTest {
                 new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, null, LocalDate.now().plusDays(7), 100)
         );
         couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰2", DiscountType.RATE, 10, 5000, LocalDate.now().plusDays(14), 100)
+                new CouponCreateCommand("쿠폰2", DiscountType.RATE, 10, Money.of(5000), LocalDate.now().plusDays(14), 100)
         );
         couponService.deleteCoupon(coupon1.id());
 

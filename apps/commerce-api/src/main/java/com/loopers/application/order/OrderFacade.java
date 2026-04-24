@@ -8,6 +8,7 @@ import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.outbox.OrderOutboxEventService;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.result.ProductResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.order.event.OrderCancelledEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
 import lombok.RequiredArgsConstructor;
@@ -50,8 +51,8 @@ public class OrderFacade {
                 .toList();
 
         // 2. 쿠폰 할인 금액을 계산한다. (쿠폰이 있는 경우)
-        int totalAmount = OrderItemCommand.calculateTotalAmount(orderItemCommands);
-        int discountAmount = 0;
+        Money totalAmount = OrderItemCommand.calculateTotalAmount(orderItemCommands);
+        Money discountAmount = Money.ZERO;
         if (command.userCouponId() != null) {
             discountAmount = couponService.calculateDiscount(command.userCouponId(), command.userId(), totalAmount);
         }

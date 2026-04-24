@@ -3,6 +3,7 @@ package com.loopers.application.coupon;
 import com.loopers.application.coupon.command.CouponCreateCommand;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.DiscountType;
 import com.loopers.testcontainers.MySqlTestContainersConfig;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class UserCouponServiceIntegrationTest {
     void 사용자_쿠폰_생성_시_쿠폰_정보가_DB에_저장된다() {
         // given
         CouponResult couponResult = couponService.registerCoupon(
-                new CouponCreateCommand("테스트 쿠폰", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("테스트 쿠폰", DiscountType.FIXED, 1000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
 
         // when
@@ -54,10 +55,10 @@ class UserCouponServiceIntegrationTest {
     void 쿠폰_목록_조회_시_해당_사용자의_쿠폰만_조회된다() {
         // given
         CouponResult coupon1 = couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
         CouponResult coupon2 = couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰2", DiscountType.FIXED, 2000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("쿠폰2", DiscountType.FIXED, 2000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
         couponService.issueCoupon(1L, coupon1.id());
         couponService.issueCoupon(2L, coupon2.id());
@@ -74,10 +75,10 @@ class UserCouponServiceIntegrationTest {
     void 쿠폰별_발급_내역_조회_시_해당_쿠폰의_발급_내역만_페이징_조회된다() {
         // given
         CouponResult coupon1 = couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("쿠폰1", DiscountType.FIXED, 1000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
         CouponResult coupon2 = couponService.registerCoupon(
-                new CouponCreateCommand("쿠폰2", DiscountType.FIXED, 2000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("쿠폰2", DiscountType.FIXED, 2000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
         couponService.issueCoupon(1L, coupon1.id());
         couponService.issueCoupon(2L, coupon1.id());
@@ -95,16 +96,16 @@ class UserCouponServiceIntegrationTest {
     void 쿠폰_사용_시_상태가_USED로_변경되고_할인_금액을_반환한다() {
         // given
         CouponResult coupon = couponService.registerCoupon(
-                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, 3000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("정액 할인 쿠폰", DiscountType.FIXED, 3000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
         couponService.issueCoupon(1L, coupon.id());
         UserCouponResult issued = couponService.getUserCoupons(1L).getFirst();
 
         // when
-        int discount = couponService.useCoupon(issued.id(), 1L, 50000);
+        Money discount = couponService.useCoupon(issued.id(), 1L, Money.of(50000));
 
         // then
-        assertThat(discount).isEqualTo(3000);
+        assertThat(discount).isEqualTo(Money.of(3000));
         List<UserCouponResult> userCoupons = couponService.getUserCoupons(1L);
         assertThat(userCoupons.getFirst().status()).isEqualTo("USED");
     }
@@ -113,11 +114,11 @@ class UserCouponServiceIntegrationTest {
     void 쿠폰_사용_후_복원하면_상태가_AVAILABLE로_변경된다() {
         // given
         CouponResult coupon = couponService.registerCoupon(
-                new CouponCreateCommand("복원 테스트 쿠폰", DiscountType.FIXED, 1000, 10000, LocalDate.now().plusDays(7), 100)
+                new CouponCreateCommand("복원 테스트 쿠폰", DiscountType.FIXED, 1000, Money.of(10000), LocalDate.now().plusDays(7), 100)
         );
         couponService.issueCoupon(1L, coupon.id());
         UserCouponResult issued = couponService.getUserCoupons(1L).getFirst();
-        couponService.useCoupon(issued.id(), 1L, 50000);
+        couponService.useCoupon(issued.id(), 1L, Money.of(50000));
 
         // when
         couponService.restoreCoupon(issued.id());

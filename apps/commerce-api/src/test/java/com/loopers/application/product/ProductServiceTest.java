@@ -1,6 +1,7 @@
 package com.loopers.application.product;
 
 import com.loopers.application.product.command.ProductUpdateCommand;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.product.ProductCacheRepository;
 import com.loopers.domain.product.ProductRepository;
 import com.loopers.support.cache.CacheLockManager;
@@ -60,7 +61,7 @@ class ProductServiceTest {
     void 존재하지_않는_상품_수정_시_예외가_발생한다() {
         // given
         given(productRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
-        ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", 50000, 30);
+        ProductUpdateCommand command = new ProductUpdateCommand(2L, "슬리퍼", Money.of(50000), 30);
 
         // when & then
         assertThatThrownBy(() -> productService.modifyProduct(1L, 2L, command))

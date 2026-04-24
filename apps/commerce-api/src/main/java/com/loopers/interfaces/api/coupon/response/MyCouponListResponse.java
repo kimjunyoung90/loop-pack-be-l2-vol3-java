@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.coupon.response;
 
 import com.loopers.application.coupon.result.UserCouponResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.DiscountType;
 
 import java.time.LocalDate;
@@ -12,7 +13,7 @@ public record MyCouponListResponse(
         String couponName,
         DiscountType discountType,
         int discountValue,
-        Integer minOrderAmount,
+        Money minOrderAmount,
         String status,
         LocalDate expiredAt,
         ZonedDateTime createdAt

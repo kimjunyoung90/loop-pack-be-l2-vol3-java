@@ -1,5 +1,6 @@
 package com.loopers.application.order.result;
 
+import com.loopers.domain.common.Money;
 import com.loopers.domain.order.Order;
 import com.loopers.domain.order.OrderItem;
 
@@ -11,9 +12,9 @@ public record OrderResult(
         Long userId,
         Long userCouponId,
         String status,
-        int totalAmount,
-        int discountAmount,
-        int finalAmount,
+        Money totalAmount,
+        Money discountAmount,
+        Money finalAmount,
         List<OrderItemResult> orderItems,
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt
@@ -39,9 +40,9 @@ public record OrderResult(
             Long id,
             Long productId,
             String productName,
-            int productPrice,
+            Money productPrice,
             int quantity,
-            int totalPrice,
+            Money totalPrice,
             ZonedDateTime createdAt,
             ZonedDateTime updatedAt
     ) {

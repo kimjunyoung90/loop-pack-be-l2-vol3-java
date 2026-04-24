@@ -7,6 +7,7 @@ import com.loopers.application.order.result.OrderResult;
 import com.loopers.application.product.ProductService;
 import com.loopers.application.product.result.ProductResult;
 
+import com.loopers.domain.common.Money;
 import com.loopers.domain.order.event.OrderCancelledEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
 import com.loopers.support.error.CoreException;
@@ -25,7 +26,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -54,7 +54,7 @@ class OrderFacadeTest {
     @Test
     void 유효한_상품으로_주문하면_재고_차감_이벤트를_발행하고_OrderResult를_반환한다() {
         // given
-        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
+        ProductResult productResult = new ProductResult(1L, 1L, "운동화", Money.of(50000), 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
 
         OrderCreateCommand command = new OrderCreateCommand(1L, "test-key", null, List.of(
                 new OrderCreateCommand.OrderItem(1L, 2)
@@ -63,16 +63,16 @@ class OrderFacadeTest {
         given(productService.getProduct(1L)).willReturn(productResult);
 
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult expectedResult = new OrderResult(1L, 1L, null, "COMPLETED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult expectedResult = new OrderResult(1L, 1L, null, "COMPLETED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
-        given(orderService.placeOrder(eq(1L), any(), any(), anyList(), eq(0))).willReturn(expectedResult);
+        given(orderService.placeOrder(eq(1L), any(), any(), anyList(), eq(Money.ZERO))).willReturn(expectedResult);
 
         // when
         OrderResult result = orderFacade.placeOrder(command);
 
         // then
-        assertThat(result.totalAmount()).isEqualTo(100000);
+        assertThat(result.totalAmount()).isEqualTo(Money.of(100000));
 
         ArgumentCaptor<OrderPlacedEvent> captor = ArgumentCaptor.forClass(OrderPlacedEvent.class);
         verify(eventPublisher).publishEvent(captor.capture());
@@ -100,8 +100,8 @@ class OrderFacadeTest {
     void 주문을_취소하면_재고_복원_이벤트를_발행한다() {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult cancelledResult = new OrderResult(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult cancelledResult = new OrderResult(1L, 1L, null, "CANCELLED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
         given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledResult);
 
@@ -146,34 +146,34 @@ class OrderFacadeTest {
     @Test
     void 쿠폰을_적용하여_주문하면_할인이_반영된_OrderResult를_반환한다() {
         // given
-        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
+        ProductResult productResult = new ProductResult(1L, 1L, "운동화", Money.of(50000), 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
 
         OrderCreateCommand command = new OrderCreateCommand(1L, "test-key", 10L, List.of(
                 new OrderCreateCommand.OrderItem(1L, 2)
         ));
 
         given(productService.getProduct(1L)).willReturn(productResult);
-        given(couponService.calculateDiscount(10L, 1L, 100000)).willReturn(5000);
+        given(couponService.calculateDiscount(10L, 1L, Money.of(100000))).willReturn(Money.of(5000));
 
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult expectedResult = new OrderResult(1L, 1L, 10L, "COMPLETED", 100000, 5000, 95000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult expectedResult = new OrderResult(1L, 1L, 10L, "COMPLETED", Money.of(100000), Money.of(5000), Money.of(95000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
-        given(orderService.placeOrder(eq(1L), any(), eq(10L), anyList(), eq(5000))).willReturn(expectedResult);
+        given(orderService.placeOrder(eq(1L), any(), eq(10L), anyList(), eq(Money.of(5000)))).willReturn(expectedResult);
 
         // when
         OrderResult result = orderFacade.placeOrder(command);
 
         // then
-        assertThat(result.discountAmount()).isEqualTo(5000);
-        assertThat(result.finalAmount()).isEqualTo(95000);
-        verify(couponService).useCoupon(10L, 1L, 100000);
+        assertThat(result.discountAmount()).isEqualTo(Money.of(5000));
+        assertThat(result.finalAmount()).isEqualTo(Money.of(95000));
+        verify(couponService).useCoupon(10L, 1L, Money.of(100000));
     }
 
     @Test
     void 쿠폰_검증에_실패하면_주문이_생성되지_않는다() {
         // given
-        ProductResult productResult = new ProductResult(1L, 1L, "운동화", 50000, 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
+        ProductResult productResult = new ProductResult(1L, 1L, "운동화", Money.of(50000), 8, 0, ZonedDateTime.now(), ZonedDateTime.now());
 
         OrderCreateCommand command = new OrderCreateCommand(1L, "test-key", 10L, List.of(
                 new OrderCreateCommand.OrderItem(1L, 2)
@@ -181,14 +181,14 @@ class OrderFacadeTest {
 
         given(productService.getProduct(1L)).willReturn(productResult);
         willThrow(new CoreException(ErrorType.FORBIDDEN, "본인 소유의 쿠폰만 사용할 수 있습니다."))
-                .given(couponService).useCoupon(10L, 1L, 100000);
+                .given(couponService).useCoupon(10L, 1L, Money.of(100000));
 
         // when & then
         assertThatThrownBy(() -> orderFacade.placeOrder(command))
                 .isInstanceOf(CoreException.class)
                 .satisfies(ex -> assertThat(((CoreException) ex).getErrorType()).isEqualTo(ErrorType.FORBIDDEN));
 
-        verify(orderService, never()).placeOrder(any(), any(), any(), anyList(), anyInt());
+        verify(orderService, never()).placeOrder(any(), any(), any(), anyList(), any(Money.class));
     }
 
     // --- 쿠폰 적용 주문 취소 테스트 ---
@@ -197,8 +197,8 @@ class OrderFacadeTest {
     void 쿠폰이_적용된_주문을_취소하면_이벤트에_쿠폰ID가_포함된다() {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult cancelledResult = new OrderResult(1L, 1L, 10L, "CANCELLED", 100000, 5000, 95000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult cancelledResult = new OrderResult(1L, 1L, 10L, "CANCELLED", Money.of(100000), Money.of(5000), Money.of(95000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
         given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledResult);
 
@@ -215,8 +215,8 @@ class OrderFacadeTest {
     void 쿠폰_미적용_주문을_취소하면_이벤트에_쿠폰ID가_null이다() {
         // given
         ZonedDateTime now = ZonedDateTime.now();
-        OrderResult cancelledResult = new OrderResult(1L, 1L, null, "CANCELLED", 100000, 0, 100000, List.of(
-                new OrderItemResult(1L, 1L, "운동화", 50000, 2, 100000, now, now)
+        OrderResult cancelledResult = new OrderResult(1L, 1L, null, "CANCELLED", Money.of(100000), Money.of(0), Money.of(100000), List.of(
+                new OrderItemResult(1L, 1L, "운동화", Money.of(50000), 2, Money.of(100000), now, now)
         ), now, now);
         given(orderService.cancelOrder(1L, 1L)).willReturn(cancelledResult);
 

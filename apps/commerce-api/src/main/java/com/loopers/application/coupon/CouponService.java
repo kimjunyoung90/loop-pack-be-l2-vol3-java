@@ -5,6 +5,7 @@ import com.loopers.application.coupon.command.CouponUpdateCommand;
 import com.loopers.application.coupon.result.CouponIssueRequestResult;
 import com.loopers.application.coupon.result.CouponResult;
 import com.loopers.application.coupon.result.UserCouponResult;
+import com.loopers.domain.common.Money;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponIssueRequest;
 import com.loopers.domain.coupon.CouponIssueRequestRepository;
@@ -156,7 +157,7 @@ public class CouponService {
 	}
 
 	@Transactional(readOnly = true)
-	public int calculateDiscount(Long userCouponId, Long userId, int totalAmount) {
+	public Money calculateDiscount(Long userCouponId, Long userId, Money totalAmount) {
 		UserCoupon userCoupon = userCouponRepository.findByIdAndDeletedAtIsNull(userCouponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
 		userCoupon.validateUsable(userId, totalAmount);
@@ -164,7 +165,7 @@ public class CouponService {
 	}
 
 	@Transactional
-	public int useCoupon(Long userCouponId, Long userId, int totalAmount) {
+	public Money useCoupon(Long userCouponId, Long userId, Money totalAmount) {
 		UserCoupon userCoupon = userCouponRepository.findByIdWithLockAndDeletedAtIsNull(userCouponId)
 				.orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "사용자 쿠폰을 찾을 수 없습니다."));
 		userCoupon.use(userId, totalAmount);
